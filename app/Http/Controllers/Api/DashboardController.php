@@ -381,25 +381,33 @@ class DashboardController extends Controller
             return Profesional::where('activo', true)->find($profesionalId);
         }
 
-        // MODO DEMO: Si no hay profesional, se auto-crea uno de prueba para el Dashboard
+        // MODO DEMO: Si no hay profesional activo, intentamos auto-crearlo o recuperarlo.
         $profesional = \App\Models\Profesional::first();
         if (!$profesional) {
-            $categoria = \App\Models\Categoria::firstOrCreate(
-                ['id' => 1],
-                ['nombre' => 'General', 'slug' => 'general', 'activo' => true]
-            );
-            $negocio = \App\Models\Negocio::firstOrCreate(
-                ['id' => 1],
-                ['nombre' => 'CitasPro Demo', 'slug' => 'demo', 'categoria_id' => $categoria->id, 'activo' => true]
-            );
-            $profesional = \App\Models\Profesional::create([
-                'negocio_id'   => $negocio->id,
-                'nombre'       => 'Maestro',
-                'apellido'     => 'Demo',
-                'email'        => 'demo@citaspro.com',
-                'especialidad' => 'Administrador',
-                'activo'       => true
-            ]);
+            try {
+                $categoria = \App\Models\Categoria::firstOrCreate(
+                    ['id' => 1],
+                    ['nombre' => 'General', 'slug' => 'general', 'activo' => true]
+                );
+                $negocio = \App\Models\Negocio::firstOrCreate(
+                    ['id' => 1],
+                    ['nombre' => 'CitasPro Demo', 'slug' => 'demo', 'categoria_id' => $categoria->id, 'activo' => true]
+                );
+                $profesional = \App\Models\Profesional::firstOrCreate(
+                    ['email' => 'demo@citaspro.com'],
+                    [
+                        'negocio_id'   => $negocio->id,
+                        'nombre'       => 'Maestro',
+                        'apellido'     => 'Demo',
+                        'especialidad' => 'Administrador',
+                        'activo'       => true
+                    ]
+                );
+            } catch (\Exception $e) {
+                // Si la BD da error (ej. SoftDeletes, Duplicate Entry por constraint oculto), 
+                // forzamos a traer cualquier profesional que exista.
+                $profesional = \App\Models\Profesional::withTrashed()->first();
+            }
         }
         return $profesional;
     }
