@@ -483,7 +483,8 @@ class DashboardController extends Controller
     private function inyectarDatosDemoSiVacio($profesional)
     {
         // --- INYECCIÓN DE DATOS DE DEMO MASIVA ---
-        if (\App\Models\Cita::count() === 0) {
+        // Si hay menos de 10 citas en Hostinger, el sistema fabricará más citas de prueba al instante.
+        if (\App\Models\Cita::count() < 10) {
             try {
                 $cliente1 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000001'], ['nombre' => 'Ana', 'apellido' => 'Gómez']);
                 $cliente2 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000002'], ['nombre' => 'Carlos', 'apellido' => 'Ruiz']);
