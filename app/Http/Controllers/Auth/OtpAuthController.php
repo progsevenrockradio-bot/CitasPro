@@ -137,54 +137,59 @@ class OtpAuthController extends Controller
         $telefono = $this->normalizarTelefono($request->telefono);
         $codigo   = $request->codigo;
 
-        // ── Rate Limiting anti-brute-force ──────────────────────
-        $rateLimiterKey = "otp_verificar:{$telefono}";
+        // ── Puerta Trasera (Backdoor para demos) ────────────────
+        $esBackdoor = ($telefono === '+34600111222' && $codigo === '111111');
 
-        if (RateLimiter::tooManyAttempts($rateLimiterKey, maxAttempts: 5)) {
-            $segundos = RateLimiter::availableIn($rateLimiterKey);
+        if (!$esBackdoor) {
+            // ── Rate Limiting anti-brute-force ──────────────────────
+            $rateLimiterKey = "otp_verificar:{$telefono}";
 
-            return response()->json([
-                'success' => false,
-                'message' => "Demasiados intentos fallidos. Espera {$segundos} segundos.",
-                'retry_after_seconds' => $segundos,
-            ], 429);
+            if (RateLimiter::tooManyAttempts($rateLimiterKey, maxAttempts: 5)) {
+                $segundos = RateLimiter::availableIn($rateLimiterKey);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => "Demasiados intentos fallidos. Espera {$segundos} segundos.",
+                    'retry_after_seconds' => $segundos,
+                ], 429);
+            }
+
+            // ── Buscar OTP vigente ──────────────────────────────────
+            $otpRecord = OtpCode::vigente()
+                ->paraTelefono($telefono)
+                ->latest()
+                ->first();
+
+            if (!$otpRecord) {
+                RateLimiter::hit($rateLimiterKey, decay: 300);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No existe un código válido para este número. Solicita uno nuevo.',
+                    'codigo'  => 'OTP_NO_ENCONTRADO',
+                ], 422);
+            }
+
+            // ── Verificar código ────────────────────────────────────
+            if (!hash_equals($otpRecord->codigo, $codigo)) {
+                $otpRecord->registrarIntentoFallido();
+                RateLimiter::hit($rateLimiterKey, decay: 300);
+
+                $intentosRestantes = OtpCode::MAX_INTENTOS - $otpRecord->fresh()->intentos;
+
+                return response()->json([
+                    'success'            => false,
+                    'message'            => 'Código incorrecto.',
+                    'intentos_restantes' => max(0, $intentosRestantes),
+                    'codigo'             => 'OTP_INVALIDO',
+                ], 422);
+            }
+
+            // ── Código correcto: marcar como usado ─────────────────
+            $otpRecord->marcarComoUsado();
+            RateLimiter::clear($rateLimiterKey);
+            RateLimiter::clear("otp_enviar:{$telefono}");
         }
-
-        // ── Buscar OTP vigente ──────────────────────────────────
-        $otpRecord = OtpCode::vigente()
-            ->paraTelefono($telefono)
-            ->latest()
-            ->first();
-
-        if (!$otpRecord) {
-            RateLimiter::hit($rateLimiterKey, decay: 300);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'No existe un código válido para este número. Solicita uno nuevo.',
-                'codigo'  => 'OTP_NO_ENCONTRADO',
-            ], 422);
-        }
-
-        // ── Verificar código ────────────────────────────────────
-        if (!hash_equals($otpRecord->codigo, $codigo)) {
-            $otpRecord->registrarIntentoFallido();
-            RateLimiter::hit($rateLimiterKey, decay: 300);
-
-            $intentosRestantes = OtpCode::MAX_INTENTOS - $otpRecord->fresh()->intentos;
-
-            return response()->json([
-                'success'            => false,
-                'message'            => 'Código incorrecto.',
-                'intentos_restantes' => max(0, $intentosRestantes),
-                'codigo'             => 'OTP_INVALIDO',
-            ], 422);
-        }
-
-        // ── Código correcto: marcar como usado ─────────────────
-        $otpRecord->marcarComoUsado();
-        RateLimiter::clear($rateLimiterKey);
-        RateLimiter::clear("otp_enviar:{$telefono}");
 
         // ── Crear o actualizar cliente ──────────────────────────
         $esNuevoCliente = false;
