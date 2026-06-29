@@ -390,7 +390,7 @@ class DashboardController extends Controller
             );
             $negocio = \App\Models\Negocio::firstOrCreate(
                 ['id' => 1],
-                ['nombre' => 'CitasPro Demo', 'subdominio' => 'demo', 'categoria_id' => $categoria->id, 'activo' => true]
+                ['nombre' => 'CitasPro Demo', 'slug' => 'demo', 'categoria_id' => $categoria->id, 'activo' => true]
             );
             $profesional = \App\Models\Profesional::create([
                 'negocio_id'   => $negocio->id,
