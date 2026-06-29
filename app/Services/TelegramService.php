@@ -25,7 +25,7 @@ class TelegramService
 {
     private Client $http;
     private bool   $simular;
-    private string $botToken;
+    private ?string $botToken;
     private string $apiUrl;
 
     // Iconos para tipos de eventos
