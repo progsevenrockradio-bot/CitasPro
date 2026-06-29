@@ -208,6 +208,119 @@ Route::prefix('auth/otp')->name('auth.otp.')->group(function () {
 // ─── Rutas PROTEGIDAS (requieren token Sanctum) ─────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
 
+    // ── Reseñas ───────────────────────────────────────────────────────────
+    Route::prefix('resenas')->name('resenas.')->group(function () {
+        Route::get('/negocio/{negocio}', [ResenaController::class, 'porNegocio']);
+        Route::get('/profesional/{profesional}', [ResenaController::class, 'porProfesional']);
+        
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('/', [ResenaController::class, 'store']);
+        });
+    });
+
+    // ── MAGIA DE DEMO PARA EL USUARIO ──────────────────────────────────────
+    Route::get('/reset-demo', function () {
+        try {
+            // 1. Borrar y recrear todo de cero
+            \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
+
+            // 2. Sembrar la categoría base
+            $categoria = \App\Models\Categoria::create([
+                'nombre' => 'General', 
+                'slug' => 'general', 
+                'activo' => true
+            ]);
+
+            // 3. Sembrar Negocio
+            $negocio = \App\Models\Negocio::create([
+                'nombre' => 'CitasPro Demo', 
+                'slug' => 'demo', 
+                'categoria_id' => $categoria->id, 
+                'activo' => true
+            ]);
+
+            // 4. Sembrar Profesional Maestro
+            $profesional = \App\Models\Profesional::create([
+                'negocio_id'   => $negocio->id,
+                'nombre'       => 'Maestro',
+                'apellido'     => 'Demo',
+                'email'        => 'demo@citaspro.com',
+                'telefono'     => '+34600111222', // Para que entre al backdoor
+                'especialidad' => 'Administrador',
+                'activo'       => true
+            ]);
+
+            // 5. Sembrar Clientes
+            $cliente1 = \App\Models\Cliente::create(['telefono' => '+34600000001', 'nombre' => 'Ana', 'apellido' => 'Gómez']);
+            $cliente2 = \App\Models\Cliente::create(['telefono' => '+34600000002', 'nombre' => 'Carlos', 'apellido' => 'Ruiz']);
+            $cliente3 = \App\Models\Cliente::create(['telefono' => '+34600000003', 'nombre' => 'Laura', 'apellido' => 'Méndez']);
+
+            // 6. Servicio
+            $servicio = \App\Models\Servicio::create([
+                'negocio_id' => $negocio->id, 
+                'nombre' => 'Tratamiento VIP',
+                'duracion_minutos' => 60, 
+                'precio' => 45.00, 
+                'activo' => true
+            ]);
+
+            // 7. Citas Pasadas
+            for ($i = 1; $i <= 7; $i++) {
+                $cita = \App\Models\Cita::create([
+                    'codigo_referencia' => 'DEMO-PASADA-' . $i,
+                    'negocio_id' => $negocio->id,
+                    'cliente_id' => ($i % 2 == 0) ? $cliente1->id : $cliente2->id,
+                    'profesional_id' => $profesional->id,
+                    'servicio_id' => $servicio->id,
+                    'fecha' => now()->subDays($i)->format('Y-m-d'),
+                    'hora_inicio' => '10:00:00',
+                    'hora_fin' => '11:00:00',
+                    'duracion_min' => 60,
+                    'estado' => 'completada',
+                    'precio_total' => 45.00,
+                ]);
+                \App\Models\Pago::create([
+                    'cita_id' => $cita->id,
+                    'cliente_id' => $cita->cliente_id,
+                    'negocio_id' => $negocio->id,
+                    'monto' => 45.00,
+                    'monto_total' => 45.00,
+                    'metodo' => 'tarjeta',
+                    'estado' => 'completado',
+                ]);
+            }
+
+            // 8. Citas HOY
+            $horasHoy = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
+            foreach ($horasHoy as $index => $horaStr) {
+                \App\Models\Cita::create([
+                    'codigo_referencia' => 'DEMO-HOY-' . $index,
+                    'negocio_id' => $negocio->id,
+                    'cliente_id' => ($index % 3 == 0) ? $cliente3->id : $cliente1->id,
+                    'profesional_id' => $profesional->id,
+                    'servicio_id' => $servicio->id,
+                    'fecha' => now()->format('Y-m-d'),
+                    'hora_inicio' => $horaStr . ':00',
+                    'hora_fin' => substr($horaStr, 0, 2) . ':50:00',
+                    'duracion_min' => 50,
+                    'estado' => ($index < 2) ? 'completada' : 'confirmada',
+                    'precio_total' => 45.00,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true, 
+                'message' => '¡EXITO! La base de datos ha sido borrada desde cero y las 13 citas han sido inyectadas perfectamente.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'HUBO UN ERROR: ' . $e->getMessage(),
+                'linea' => $e->getLine()
+            ], 500);
+        }
+    });
+
     // ── Autenticación ─────────────────────────────────────────────────────
     Route::prefix('auth')->name('auth.')->group(function () {
         /** GET /api/auth/me — Perfil del cliente autenticado */
