@@ -58,6 +58,64 @@ class DashboardController extends Controller
             ], 403);
         }
 
+        // --- INYECCIÓN DE DATOS DE DEMO ---
+        if (\App\Models\Cita::count() === 0) {
+            try {
+                $cliente = \App\Models\Cliente::firstOrCreate(
+                    ['telefono' => '+34600000001'],
+                    ['nombre' => 'Ana', 'apellido' => 'Paciente Demo']
+                );
+                $servicio = \App\Models\Servicio::firstOrCreate(
+                    ['negocio_id' => $profesional->negocio_id, 'nombre' => 'Tratamiento VIP'],
+                    ['duracion_minutos' => 60, 'precio' => 45.00, 'activo' => true]
+                );
+
+                // Crear 5 citas pasadas con ingresos
+                for ($i = 1; $i <= 5; $i++) {
+                    $cita = \App\Models\Cita::create([
+                        'codigo_referencia' => 'DEMO-PASADA-' . $i,
+                        'negocio_id' => $profesional->negocio_id,
+                        'cliente_id' => $cliente->id,
+                        'profesional_id' => $profesional->id,
+                        'servicio_id' => $servicio->id,
+                        'fecha' => now()->subDays($i)->format('Y-m-d'),
+                        'hora_inicio' => '10:00:00',
+                        'hora_fin' => '11:00:00',
+                        'duracion_min' => 60,
+                        'estado' => 'completada',
+                        'precio_total' => 45.00,
+                    ]);
+                    \App\Models\Pago::create([
+                        'cita_id' => $cita->id,
+                        'cliente_id' => $cliente->id,
+                        'negocio_id' => $profesional->negocio_id,
+                        'monto' => 45.00,
+                        'monto_total' => 45.00,
+                        'metodo' => 'tarjeta',
+                        'estado' => 'completado',
+                    ]);
+                }
+
+                // Crear 1 cita para hoy
+                \App\Models\Cita::create([
+                    'codigo_referencia' => 'DEMO-HOY-1',
+                    'negocio_id' => $profesional->negocio_id,
+                    'cliente_id' => $cliente->id,
+                    'profesional_id' => $profesional->id,
+                    'servicio_id' => $servicio->id,
+                    'fecha' => now()->format('Y-m-d'),
+                    'hora_inicio' => '15:00:00',
+                    'hora_fin' => '16:00:00',
+                    'duracion_min' => 60,
+                    'estado' => 'confirmada',
+                    'precio_total' => 45.00,
+                ]);
+            } catch (\Exception $e) {
+                \Log::error("Error inyectando datos demo: " . $e->getMessage());
+            }
+        }
+        // --- FIN INYECCIÓN DE DATOS DE DEMO ---
+
         // ── Definir ventana de tiempo ────────────────────────────────────────
         [$inicio, $fin, $labelPeriodo] = $this->ventanaTiempo($periodo);
 
