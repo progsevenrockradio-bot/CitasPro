@@ -238,12 +238,12 @@ class DashboardController extends Controller
             return response()->json(['success' => false, 'message' => 'Profesional no encontrado.'], 403);
         }
 
-        $hoy     = today();
-        $en7dias = $hoy->copy()->addDays(7);
+        $startDate = $request->input('start_date', today()->toDateString());
+        $endDate   = $request->input('end_date', today()->copy()->addDays(7)->toDateString());
 
         $citas = Cita::where('profesional_id', $profesional->id)
-            ->whereBetween('fecha', [$hoy->toDateString(), $en7dias->toDateString()])
-            ->whereIn('estado', ['pendiente', 'confirmada', 'en_curso'])
+            ->whereBetween('fecha', [$startDate, $endDate])
+            ->whereIn('estado', ['pendiente', 'confirmada', 'en_curso', 'completada']) // Añadido completada para ver el historial en el calendario
             ->with([
                 'cliente:id,nombre,apellido,telefono,foto',
                 'servicio:id,nombre,duracion_min,precio,moneda',
