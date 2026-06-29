@@ -58,85 +58,7 @@ class DashboardController extends Controller
             ], 403);
         }
 
-        // --- INYECCIÓN DE DATOS DE DEMO MASIVA ---
-        if (\App\Models\Cita::count() === 0) {
-            try {
-                $cliente1 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000001'], ['nombre' => 'Ana', 'apellido' => 'Gómez']);
-                $cliente2 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000002'], ['nombre' => 'Carlos', 'apellido' => 'Ruiz']);
-                $cliente3 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000003'], ['nombre' => 'Laura', 'apellido' => 'Méndez']);
-                
-                $servicio = \App\Models\Servicio::firstOrCreate(
-                    ['negocio_id' => $profesional->negocio_id, 'nombre' => 'Tratamiento VIP'],
-                    ['duracion_minutos' => 60, 'precio' => 45.00, 'activo' => true]
-                );
-
-                // Crear 7 citas pasadas con ingresos (Días anteriores)
-                for ($i = 1; $i <= 7; $i++) {
-                    $cita = \App\Models\Cita::create([
-                        'codigo_referencia' => 'DEMO-PASADA-' . $i,
-                        'negocio_id' => $profesional->negocio_id,
-                        'cliente_id' => ($i % 2 == 0) ? $cliente1->id : $cliente2->id,
-                        'profesional_id' => $profesional->id,
-                        'servicio_id' => $servicio->id,
-                        'fecha' => now()->subDays($i)->format('Y-m-d'),
-                        'hora_inicio' => '10:00:00',
-                        'hora_fin' => '11:00:00',
-                        'duracion_min' => 60,
-                        'estado' => 'completada',
-                        'precio_total' => 45.00,
-                    ]);
-                    \App\Models\Pago::create([
-                        'cita_id' => $cita->id,
-                        'cliente_id' => $cita->cliente_id,
-                        'negocio_id' => $profesional->negocio_id,
-                        'monto' => 45.00,
-                        'monto_total' => 45.00,
-                        'metodo' => 'tarjeta',
-                        'estado' => 'completado',
-                    ]);
-                }
-
-                // Crear 6 citas para HOY
-                $horasHoy = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
-                foreach ($horasHoy as $index => $horaStr) {
-                    \App\Models\Cita::create([
-                        'codigo_referencia' => 'DEMO-HOY-' . $index,
-                        'negocio_id' => $profesional->negocio_id,
-                        'cliente_id' => ($index % 3 == 0) ? $cliente3->id : $cliente1->id,
-                        'profesional_id' => $profesional->id,
-                        'servicio_id' => $servicio->id,
-                        'fecha' => now()->format('Y-m-d'),
-                        'hora_inicio' => $horaStr . ':00',
-                        'hora_fin' => substr($horaStr, 0, 2) . ':50:00',
-                        'duracion_min' => 50,
-                        'estado' => ($index < 2) ? 'completada' : 'confirmada',
-                        'precio_total' => 45.00,
-                    ]);
-                }
-
-                // Crear 3 citas para MAÑANA
-                $horasManana = ['10:00', '12:00', '16:00'];
-                foreach ($horasManana as $index => $horaStr) {
-                    \App\Models\Cita::create([
-                        'codigo_referencia' => 'DEMO-MANANA-' . $index,
-                        'negocio_id' => $profesional->negocio_id,
-                        'cliente_id' => $cliente2->id,
-                        'profesional_id' => $profesional->id,
-                        'servicio_id' => $servicio->id,
-                        'fecha' => now()->addDays(1)->format('Y-m-d'),
-                        'hora_inicio' => $horaStr . ':00',
-                        'hora_fin' => substr($horaStr, 0, 2) . ':50:00',
-                        'duracion_min' => 50,
-                        'estado' => 'confirmada',
-                        'precio_total' => 45.00,
-                    ]);
-                }
-
-            } catch (\Exception $e) {
-                \Log::error("Error inyectando datos demo: " . $e->getMessage());
-            }
-        }
-        // --- FIN INYECCIÓN DE DATOS DE DEMO ---
+        $this->inyectarDatosDemoSiVacio($profesional);
 
         // ── Definir ventana de tiempo ────────────────────────────────────────
         [$inicio, $fin, $labelPeriodo] = $this->ventanaTiempo($periodo);
@@ -552,6 +474,92 @@ class DashboardController extends Controller
             return $actual > 0 ? 100.0 : null;
         }
         return round((($actual - $anterior) / $anterior) * 100, 1);
+    }
+
+    /**
+     * Convierte el número de día de semana (MySQL DAYOFWEEK: 1=Dom, 7=Sáb)
+     * al nombre del día en español.
+     */
+    private function inyectarDatosDemoSiVacio($profesional)
+    {
+        // --- INYECCIÓN DE DATOS DE DEMO MASIVA ---
+        if (\App\Models\Cita::count() === 0) {
+            try {
+                $cliente1 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000001'], ['nombre' => 'Ana', 'apellido' => 'Gómez']);
+                $cliente2 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000002'], ['nombre' => 'Carlos', 'apellido' => 'Ruiz']);
+                $cliente3 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000003'], ['nombre' => 'Laura', 'apellido' => 'Méndez']);
+                
+                $servicio = \App\Models\Servicio::firstOrCreate(
+                    ['negocio_id' => $profesional->negocio_id, 'nombre' => 'Tratamiento VIP'],
+                    ['duracion_minutos' => 60, 'precio' => 45.00, 'activo' => true]
+                );
+
+                // Crear 7 citas pasadas con ingresos (Días anteriores)
+                for ($i = 1; $i <= 7; $i++) {
+                    $cita = \App\Models\Cita::create([
+                        'codigo_referencia' => 'DEMO-PASADA-' . $i,
+                        'negocio_id' => $profesional->negocio_id,
+                        'cliente_id' => ($i % 2 == 0) ? $cliente1->id : $cliente2->id,
+                        'profesional_id' => $profesional->id,
+                        'servicio_id' => $servicio->id,
+                        'fecha' => now()->subDays($i)->format('Y-m-d'),
+                        'hora_inicio' => '10:00:00',
+                        'hora_fin' => '11:00:00',
+                        'duracion_min' => 60,
+                        'estado' => 'completada',
+                        'precio_total' => 45.00,
+                    ]);
+                    \App\Models\Pago::create([
+                        'cita_id' => $cita->id,
+                        'cliente_id' => $cita->cliente_id,
+                        'negocio_id' => $profesional->negocio_id,
+                        'monto' => 45.00,
+                        'monto_total' => 45.00,
+                        'metodo' => 'tarjeta',
+                        'estado' => 'completado',
+                    ]);
+                }
+
+                // Crear 6 citas para HOY
+                $horasHoy = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
+                foreach ($horasHoy as $index => $horaStr) {
+                    \App\Models\Cita::create([
+                        'codigo_referencia' => 'DEMO-HOY-' . $index,
+                        'negocio_id' => $profesional->negocio_id,
+                        'cliente_id' => ($index % 3 == 0) ? $cliente3->id : $cliente1->id,
+                        'profesional_id' => $profesional->id,
+                        'servicio_id' => $servicio->id,
+                        'fecha' => now()->format('Y-m-d'),
+                        'hora_inicio' => $horaStr . ':00',
+                        'hora_fin' => substr($horaStr, 0, 2) . ':50:00',
+                        'duracion_min' => 50,
+                        'estado' => ($index < 2) ? 'completada' : 'confirmada',
+                        'precio_total' => 45.00,
+                    ]);
+                }
+
+                // Crear 3 citas para MAÑANA
+                $horasManana = ['10:00', '12:00', '16:00'];
+                foreach ($horasManana as $index => $horaStr) {
+                    \App\Models\Cita::create([
+                        'codigo_referencia' => 'DEMO-MANANA-' . $index,
+                        'negocio_id' => $profesional->negocio_id,
+                        'cliente_id' => $cliente2->id,
+                        'profesional_id' => $profesional->id,
+                        'servicio_id' => $servicio->id,
+                        'fecha' => now()->addDays(1)->format('Y-m-d'),
+                        'hora_inicio' => $horaStr . ':00',
+                        'hora_fin' => substr($horaStr, 0, 2) . ':50:00',
+                        'duracion_min' => 50,
+                        'estado' => 'confirmada',
+                        'precio_total' => 45.00,
+                    ]);
+                }
+
+            } catch (\Exception $e) {
+                \Log::error("Error inyectando datos demo: " . $e->getMessage());
+            }
+        }
     }
 
     /**
