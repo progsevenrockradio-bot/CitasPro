@@ -384,9 +384,13 @@ class DashboardController extends Controller
         // MODO DEMO: Si no hay profesional, se auto-crea uno de prueba para el Dashboard
         $profesional = \App\Models\Profesional::first();
         if (!$profesional) {
+            $categoria = \App\Models\Categoria::firstOrCreate(
+                ['id' => 1],
+                ['nombre' => 'General', 'slug' => 'general', 'activo' => true]
+            );
             $negocio = \App\Models\Negocio::firstOrCreate(
                 ['id' => 1],
-                ['nombre' => 'CitasPro Demo', 'subdominio' => 'demo', 'activo' => true]
+                ['nombre' => 'CitasPro Demo', 'subdominio' => 'demo', 'categoria_id' => $categoria->id, 'activo' => true]
             );
             $profesional = \App\Models\Profesional::create([
                 'negocio_id'   => $negocio->id,
