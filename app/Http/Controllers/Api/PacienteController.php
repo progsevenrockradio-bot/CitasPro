@@ -13,16 +13,15 @@ class PacienteController extends Controller
      */
     public function portafolio($id): JsonResponse
     {
-        $profesional = Profesional::with([
-            'negocio:id,nombre,slug',
-            'servicios' => function($q) {
-                $q->where('activo', true);
-            }
-        ])->find($id);
+        $profesional = Profesional::with('negocio:id,nombre,slug')->find($id);
 
         if (!$profesional) {
             return response()->json(['success' => false, 'message' => 'Profesional no encontrado'], 404);
         }
+
+        $servicios = \App\Models\Servicio::where('negocio_id', $profesional->negocio_id)
+            ->where('activo', true)
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -33,7 +32,7 @@ class PacienteController extends Controller
                 'especialidad' => $profesional->especialidad,
                 'negocio' => $profesional->negocio,
             ],
-            'servicios' => $profesional->servicios
+            'servicios' => $servicios
         ]);
     }
 }
