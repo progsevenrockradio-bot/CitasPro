@@ -242,23 +242,42 @@ Route::get('/reset-demo', function () {
         $cliente2 = \App\Models\Cliente::create(['telefono' => '+34600000002', 'nombre' => 'Carlos', 'apellido' => 'Ruiz']);
         $cliente3 = \App\Models\Cliente::create(['telefono' => '+34600000003', 'nombre' => 'Laura', 'apellido' => 'Méndez']);
 
-        // 6. Servicio
-        $servicio = \App\Models\Servicio::create([
+        // 6. Servicios de ejemplo variados
+        $servicioVIP = \App\Models\Servicio::create([
             'negocio_id' => $negocio->id, 
-            'nombre' => 'Tratamiento VIP',
+            'nombre' => 'Tratamiento VIP (Masaje + Spa)',
             'duracion_minutos' => 60, 
             'precio' => 45.00, 
             'activo' => true
         ]);
 
+        $servicioCorte = \App\Models\Servicio::create([
+            'negocio_id' => $negocio->id, 
+            'nombre' => 'Corte de Cabello Clásico',
+            'duracion_minutos' => 30, 
+            'precio' => 15.00, 
+            'activo' => true
+        ]);
+
+        $servicioZapatos = \App\Models\Servicio::create([
+            'negocio_id' => $negocio->id, 
+            'nombre' => 'Reparación de Calzado (Zapatería)',
+            'duracion_minutos' => 45, 
+            'precio' => 25.00, 
+            'activo' => true
+        ]);
+        
+        $servicios_ids = [$servicioVIP->id, $servicioCorte->id, $servicioZapatos->id];
+
         // 7. Citas Pasadas
         for ($i = 1; $i <= 7; $i++) {
+            $serv_id = $servicios_ids[array_rand($servicios_ids)];
             $cita = \App\Models\Cita::create([
                 'codigo_referencia' => 'DEMO-PASADA-' . $i,
                 'negocio_id' => $negocio->id,
                 'cliente_id' => ($i % 2 == 0) ? $cliente1->id : $cliente2->id,
                 'profesional_id' => $profesional->id,
-                'servicio_id' => $servicio->id,
+                'servicio_id' => $serv_id,
                 'fecha' => now()->subDays($i)->format('Y-m-d'),
                 'hora_inicio' => '10:00:00',
                 'hora_fin' => '11:00:00',
@@ -280,12 +299,13 @@ Route::get('/reset-demo', function () {
         // 8. Citas HOY
         $horasHoy = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
         foreach ($horasHoy as $index => $horaStr) {
+            $serv_id = $servicios_ids[array_rand($servicios_ids)];
             \App\Models\Cita::create([
                 'codigo_referencia' => 'DEMO-HOY-' . $index,
                 'negocio_id' => $negocio->id,
                 'cliente_id' => ($index % 3 == 0) ? $cliente3->id : $cliente1->id,
                 'profesional_id' => $profesional->id,
-                'servicio_id' => $servicio->id,
+                'servicio_id' => $serv_id,
                 'fecha' => now()->format('Y-m-d'),
                 'hora_inicio' => $horaStr . ':00',
                 'hora_fin' => substr($horaStr, 0, 2) . ':50:00',
