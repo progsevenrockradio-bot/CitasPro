@@ -381,10 +381,23 @@ class DashboardController extends Controller
             return Profesional::where('activo', true)->find($profesionalId);
         }
 
-        // Si el usuario autenticado ES un profesional (futuro: profesionales con token propio)
-        // Por ahora devolvemos el primer profesional del negocio del cliente
-        // Esto se refinará en la Fase 3 con autenticación de profesionales
-        return null;
+        // MODO DEMO: Si no hay profesional, se auto-crea uno de prueba para el Dashboard
+        $profesional = \App\Models\Profesional::first();
+        if (!$profesional) {
+            $negocio = \App\Models\Negocio::firstOrCreate(
+                ['id' => 1],
+                ['nombre' => 'CitasPro Demo', 'subdominio' => 'demo', 'activo' => true]
+            );
+            $profesional = \App\Models\Profesional::create([
+                'negocio_id'   => $negocio->id,
+                'nombre'       => 'Maestro',
+                'apellido'     => 'Demo',
+                'email'        => 'demo@citaspro.com',
+                'especialidad' => 'Administrador',
+                'activo'       => true
+            ]);
+        }
+        return $profesional;
     }
 
     /**
