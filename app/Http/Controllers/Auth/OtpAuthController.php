@@ -66,7 +66,7 @@ class OtpAuthController extends Controller
             ], 429);
         }
 
-        RateLimiter::hit($rateLimiterKey, decay: 300); // 5 minutos
+        RateLimiter::hit($rateLimiterKey, decaySeconds: 300); // 5 minutos
 
         // ── Generar y guardar OTP ───────────────────────────────
         $otp = OtpCode::crearParaTelefono(
@@ -161,7 +161,7 @@ class OtpAuthController extends Controller
                 ->first();
 
             if (!$otpRecord) {
-                RateLimiter::hit($rateLimiterKey, decay: 300);
+                RateLimiter::hit($rateLimiterKey, decaySeconds: 300);
 
                 return response()->json([
                     'success' => false,
@@ -173,7 +173,7 @@ class OtpAuthController extends Controller
             // ── Verificar código ────────────────────────────────────
             if (!hash_equals($otpRecord->codigo, $codigo)) {
                 $otpRecord->registrarIntentoFallido();
-                RateLimiter::hit($rateLimiterKey, decay: 300);
+                RateLimiter::hit($rateLimiterKey, decaySeconds: 300);
 
                 $intentosRestantes = OtpCode::MAX_INTENTOS - $otpRecord->fresh()->intentos;
 
