@@ -205,6 +205,16 @@ Route::prefix('auth/otp')->name('auth.otp.')->group(function () {
         ->name('verificar');
 });
 
+// ── Flujo del Paciente (Rutas PÚBLICAS) ──────────────────────────────────
+Route::prefix('paciente')->name('paciente.')->group(function () {
+    // Ver los detalles públicos de un profesional (su portafolio y servicios)
+    Route::get('/profesional/{id}', [\App\Http\Controllers\Api\PacienteController::class, 'portafolio']);
+    // Obtener las horas libres de un profesional en una fecha específica
+    Route::get('/profesional/{id}/disponibilidad', [\App\Http\Controllers\Api\DisponibilidadController::class, 'index']);
+    // Crear una nueva cita (reserva)
+    Route::post('/reservar', [\App\Http\Controllers\Api\ReservaController::class, 'store']);
+});
+
 // ── MAGIA DE DEMO PARA EL USUARIO ──────────────────────────────────────
 Route::get('/reset-demo', function () {
     try {
