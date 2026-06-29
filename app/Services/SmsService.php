@@ -22,10 +22,10 @@ class SmsService
 {
     private bool   $simularTwilio;
     private bool   $emailSmsActivo;
-    private string $twilioSid;
-    private string $twilioToken;
-    private string $twilioFrom;
-    private string $emailSmsGateway;
+    private ?string $twilioSid;
+    private ?string $twilioToken;
+    private ?string $twilioFrom;
+    private ?string $emailSmsGateway;
 
     public function __construct()
     {

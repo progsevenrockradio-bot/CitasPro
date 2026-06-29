@@ -22,9 +22,9 @@ class WhatsAppService
 {
     private Client $http;
     private bool   $simular;
-    private string $apiUrl;
-    private string $token;
-    private string $phoneId;
+    private ?string $apiUrl;
+    private ?string $token;
+    private ?string $phoneId;
 
     public function __construct()
     {
