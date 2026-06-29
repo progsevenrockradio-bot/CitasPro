@@ -116,7 +116,9 @@ class Cita extends Model
     public function estaCancelable(): bool
     {
         $limiteHoras = $this->negocio->cancelacion_limite_horas ?? 24;
-        $fechaHoraInicio = \Carbon\Carbon::parse("{$this->fecha} {$this->hora_inicio}");
+        // Evitar error 'Double time specification' al extraer explícitamente Y-m-d
+        $fechaString = $this->fecha instanceof \Carbon\Carbon ? $this->fecha->format('Y-m-d') : $this->fecha;
+        $fechaHoraInicio = \Carbon\Carbon::parse("{$fechaString} {$this->hora_inicio}");
 
         return now()->diffInHours($fechaHoraInicio, false) >= $limiteHoras
             && in_array($this->estado, ['pendiente', 'confirmada']);
