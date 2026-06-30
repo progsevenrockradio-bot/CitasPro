@@ -68,6 +68,9 @@ class ReservaController extends Controller
             'precio_total' => $servicio->precio,
         ]);
 
+        // Disparar evento para notificar al profesional por Telegram y al cliente
+        event(new \App\Events\CitaCreada($cita));
+
         return response()->json([
             'success' => true,
             'message' => 'Reserva creada con éxito',
