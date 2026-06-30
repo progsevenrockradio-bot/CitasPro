@@ -36,9 +36,10 @@ return [
 
     // ── Telegram Bot API ──────────────────────────────────────────────────────
     'telegram' => [
-        'bot_token' => env('TELEGRAM_BOT_TOKEN'),          // Token del BotFather
-        'api_url'   => 'https://api.telegram.org/bot',
-        'simular'   => env('TELEGRAM_SIMULAR', true),      // true = solo log
+        'bot_token'    => env('TELEGRAM_BOT_TOKEN'),          // Token del BotFather
+        'bot_username' => env('TELEGRAM_BOT_USERNAME', 'CitasProAlertsBot'), // Username sin @
+        'api_url'      => 'https://api.telegram.org/bot',
+        'simular'      => env('TELEGRAM_SIMULAR', true),      // true = solo log
     ],
 
     // ── Twilio (SMS de respaldo) ──────────────────────────────────────────────
