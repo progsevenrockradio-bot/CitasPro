@@ -6,8 +6,6 @@ use App\Events\CitaCreada;
 use App\Events\CitaActualizada;
 use App\Events\CitaCancelada;
 use App\Services\TelegramService;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -18,25 +16,8 @@ use Illuminate\Support\Facades\Log;
  *
  * Implementa ShouldQueue para no bloquear la respuesta HTTP al cliente.
  */
-class NotificarProfesionalTelegram implements ShouldQueue
+class NotificarProfesionalTelegram
 {
-    use InteractsWithQueue;
-
-    /**
-     * Nombre de la cola donde se encola este listener.
-     * Recomendado: usar una cola separada para notificaciones.
-     */
-    public string $queue = 'notificaciones';
-
-    /**
-     * Intentos máximos si el envío a Telegram falla.
-     */
-    public int $tries = 3;
-
-    /**
-     * Delay en segundos entre reintentos.
-     */
-    public int $backoff = 30;
 
     public function __construct(
         private readonly TelegramService $telegram
