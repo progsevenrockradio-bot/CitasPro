@@ -281,6 +281,7 @@ class DashboardController extends Controller
             ])->values();
 
         // Resumen rápido del día
+        $hoy         = today();
         $hoyStr      = $hoy->toDateString();
         $citasDeHoy  = Cita::where('profesional_id', $profesional->id)
             ->whereDate('fecha', $hoy)
