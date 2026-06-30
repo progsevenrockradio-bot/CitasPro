@@ -332,4 +332,66 @@ class TelegramService
         $lineas = array_map(fn ($l) => ltrim($l), $lineas);
         return implode("\n", $lineas);
     }
+
+    /**
+     * Responde a una Callback Query de Telegram para quitar el estado de carga del botón.
+     */
+    public function responderCallbackQuery(string $callbackQueryId, string $texto = ''): bool
+    {
+        if ($this->simular) {
+            Log::channel('stack')->info("🤖 [Telegram SIMULADO] → Responder Callback: {$callbackQueryId} con texto: {$texto}");
+            return true;
+        }
+
+        if (empty($this->botToken)) {
+            return false;
+        }
+
+        try {
+            $endpoint = "{$this->apiUrl}{$this->botToken}/answerCallbackQuery";
+            $payload = [
+                'callback_query_id' => $callbackQueryId,
+                'text'              => $texto,
+            ];
+            $this->http->post($endpoint, ['json' => $payload]);
+            return true;
+        } catch (\Exception $e) {
+            Log::error("Telegram API responderCallbackQuery exception: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Edita el texto de un mensaje existente en Telegram.
+     */
+    public function editarMensaje(string|int $chatId, int $messageId, string $nuevoTexto, string $modo = 'HTML'): bool
+    {
+        $nuevoTexto = $this->limpiarMensaje($nuevoTexto);
+
+        if ($this->simular) {
+            Log::channel('stack')->info("🤖 [Telegram SIMULADO] → Editar Mensaje en Chat {$chatId}, Msg ID {$messageId}", [
+                'texto' => strip_tags($nuevoTexto)
+            ]);
+            return true;
+        }
+
+        if (empty($this->botToken)) {
+            return false;
+        }
+
+        try {
+            $endpoint = "{$this->apiUrl}{$this->botToken}/editMessageText";
+            $payload = [
+                'chat_id'    => $chatId,
+                'message_id' => $messageId,
+                'text'       => $nuevoTexto,
+                'parse_mode' => $modo,
+            ];
+            $this->http->post($endpoint, ['json' => $payload]);
+            return true;
+        } catch (\Exception $e) {
+            Log::error("Telegram API editMessageText exception: " . $e->getMessage());
+            return false;
+        }
+    }
 }

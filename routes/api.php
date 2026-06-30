@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\OtpAuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PortafolioController;
+use App\Http\Controllers\Api\TelegramBotController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -61,6 +62,9 @@ Route::prefix('portafolio')->name('portafolio.')->group(function () {
         ->name('index')
         ->where('profesionalId', '[0-9]+');
 });
+
+// ── Webhook de Telegram ──────────────────────────────────────────────────
+Route::post('/telegram/webhook', [TelegramBotController::class, 'handle'])->name('telegram.webhook');
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RUTAS PROTEGIDAS (requieren: Authorization: Bearer {token})
