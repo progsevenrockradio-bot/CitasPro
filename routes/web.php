@@ -20,7 +20,7 @@ Route::get('/', function () {
 // Ruta pública para el perfil del profesional y reservas de clientes
 Route::get('/p/{id}', [\App\Http\Controllers\ClienteWebController::class, 'perfil'])->name('cliente.perfil');
 
-Auth::routes();
+// Auth::routes();
 
 // Permitir que el router de la SPA maneje todas las demás rutas web al refrescar (F5)
 Route::fallback(function () {
