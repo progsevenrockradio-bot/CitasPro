@@ -580,4 +580,42 @@ class DashboardController extends Controller
             default => "Día {$dia}",
         };
     }
+
+    /**
+     * PATCH /api/dashboard/citas/{id}/estado
+     * Permite al profesional cambiar el estado de una cita.
+     */
+    public function actualizarEstadoCita(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'estado' => 'required|in:completada,cancelada,no_asistio'
+        ]);
+
+        $profesional = $this->resolverProfesional($request);
+
+        if (!$profesional) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permisos para realizar esta acción.',
+            ], 403);
+        }
+
+        $cita = Cita::where('id', $id)->where('profesional_id', $profesional->id)->first();
+
+        if (!$cita) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cita no encontrada.',
+            ], 404);
+        }
+
+        $cita->estado = $request->estado;
+        $cita->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Estado actualizado correctamente.',
+            'cita' => $cita
+        ]);
+    }
 }

@@ -115,6 +115,13 @@ Route::middleware('auth:sanctum')->group(function () {
          */
         Route::get('/resumen-rapido', [DashboardController::class, 'resumenRapido'])
             ->name('resumen.rapido');
+
+        /**
+         * PATCH /api/dashboard/citas/{id}/estado
+         * Actualizar estado de cita.
+         */
+        Route::patch('/citas/{id}/estado', [DashboardController::class, 'actualizarEstadoCita'])
+            ->name('citas.estado.actualizar');
     });
 
     // ── Gestión de Portafolio (protegida: solo el profesional o admin) ────

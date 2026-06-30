@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cliente;
+use App\Models\Profesional;
 use App\Models\OtpCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -191,8 +192,46 @@ class OtpAuthController extends Controller
             RateLimiter::clear("otp_enviar:{$telefono}");
         }
 
-        // ── Crear o actualizar cliente ──────────────────────────
+        // ── 1. Verificar si es Profesional ──────────────────────
+        $profesional = Profesional::where('telefono', $telefono)->first();
+        $user = null;
+        $role = 'cliente';
         $esNuevoCliente = false;
+
+        if ($profesional) {
+            $user = $profesional;
+            $role = 'profesional';
+            
+            $nombreToken = $request->nombre_token ?? 'api-token-prof-' . now()->timestamp;
+            $token = $user->createToken(
+                name: $nombreToken,
+                abilities: ['profesional'],
+                expiresAt: now()->addDays(30)
+            );
+
+            Log::info("OtpAuthController: Login exitoso PROFESIONAL para {$telefono}", [
+                'profesional_id' => $user->id,
+            ]);
+
+            return response()->json([
+                'success'    => true,
+                'message'    => '¡Bienvenido al panel de CitasPro!',
+                'role'       => $role,
+                'token'      => $token->plainTextToken,
+                'token_tipo' => 'Bearer',
+                'expira_en'  => now()->addDays(30)->toIso8601String(),
+                'user'       => [
+                    'id'               => $user->id,
+                    'nombre'           => $user->nombre,
+                    'apellido'         => $user->apellido,
+                    'telefono'         => $user->telefono,
+                    'email'            => $user->email,
+                    'foto'             => $user->foto,
+                ],
+            ], 200);
+        }
+
+        // ── 2. Crear o actualizar cliente ───────────────────────
         $cliente = Cliente::where('telefono', $telefono)->first();
 
         if (!$cliente) {
@@ -223,18 +262,19 @@ class OtpAuthController extends Controller
             }
         }
 
-        // ── Emitir token Sanctum ────────────────────────────────
-        // Revocar tokens anteriores del mismo dispositivo (opcional)
-        $nombreToken = $request->nombre_token ?? 'api-token-' . now()->timestamp;
+        $user = $cliente;
 
-        $token = $cliente->createToken(
+        // ── Emitir token Sanctum ────────────────────────────────
+        $nombreToken = $request->nombre_token ?? 'api-token-cliente-' . now()->timestamp;
+
+        $token = $user->createToken(
             name: $nombreToken,
-            abilities: ['*'],           // Acceso completo al cliente
-            expiresAt: now()->addDays(30) // Token válido 30 días
+            abilities: ['cliente'],
+            expiresAt: now()->addDays(30)
         );
 
-        Log::info("OtpAuthController: Login exitoso para {$telefono}", [
-            'cliente_id'    => $cliente->id,
+        Log::info("OtpAuthController: Login exitoso CLIENTE para {$telefono}", [
+            'cliente_id'    => $user->id,
             'nuevo_cliente' => $esNuevoCliente,
         ]);
 
@@ -242,18 +282,30 @@ class OtpAuthController extends Controller
             'success'        => true,
             'message'        => $esNuevoCliente ? '¡Bienvenido a CitasPro!' : '¡Bienvenido de vuelta!',
             'nuevo_cliente'  => $esNuevoCliente,
+            'role'           => $role,
             'token'          => $token->plainTextToken,
             'token_tipo'     => 'Bearer',
             'expira_en'      => now()->addDays(30)->toIso8601String(),
+            'user'           => [
+                'id'               => $user->id,
+                'nombre'           => $user->nombre,
+                'apellido'         => $user->apellido,
+                'nombre_completo'  => $user->nombre_completo,
+                'telefono'         => $user->telefono,
+                'email'            => $user->email,
+                'foto'             => $user->foto,
+                'telefono_verificado' => (bool) $user->telefono_verificado_en,
+            ],
+            // Compatibilidad con frontend antiguo (por si acaso):
             'cliente'        => [
-                'id'               => $cliente->id,
-                'nombre'           => $cliente->nombre,
-                'apellido'         => $cliente->apellido,
-                'nombre_completo'  => $cliente->nombre_completo,
-                'telefono'         => $cliente->telefono,
-                'email'            => $cliente->email,
-                'foto'             => $cliente->foto,
-                'telefono_verificado' => (bool) $cliente->telefono_verificado_en,
+                'id'               => $user->id,
+                'nombre'           => $user->nombre,
+                'apellido'         => $user->apellido,
+                'nombre_completo'  => $user->nombre_completo,
+                'telefono'         => $user->telefono,
+                'email'            => $user->email,
+                'foto'             => $user->foto,
+                'telefono_verificado' => (bool) $user->telefono_verificado_en,
             ],
         ], 200);
     }
@@ -297,31 +349,55 @@ class OtpAuthController extends Controller
     // GET /api/auth/me — Perfil del cliente autenticado
     // ─────────────────────────────────────────────────────────────
 
-    /**
-     * Devuelve los datos del cliente autenticado.
-     */
     public function me(Request $request): JsonResponse
     {
-        $cliente = $request->user();
+        $user = $request->user();
 
+        // Si el usuario es un Profesional
+        if ($user instanceof Profesional) {
+            return response()->json([
+                'success' => true,
+                'role'    => 'profesional',
+                'user'    => [
+                    'id'               => $user->id,
+                    'nombre'           => $user->nombre,
+                    'apellido'         => $user->apellido,
+                    'telefono'         => $user->telefono,
+                    'email'            => $user->email,
+                    'foto'             => $user->foto,
+                    'rol'              => $user->rol,
+                    'activo'           => $user->activo,
+                    'created_at'       => $user->created_at->toIso8601String(),
+                ],
+            ], 200);
+        }
+
+        // Si el usuario es un Cliente
         return response()->json([
             'success' => true,
-            'cliente' => [
-                'id'                    => $cliente->id,
-                'nombre'                => $cliente->nombre,
-                'apellido'              => $cliente->apellido,
-                'nombre_completo'       => $cliente->nombre_completo,
-                'telefono'              => $cliente->telefono,
-                'email'                 => $cliente->email,
-                'foto'                  => $cliente->foto,
-                'fecha_nacimiento'      => $cliente->fecha_nacimiento?->toDateString(),
-                'genero'                => $cliente->genero,
-                'pais'                  => $cliente->pais,
-                'acepta_marketing'      => $cliente->acepta_marketing,
-                'telefono_verificado'   => $cliente->telefonoVerificado(),
-                'created_at'            => $cliente->created_at->toIso8601String(),
-                'total_citas'           => $cliente->citas()->count(),
+            'role'    => 'cliente',
+            'user' => [
+                'id'                    => $user->id,
+                'nombre'                => $user->nombre,
+                'apellido'              => $user->apellido,
+                'nombre_completo'       => $user->nombre_completo,
+                'telefono'              => $user->telefono,
+                'email'                 => $user->email,
+                'foto'                  => $user->foto,
+                'fecha_nacimiento'      => $user->fecha_nacimiento?->toDateString(),
+                'genero'                => $user->genero,
+                'pais'                  => $user->pais,
+                'acepta_marketing'      => $user->acepta_marketing,
+                'telefono_verificado'   => $user->telefonoVerificado(),
+                'created_at'            => $user->created_at->toIso8601String(),
+                'total_citas'           => clone $user->citas()->count(),
             ],
+            // Para mantener compatibilidad si algo del frontend lo usaba directamente:
+            'cliente' => [
+                'id' => $user->id,
+                'nombre' => $user->nombre,
+                'apellido' => $user->apellido,
+            ]
         ], 200);
     }
 
