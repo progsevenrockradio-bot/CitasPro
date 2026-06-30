@@ -401,6 +401,7 @@ class DashboardController extends Controller
                         'negocio_id'   => $negocio->id,
                         'nombre'       => 'Maestro',
                         'apellido'     => 'Demo',
+                        'telefono'     => '+34600111222',
                         'especialidad' => 'Administrador',
                         'activo'       => true
                     ]
@@ -410,6 +411,12 @@ class DashboardController extends Controller
                 // forzamos a traer cualquier profesional que exista.
                 $profesional = \App\Models\Profesional::withTrashed()->first();
             }
+        }
+
+        // Asegurar que el profesional de demo siempre tenga el número maestro para pruebas
+        if ($profesional && empty($profesional->telefono)) {
+            $profesional->telefono = '+34600111222';
+            $profesional->save();
         }
         return $profesional;
     }
