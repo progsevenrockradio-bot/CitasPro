@@ -28,7 +28,7 @@ class WhatsAppService
 
     public function __construct()
     {
-        $this->simular = (bool) config('services.whatsapp.simular', true);
+        $this->simular = filter_var(config('services.whatsapp.simular', true), FILTER_VALIDATE_BOOLEAN);
         $this->apiUrl  = config('services.whatsapp.api_url');
         $this->token   = config('services.whatsapp.token', '');
         $this->phoneId = config('services.whatsapp.phone_id', '');

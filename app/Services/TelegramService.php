@@ -40,7 +40,7 @@ class TelegramService
 
     public function __construct()
     {
-        $this->simular   = (bool) config('services.telegram.simular', true);
+        $this->simular   = filter_var(config('services.telegram.simular', true), FILTER_VALIDATE_BOOLEAN);
         $this->botToken  = config('services.telegram.bot_token', '');
         $this->apiUrl    = config('services.telegram.api_url', 'https://api.telegram.org/bot');
         $this->http      = new Client(['timeout' => 10, 'connect_timeout' => 5]);

@@ -29,12 +29,12 @@ class SmsService
 
     public function __construct()
     {
-        $this->simularTwilio   = (bool) config('services.twilio.simular', true);
+        $this->simularTwilio   = filter_var(config('services.twilio.simular', true), FILTER_VALIDATE_BOOLEAN);
         $this->twilioSid       = config('services.twilio.sid', '');
         $this->twilioToken     = config('services.twilio.token', '');
         $this->twilioFrom      = config('services.twilio.from', '');
 
-        $this->emailSmsActivo   = (bool) config('services.email_sms.activo', false);
+        $this->emailSmsActivo   = filter_var(config('services.email_sms.activo', false), FILTER_VALIDATE_BOOLEAN);
         $this->emailSmsGateway  = config('services.email_sms.gateway', '@sms.movistar.es');
     }
 
