@@ -168,6 +168,20 @@ Route::middleware('auth:sanctum')->group(function () {
             ->name('reordenar');
     });
 
+    // ── Gestión de Servicios (protegida: solo profesional o admin) ────────
+    Route::prefix('servicios')->name('servicios.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\ServicioController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Api\ServicioController::class, 'store'])->name('store');
+        Route::patch('/{id}', [\App\Http\Controllers\Api\ServicioController::class, 'update'])->name('update')->where('id', '[0-9]+');
+        Route::delete('/{id}', [\App\Http\Controllers\Api\ServicioController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
+    });
+
+    // ── Gestión de Horarios ────────────────────────────────────────────────
+    Route::prefix('horarios')->name('horarios.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\HorarioController::class, 'show'])->name('show');
+        Route::put('/', [\App\Http\Controllers\Api\HorarioController::class, 'update'])->name('update');
+    });
+
     // ── Placeholders para Fase 3 (CRUD Negocios, Citas) ──────────────────
     Route::prefix('v1')->name('v1.')->group(function () {
         Route::get('/negocios',  fn () => response()->json(['message' => 'Próximamente — Fase 3']))->name('negocios');
