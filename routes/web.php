@@ -16,3 +16,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+ 
+// Permitir que el router de la SPA maneje todas las demás rutas web al refrescar (F5)
+Route::fallback(function () {
+    return view('welcome');
+});
