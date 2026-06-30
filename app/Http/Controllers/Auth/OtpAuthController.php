@@ -91,10 +91,10 @@ class OtpAuthController extends Controller
             'expira_en_minutos' => OtpCode::DURACION_MINUTOS,
         ];
 
-        // ⚠️ SOLO en entorno local/testing se expone el código (facilita desarrollo)
-        if (app()->environment(['local', 'testing'])) {
+        // ⚠️ SOLO en entorno local/testing o si APP_DEBUG es true se expone el código (facilita desarrollo)
+        if (app()->environment(['local', 'testing']) || config('app.debug')) {
             $response['_debug_codigo'] = $otp->codigo;
-            $response['_debug_aviso']  = 'Este campo solo aparece en entorno local. Eliminar en producción.';
+            $response['_debug_aviso']  = 'Este campo solo aparece en entorno local o con debug activo.';
         }
 
         return response()->json($response, 200);
