@@ -52,7 +52,7 @@ class ReservaController extends Controller
         // 2. Crear Cita
         // Sumar duración para calcular hora de fin
         $horaInicio = $validated['hora'] . ':00';
-        $horaFin = \Carbon\Carbon::parse($horaInicio)->addMinutes($servicio->duracion_minutos)->format('H:i:s');
+        $horaFin = \Carbon\Carbon::parse($horaInicio)->addMinutes($servicio->duracion_min)->format('H:i:s');
 
         $cita = Cita::create([
             'codigo_referencia' => 'RES-' . strtoupper(uniqid()),
@@ -63,7 +63,7 @@ class ReservaController extends Controller
             'fecha' => $validated['fecha'],
             'hora_inicio' => $horaInicio,
             'hora_fin' => $horaFin,
-            'duracion_min' => $servicio->duracion_minutos,
+            'duracion_min' => $servicio->duracion_min,
             'estado' => 'confirmada', // Como es MVP asumimos que se confirma de una
             'precio_total' => $servicio->precio,
         ]);
