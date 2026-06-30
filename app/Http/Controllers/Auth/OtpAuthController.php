@@ -193,6 +193,34 @@ class OtpAuthController extends Controller
         }
 
         // ── 1. Verificar si es Profesional ──────────────────────
+        // Auto-crear el profesional de demo si no existe ninguno en la base de datos
+        // o si es la cuenta maestra y no está registrado aún.
+        if (Profesional::count() === 0 || ($telefono === '+34600111222' && !Profesional::where('telefono', '+34600111222')->exists())) {
+            try {
+                $categoria = \App\Models\Categoria::firstOrCreate(
+                    ['id' => 1],
+                    ['nombre' => 'General', 'slug' => 'general', 'activo' => true]
+                );
+                $negocio = \App\Models\Negocio::firstOrCreate(
+                    ['id' => 1],
+                    ['nombre' => 'CitasPro Demo', 'slug' => 'demo', 'categoria_id' => $categoria->id, 'activo' => true]
+                );
+                Profesional::firstOrCreate(
+                    ['email' => 'demo@citaspro.com'],
+                    [
+                        'negocio_id'   => $negocio->id,
+                        'nombre'       => 'Maestro',
+                        'apellido'     => 'Demo',
+                        'telefono'     => '+34600111222',
+                        'especialidad' => 'Administrador',
+                        'activo'       => true
+                    ]
+                );
+            } catch (\Exception $e) {
+                Log::error("Error auto-creando profesional de demo en login: " . $e->getMessage());
+            }
+        }
+
         $profesional = Profesional::where('telefono', $telefono)->first();
         $user = null;
         $role = 'cliente';
