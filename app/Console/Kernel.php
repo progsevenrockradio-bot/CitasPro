@@ -2,7 +2,7 @@
 
 namespace App\Console;
 
-use App\Console\Commands\RecordarCitasCommand;
+use App\Console\Commands\EnviarRecordatoriosCitas;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
@@ -23,13 +23,13 @@ class Kernel extends ConsoleKernel
         // ── Recordatorios de citas ────────────────────────────────────────────
         // Ejecuta cada hora para detectar citas en ventana de 24h y 1h
         $schedule
-            ->command('citas:recordar')
+            ->command('citas:recordatorios')
             ->hourly()
             ->between('07:00', '22:00')         // Solo en horario razonable
             ->withoutOverlapping()               // No ejecutar si ya está corriendo
             ->onOneServer()                      // En clúster, solo un servidor
             ->onFailure(function () {
-                Log::error('Scheduler: citas:recordar falló.');
+                Log::error('Scheduler: citas:recordatorios falló.');
             })
             ->appendOutputTo(storage_path('logs/scheduler-recordatorios.log'));
 

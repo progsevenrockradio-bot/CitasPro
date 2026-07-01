@@ -42,6 +42,16 @@ export default function ReservaScreen({ route, navigation }) {
   const [telefono, setTelefono] = useState('');
   const [enviando, setEnviando] = useState(false);
 
+  // Estados adicionales para pago
+  const [metodoPago, setMetodoPago] = useState('efectivo'); // 'efectivo' | 'stripe'
+  const [createdCita, setCreatedCita] = useState(null);
+  const [showMockCardModal, setShowMockCardModal] = useState(false);
+  const [numeroTarjeta, setNumeroTarjeta] = useState('');
+  const [nombreTitular, setNombreTitular] = useState('');
+  const [expiracion, setExpiracion] = useState('');
+  const [cvv, setCvv] = useState('');
+  const [pagandoTarjeta, setPagandoTarjeta] = useState(false);
+
   // Animación de la barra inferior
   const barraAnim = useState(new Animated.Value(0))[0];
 
@@ -133,16 +143,76 @@ export default function ReservaScreen({ route, navigation }) {
       console.log('Respuesta del servidor:', res.data);
 
       if (res.data.success) {
-        mostrarAlerta('¡Reserva Confirmada!', 'Te esperamos con gusto.', 'success', () => {
-          navigation.navigate('Portafolio');
-        });
+        const cita = res.data.cita;
+        setCreatedCita(cita);
+
+        // Procesar pago en base al método elegido
+        if (metodoPago === 'efectivo') {
+          // Procesar el pago en efectivo
+          await api.post('/paciente/pagos/procesar', {
+            cita_id: cita.id,
+            telefono: telefono,
+            metodo: 'efectivo'
+          });
+
+          mostrarAlerta('¡Reserva Confirmada!', 'Te esperamos con gusto. Pagas al asistir.', 'success', () => {
+            navigation.navigate('Portafolio');
+          });
+        } else {
+          // Guardar cita y abrir modal para pago seguro simulado con Stripe
+          setEnviando(false);
+          setShowMockCardModal(true);
+        }
       }
     } catch (err) {
       console.error('Error al reservar:', err);
       const errMsg = err.response?.data?.message || 'Hubo un problema al agendar. Por favor, inténtalo de nuevo.';
       mostrarAlerta('Error', errMsg, 'error');
-    } finally {
       setEnviando(false);
+    }
+  };
+
+  // Ejecuta la confirmación del pago simulado con tarjeta
+  const procesarPagoTarjetaSimulado = async () => {
+    if (!numeroTarjeta || !nombreTitular || !expiracion || !cvv) {
+      Alert.alert('Faltan datos', 'Por favor completa la información de la tarjeta.');
+      return;
+    }
+
+    setPagandoTarjeta(true);
+
+    try {
+      // 1. Obtener la intención de pago del servidor
+      const resIntencion = await api.post('/paciente/pagos/procesar', {
+        cita_id: createdCita.id,
+        telefono: telefono,
+        metodo: 'stripe'
+      });
+
+      if (resIntencion.data.success) {
+        // 2. Simular confirmación exitosa llamando al endpoint simulado del webhook local
+        const resConfirmacion = await api.post('/paciente/pagos/confirmar-simulado', {
+          cita_id: createdCita.id,
+          telefono: telefono
+        });
+
+        if (resConfirmacion.data.success) {
+          setShowMockCardModal(false);
+          setNumeroTarjeta('');
+          setNombreTitular('');
+          setExpiracion('');
+          setCvv('');
+          
+          mostrarAlerta('¡Pago Aprobado!', 'Tu cita ha sido confirmada y pagada con éxito.', 'success', () => {
+            navigation.navigate('Portafolio');
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error en simulación de pago:', error);
+      Alert.alert('Error', 'No se pudo simular la transacción con tarjeta.');
+    } finally {
+      setPagandoTarjeta(false);
     }
   };
 
@@ -268,6 +338,24 @@ export default function ReservaScreen({ route, navigation }) {
               onChangeText={setTelefono}
               returnKeyType="done"
             />
+
+            <Text style={[styles.label, { marginTop: 15 }]}>Método de Pago</Text>
+            <View style={styles.selectorPagoContainer}>
+              <TouchableOpacity
+                style={[styles.btnMetodoPago, metodoPago === 'efectivo' && styles.btnMetodoPagoActivo]}
+                onPress={() => setMetodoPago('efectivo')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.txtMetodoPago, metodoPago === 'efectivo' && styles.txtMetodoPagoActivo]}>💵 Efectivo en local</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btnMetodoPago, metodoPago === 'stripe' && styles.btnMetodoPagoActivo]}
+                onPress={() => setMetodoPago('stripe')}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.txtMetodoPago, metodoPago === 'stripe' && styles.txtMetodoPagoActivo]}>💳 Tarjeta (Stripe)</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -359,6 +447,76 @@ export default function ReservaScreen({ route, navigation }) {
             >
               <Text style={styles.modalBtnTxt}>Aceptar</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* MODAL MOCK DE STRIPE */}
+      {showMockCardModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitulo}>💳 Pago Seguro (Stripe Simulado)</Text>
+            <Text style={[styles.modalMensaje, { marginBottom: 12 }]}>
+              Ingresa los datos de tu tarjeta para abonar {servicio.precio} € por {servicio.nombre}
+            </Text>
+
+            <TextInput
+              style={styles.inputModal}
+              placeholder="Nombre del Titular (ej. Juan Pérez)"
+              value={nombreTitular}
+              onChangeText={setNombreTitular}
+              placeholderTextColor="#9CA3AF"
+            />
+            <TextInput
+              style={styles.inputModal}
+              placeholder="Número de Tarjeta (ej. 4242 4242 4242 4242)"
+              keyboardType="numeric"
+              value={numeroTarjeta}
+              onChangeText={setNumeroTarjeta}
+              maxLength={19}
+              placeholderTextColor="#9CA3AF"
+            />
+            <View style={styles.filaInputsModal}>
+              <TextInput
+                style={[styles.inputModal, { flex: 1, marginRight: 8 }]}
+                placeholder="MM/AA"
+                value={expiracion}
+                onChangeText={setExpiracion}
+                maxLength={5}
+                placeholderTextColor="#9CA3AF"
+              />
+              <TextInput
+                style={[styles.inputModal, { flex: 1 }]}
+                placeholder="CVV"
+                keyboardType="numeric"
+                secureTextEntry
+                value={cvv}
+                onChangeText={setCvv}
+                maxLength={4}
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            <View style={styles.filaBotonesModal}>
+              <TouchableOpacity
+                style={[styles.btnCancelarModal]}
+                onPress={() => setShowMockCardModal(false)}
+                disabled={pagandoTarjeta}
+              >
+                <Text style={styles.btnCancelarModalTxt}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btnPagarModal]}
+                onPress={procesarPagoTarjetaSimulado}
+                disabled={pagandoTarjeta}
+              >
+                {pagandoTarjeta ? (
+                  <ActivityIndicator color="#FFF" size="small" />
+                ) : (
+                  <Text style={styles.btnPagarModalTxt}>Pagar {servicio.precio} €</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       )}
@@ -670,6 +828,82 @@ const styles = StyleSheet.create({
   modalBtnTxt: {
     color: '#FFF',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  // --- Nuevos estilos de pago ---
+  selectorPagoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginBottom: 20,
+  },
+  btnMetodoPago: {
+    flex: 1,
+    paddingVertical: 12,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 10,
+    alignItems: 'center',
+    marginHorizontal: 4,
+    backgroundColor: '#FFF',
+  },
+  btnMetodoPagoActivo: {
+    borderColor: '#6366F1',
+    backgroundColor: '#EEF2FF',
+  },
+  txtMetodoPago: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  txtMetodoPagoActivo: {
+    color: '#6366F1',
+  },
+  inputModal: {
+    width: '100%',
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+    fontSize: 14,
+    color: '#1F2937',
+  },
+  filaInputsModal: {
+    flexDirection: 'row',
+    width: '100%',
+    marginBottom: 16,
+  },
+  filaBotonesModal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  btnCancelarModal: {
+    flex: 1,
+    paddingVertical: 12,
+    marginRight: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+  },
+  btnCancelarModalTxt: {
+    color: '#4B5563',
+    fontWeight: 'bold',
+  },
+  btnPagarModal: {
+    flex: 2,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnPagarModalTxt: {
+    color: '#FFF',
     fontWeight: 'bold',
   },
 });

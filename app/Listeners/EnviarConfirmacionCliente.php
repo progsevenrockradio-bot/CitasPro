@@ -57,8 +57,22 @@ class EnviarConfirmacionCliente implements ShouldQueue
     {
         $cita = $event->cita->load(['cliente', 'servicio', 'negocio']);
 
+        // Si la cita fue completada, enviar solicitud de reseña
+        if ($cita->estado === 'completada') {
+            $url = config('app.url') . "/opinion/{$cita->codigo_referencia}";
+            $mensaje = "¡Gracias por visitarnos en {$cita->negocio->nombre}! Tu opinión nos ayuda a mejorar. Califica tu servicio aquí: {$url}";
+
+            $enviado = $this->whatsapp->enviarTexto($cita->cliente->telefono, $mensaje);
+            if (!$enviado) {
+                $this->sms->enviar($cita->cliente->telefono, $mensaje);
+            }
+            return;
+        }
+
         $hora  = substr($cita->hora_inicio, 0, 5);
-        $fecha = $cita->fecha->format('d/m/Y');
+        $fecha = $cita->fecha instanceof \Carbon\Carbon
+            ? $cita->fecha->format('d/m/Y')
+            : \Carbon\Carbon::parse($cita->fecha)->format('d/m/Y');
 
         $mensaje = "CitasPro: Tu cita ha sido modificada. "
                  . "{$cita->servicio->nombre} ahora el {$fecha} a las {$hora}. "

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Switch } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Switch, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
@@ -16,6 +16,11 @@ export default function SettingsScreen() {
   // Horarios State
   const [horario, setHorario] = useState(null);
 
+  // Suscripción State
+  const [negocio, setNegocio] = useState(null);
+  const [planes, setPlanes] = useState(null);
+  const [procesandoSuscripcion, setProcesandoSuscripcion] = useState(false);
+
   useEffect(() => {
     if (role === 'profesional') {
       fetchData();
@@ -27,12 +32,16 @@ export default function SettingsScreen() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resServicios, resHorario] = await Promise.all([
+      const [resServicios, resHorario, resNegocio, resPlanes] = await Promise.all([
         api.get('/servicios'),
-        api.get('/horarios')
+        api.get('/horarios'),
+        api.get('/negocio'),
+        api.get('/suscripciones/planes')
       ]);
       setServicios(resServicios.data.servicios || []);
       setHorario(resHorario.data.horario || {});
+      setNegocio(resNegocio.data);
+      setPlanes(resPlanes.data.planes || {});
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'No se pudieron cargar los datos de configuración.');
@@ -111,6 +120,45 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleUpgrade = async (planKey) => {
+    setProcesandoSuscripcion(true);
+    try {
+      const res = await api.post('/suscripciones/suscribir', { plan: planKey });
+      if (res.data.success && res.data.checkout_url) {
+        // Abrir pasarela de Stripe en navegador
+        await Linking.openURL(res.data.checkout_url);
+      } else {
+        Alert.alert('Error', 'No se pudo generar la sesión de pago.');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Error al conectar con la pasarela de pagos.');
+    } finally {
+      setProcesandoSuscripcion(false);
+    }
+  };
+
+  const handleCancelarSuscripcion = async () => {
+    Alert.alert('Confirmar', '¿Seguro que deseas cancelar la renovación de tu suscripción? Mantendrás el acceso premium hasta el final del periodo facturado.', [
+      { text: 'No', style: 'cancel' },
+      { text: 'Sí, cancelar', style: 'destructive', onPress: async () => {
+          setProcesandoSuscripcion(true);
+          try {
+            const res = await api.delete('/suscripciones/cancelar');
+            if (res.data.success) {
+              Alert.alert('Suscripción Cancelada', res.data.message);
+              fetchData();
+            }
+          } catch (error) {
+            console.error(error);
+            Alert.alert('Error', 'No se pudo procesar la cancelación.');
+          } finally {
+            setProcesandoSuscripcion(false);
+          }
+      }}
+    ]);
+  };
+
 
   if (role !== 'profesional') {
     return (
@@ -144,6 +192,12 @@ export default function SettingsScreen() {
           onPress={() => { setActiveTab('horario'); setEditingService(null); }}
         >
           <Text style={[styles.tabText, activeTab === 'horario' && styles.tabTextActive]}>Mi Horario</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'suscripcion' && styles.tabActive]} 
+          onPress={() => { setActiveTab('suscripcion'); setEditingService(null); }}
+        >
+          <Text style={[styles.tabText, activeTab === 'suscripcion' && styles.tabTextActive]}>Suscripción</Text>
         </TouchableOpacity>
       </View>
 
@@ -281,6 +335,70 @@ export default function SettingsScreen() {
             </View>
           )}
 
+          {/* TAB: SUSCRIPCION */}
+          {activeTab === 'suscripcion' && negocio && planes && (
+            <View style={styles.suscripcionContainer}>
+              <View style={styles.planCard}>
+                <Text style={styles.planTitle}>Tu Plan Actual: <Text style={styles.planNombre}>{negocio.plan.toUpperCase()}</Text></Text>
+                {negocio.plan !== 'free' && negocio.plan_vence_en && (
+                  <Text style={styles.planVence}>
+                    Renovación el: {new Date(negocio.plan_vence_en).toLocaleDateString()}
+                  </Text>
+                )}
+                {negocio.plan === 'free' && (
+                  <Text style={styles.planVence}>Acceso básico limitado.</Text>
+                )}
+              </View>
+
+              <Text style={styles.seccionTitle}>Planes Disponibles</Text>
+              
+              {Object.keys(planes).map(key => {
+                const plan = planes[key];
+                const esPlanActual = negocio.plan === key;
+                
+                return (
+                  <View key={key} style={[styles.planItemCard, esPlanActual && styles.planItemCardActivo]}>
+                    <View style={styles.planItemHeader}>
+                      <Text style={styles.planItemNombre}>{plan.nombre}</Text>
+                      <Text style={styles.planItemPrecio}>{plan.precio_mes} €/mes</Text>
+                    </View>
+                    
+                    <Text style={styles.planItemDetalle}>
+                      • Profesionales: {plan.limite_profesionales || 'Ilimitados'}{"\n"}
+                      • Citas/mes: {plan.limite_citas_mes || 'Ilimitadas'}{"\n"}
+                      • Portafolio: {plan.portafolio ? '✅ Incluido' : '❌ No disponible'}{"\n"}
+                      • Soporte: {plan.soporte}
+                    </Text>
+
+                    {esPlanActual ? (
+                      <View style={styles.btnPlanActual}>
+                        <Text style={styles.btnPlanActualTxt}>Tu Plan Activo</Text>
+                      </View>
+                    ) : key !== 'free' ? (
+                      <TouchableOpacity
+                        style={[styles.btnPlanUpgrade]}
+                        onPress={() => handleUpgrade(key)}
+                        disabled={procesandoSuscripcion}
+                      >
+                        <Text style={styles.btnPlanUpgradeTxt}>Contratar Plan</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                );
+              })}
+
+              {negocio.stripe_subscription_id && (
+                <TouchableOpacity
+                  style={[styles.btnCancelarSuscripcion]}
+                  onPress={handleCancelarSuscripcion}
+                  disabled={procesandoSuscripcion}
+                >
+                  <Text style={styles.btnCancelarSuscripcionTxt}>Cancelar Renovación Automática</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
           <View style={{height: 100}} />
         </ScrollView>
       )}
@@ -350,6 +468,105 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: 'center',
     fontSize: 16,
+  },
+  // --- Suscripción Styles ---
+  suscripcionContainer: {
+    paddingBottom: 40,
+  },
+  planCard: {
+    backgroundColor: '#1F2937',
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#374151',
+  },
+  planTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+  planNombre: {
+    color: '#6366F1',
+  },
+  planVence: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginTop: 6,
+  },
+  seccionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginBottom: 16,
+  },
+  planItemCard: {
+    backgroundColor: '#1F2937',
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  planItemCardActivo: {
+    borderColor: '#6366F1',
+  },
+  planItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#374151',
+    paddingBottom: 8,
+  },
+  planItemNombre: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
+  planItemPrecio: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#10B981',
+  },
+  planItemDetalle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  btnPlanActual: {
+    backgroundColor: '#374151',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  btnPlanActualTxt: {
+    color: '#9CA3AF',
+    fontWeight: 'bold',
+  },
+  btnPlanUpgrade: {
+    backgroundColor: '#6366F1',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  btnPlanUpgradeTxt: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  btnCancelarSuscripcion: {
+    marginTop: 10,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    alignItems: 'center',
+  },
+  btnCancelarSuscripcionTxt: {
+    color: '#EF4444',
+    fontWeight: 'bold',
   },
   // Servicios
   addButton: {

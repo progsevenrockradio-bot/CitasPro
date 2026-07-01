@@ -65,5 +65,18 @@ return [
         'recordatorio_minutos_urgente' => env('RECORDATORIO_MINUTOS_URGENTE', 60),
     ],
 
+    // ── Stripe ────────────────────────────────────────────────────────────────
+    'stripe' => [
+        'key'                      => env('STRIPE_KEY'),
+        'secret'                   => env('STRIPE_SECRET'),
+        'webhook_secret'           => env('STRIPE_WEBHOOK_SECRET'),
+        // Webhooks de suscripciones (distinto al de pagos de citas)
+        'webhook_suscripcion_secret' => env('STRIPE_WEBHOOK_SUSCRIPCION_SECRET'),
+        // Price IDs de los planes de suscripción mensual
+        'precio_basic'      => env('STRIPE_PRICE_BASIC'),
+        'precio_pro'        => env('STRIPE_PRICE_PRO'),
+        'precio_enterprise' => env('STRIPE_PRICE_ENTERPRISE'),
+    ],
+
 ];
 

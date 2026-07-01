@@ -4,20 +4,27 @@ use App\Http\Controllers\Auth\OtpAuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PortafolioController;
 use App\Http\Controllers\Api\TelegramBotController;
+use App\Http\Controllers\Api\PacienteController;
+use App\Http\Controllers\Api\DisponibilidadController;
+use App\Http\Controllers\Api\ReservaController;
+use App\Http\Controllers\Api\ServicioController;
+use App\Http\Controllers\Api\HorarioController;
+use App\Http\Controllers\Api\ResenaController;
+use App\Http\Controllers\Api\PagoController;
+use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Api\Admin\NegocioController as AdminNegocioController;
+use App\Http\Controllers\Api\Admin\ProfesionalController as AdminProfesionalController;
+use App\Http\Controllers\Api\CitaController;
+use App\Http\Controllers\Api\ClienteController;
+use App\Http\Controllers\Api\NegocioController;
+use App\Http\Controllers\Api\SuscripcionController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes — CitasPro v1
 |--------------------------------------------------------------------------
-|
-| Prefijo global: /api  (definido en RouteServiceProvider)
-| Autenticación: Laravel Sanctum (Bearer token)
-|
-| GRUPOS:
-|   [PÚBLICA]    No requieren token
-|   [PROTEGIDA]  Requieren header: Authorization: Bearer {token}
-|
 */
 
 // ─── Health check ──────────────────────────────────────────────────────────
@@ -32,279 +39,74 @@ Route::get('/health', fn () => response()->json([
 // RUTAS PÚBLICAS (sin autenticación)
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ── Autenticación OTP ─────────────────────────────────────────────────────
+// ── Autenticación OTP
 Route::prefix('auth/otp')->name('auth.otp.')->group(function () {
-
-    /**
-     * POST /api/auth/otp/enviar
-     * Body: { "telefono": "+34612345678" }
-     * Rate limit: 3 intentos / 5 min por número
-     */
     Route::post('/enviar', [OtpAuthController::class, 'enviar'])->name('enviar');
-
-    /**
-     * POST /api/auth/otp/verificar
-     * Body: { "telefono": "+34612345678", "codigo": "123456", "nombre": "Juan" }
-     * Devuelve: token Sanctum + datos del cliente
-     */
     Route::post('/verificar', [OtpAuthController::class, 'verificar'])->name('verificar');
 });
 
-// ── Portafolio público (galería de trabajos del profesional) ──────────────
-// Accesible sin autenticación para que clientes puedan ver el trabajo
+// ── Portafolio público (galería de trabajos del profesional)
 Route::prefix('portafolio')->name('portafolio.')->group(function () {
-
-    /**
-     * GET /api/portafolio/{profesionalId}
-     * Query: ?tipo=imagen&destacado=1&per_page=12&servicio_id=5
-     */
     Route::get('/{profesionalId}', [PortafolioController::class, 'index'])
         ->name('index')
         ->where('profesionalId', '[0-9]+');
 });
 
-// ── Webhook de Telegram ──────────────────────────────────────────────────
+// ── Flujo del Paciente
+Route::prefix('paciente')->name('paciente.')->group(function () {
+    Route::get('/profesional/{id}', [PacienteController::class, 'portafolio']);
+    Route::get('/profesional/{id}/disponibilidad', [DisponibilidadController::class, 'index']);
+    Route::post('/reservar', [ReservaController::class, 'store']);
+    Route::post('/pagos/procesar', [PagoController::class, 'procesarPagoPaciente'])->name('pagos.procesar');
+    Route::post('/pagos/confirmar-simulado', [PagoController::class, 'confirmarPagoPacienteSimulado'])->name('pagos.confirmar_simulado');
+});
+
+// ── Reseñas Públicas
+Route::prefix('resenas')->name('resenas.')->group(function () {
+    Route::get('/negocio/{negocio}', [ResenaController::class, 'porNegocio']);
+    Route::get('/profesional/{profesional}', [ResenaController::class, 'porProfesional']);
+});
+
+// ── Webhook de Telegram
 Route::post('/telegram/webhook', [TelegramBotController::class, 'handle'])->name('telegram.webhook');
 
-// ═══════════════════════════════════════════════════════════════════════════
-// RUTAS PROTEGIDAS (requieren: Authorization: Bearer {token})
-// ═══════════════════════════════════════════════════════════════════════════
+// ── Webhook de Stripe (Pagos de citas)
+Route::post('/pagos/webhook/stripe', [PagoController::class, 'webhookStripe'])->name('pagos.webhook.stripe');
 
-Route::middleware('auth:sanctum')->group(function () {
+// ── Planes de Suscripción (público)
+Route::get('/suscripciones/planes', [SuscripcionController::class, 'planes'])->name('suscripciones.planes');
 
-    // ── Sesión y perfil ───────────────────────────────────────────────────
-    Route::prefix('auth')->name('auth.')->group(function () {
+// ── Webhook de Stripe (Suscripciones SaaS)
+Route::post('/suscripciones/webhook', [SuscripcionController::class, 'webhookSuscripcion'])->name('suscripciones.webhook');
 
-        /** GET /api/auth/me — Datos del cliente autenticado */
-        Route::get('/me', [OtpAuthController::class, 'me'])->name('me');
-
-        /** POST /api/auth/logout — Cierra sesión en este dispositivo */
-        Route::post('/logout', [OtpAuthController::class, 'logout'])->name('logout');
-
-        /** POST /api/auth/logout-all — Cierra sesión en todos los dispositivos */
-        Route::post('/logout-all', [OtpAuthController::class, 'logoutTodos'])->name('logout.all');
-    });
-
-    // ── Dashboard y métricas ──────────────────────────────────────────────
-    Route::prefix('dashboard')->name('dashboard.')->group(function () {
-
-        /**
-         * GET /api/dashboard/metricas
-         * GET /api/dashboard/metricas/{periodo}
-         *
-         * periodos: mes_actual | mes_anterior | semana | anio
-         * Query: ?profesional_id=5
-         *
-         * Respuesta: métricas completas con comparativa y distribuciones
-         */
-        Route::get('/metricas', [DashboardController::class, 'metricas'])
-            ->name('metricas');
-
-        Route::get('/metricas/{periodo}', [DashboardController::class, 'metricas'])
-            ->name('metricas.periodo')
-            ->where('periodo', 'mes_actual|mes_anterior|semana|anio');
-
-        /**
-         * GET /api/dashboard/agenda
-         * Citas de hoy + próximos 7 días del profesional.
-         * Query: ?profesional_id=5
-         */
-        Route::get('/agenda', [DashboardController::class, 'agenda'])
-            ->name('agenda');
-
-        /**
-         * GET /api/dashboard/resumen-rapido
-         * Widget compacto de KPIs para app móvil.
-         * Query: ?profesional_id=5
-         */
-        Route::get('/resumen-rapido', [DashboardController::class, 'resumenRapido'])
-            ->name('resumen.rapido');
-
-        /**
-         * PATCH /api/dashboard/citas/{id}/estado
-         * Actualizar estado de cita.
-         */
-        Route::patch('/citas/{id}/estado', [DashboardController::class, 'actualizarEstadoCita'])
-            ->name('citas.estado.actualizar');
-    });
-
-    // ── Gestión de Portafolio (protegida: solo el profesional o admin) ────
-    Route::prefix('portafolio')->name('portafolio.')->group(function () {
-
-        /**
-         * POST /api/portafolio/{profesionalId}/subir
-         * Content-Type: multipart/form-data
-         * Campos: archivo* (imagen/video), titulo, descripcion, servicio_id,
-         *         destacado, tipo, archivo_antes
-         *
-         * Respuesta: { success, portafolio: { id, url, url_miniatura, disco, ... } }
-         */
-        Route::post('/{profesionalId}/subir', [PortafolioController::class, 'subir'])
-            ->name('subir')
-            ->where('profesionalId', '[0-9]+');
-
-        /**
-         * PATCH /api/portafolio/{id}
-         * Body: { titulo, descripcion, servicio_id, destacado, publico, orden }
-         */
-        Route::patch('/{id}', [PortafolioController::class, 'actualizar'])
-            ->name('actualizar')
-            ->where('id', '[0-9]+');
-
-        /**
-         * DELETE /api/portafolio/{id}
-         * Elimina archivo del disco + registro de la BD.
-         */
-        Route::delete('/{id}', [PortafolioController::class, 'eliminar'])
-            ->name('eliminar')
-            ->where('id', '[0-9]+');
-
-        /**
-         * POST /api/portafolio/reordenar
-         * Body: { "orden": [ {"id": 3, "orden": 1}, ... ] }
-         * Reordena múltiples entradas en una sola llamada.
-         */
-        Route::post('/reordenar', [PortafolioController::class, 'reordenar'])
-            ->name('reordenar');
-    });
-
-    // ── Gestión de Servicios (protegida: solo profesional o admin) ────────
-    Route::prefix('servicios')->name('servicios.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Api\ServicioController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\Api\ServicioController::class, 'store'])->name('store');
-        Route::patch('/{id}', [\App\Http\Controllers\Api\ServicioController::class, 'update'])->name('update')->where('id', '[0-9]+');
-        Route::delete('/{id}', [\App\Http\Controllers\Api\ServicioController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
-    });
-
-    // ── Gestión de Horarios ────────────────────────────────────────────────
-    Route::prefix('horarios')->name('horarios.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Api\HorarioController::class, 'show'])->name('show');
-        Route::put('/', [\App\Http\Controllers\Api\HorarioController::class, 'update'])->name('update');
-    });
-
-    // ── Placeholders para Fase 3 (CRUD Negocios, Citas) ──────────────────
-    Route::prefix('v1')->name('v1.')->group(function () {
-        Route::get('/negocios',  fn () => response()->json(['message' => 'Próximamente — Fase 3']))->name('negocios');
-        Route::get('/citas',     fn () => response()->json(['message' => 'Próximamente — Fase 3']))->name('citas');
-        Route::get('/servicios', fn () => response()->json(['message' => 'Próximamente — Fase 3']))->name('servicios');
-    });
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| API Routes — CitasPro
-|--------------------------------------------------------------------------
-|
-| Todas las rutas tienen el prefijo /api (configurado en RouteServiceProvider).
-| Protección:
-|   - Públicas: No requieren autenticación
-|   - Protegidas: Requieren header "Authorization: Bearer {token}"
-|
-*/
-
-// ─── Estado de la API ───────────────────────────────────────────────────────
-Route::get('/health', fn () => response()->json([
-    'status'    => 'ok',
-    'app'       => config('app.name'),
-    'version'   => '1.0.0',
-    'timestamp' => now()->toIso8601String(),
-]));
-
-// ─── Autenticación OTP (Rutas PÚBLICAS) ────────────────────────────────────
-Route::prefix('auth/otp')->name('auth.otp.')->group(function () {
-    /**
-     * POST /api/auth/otp/enviar
-     * Body: { "telefono": "+34612345678" }
-     * Genera y envía (simula) el código OTP al número recibido.
-     */
-    Route::post('/enviar', [OtpAuthController::class, 'enviar'])
-        ->name('enviar');
-
-    /**
-     * POST /api/auth/otp/verificar
-     * Body: { "telefono": "+34612345678", "codigo": "123456", "nombre": "Juan" }
-     * Valida el OTP y devuelve el token Sanctum.
-     */
-    Route::post('/verificar', [OtpAuthController::class, 'verificar'])
-        ->name('verificar');
-});
-
-// ── Flujo del Paciente (Rutas PÚBLICAS) ──────────────────────────────────
-Route::prefix('paciente')->name('paciente.')->group(function () {
-    // Ver los detalles públicos de un profesional (su portafolio y servicios)
-    Route::get('/profesional/{id}', [\App\Http\Controllers\Api\PacienteController::class, 'portafolio']);
-    // Obtener las horas libres de un profesional en una fecha específica
-    Route::get('/profesional/{id}/disponibilidad', [\App\Http\Controllers\Api\DisponibilidadController::class, 'index']);
-    // Crear una nueva cita (reserva)
-    Route::post('/reservar', [\App\Http\Controllers\Api\ReservaController::class, 'store']);
-});
-
-// ── MAGIA DE DEMO PARA EL USUARIO ──────────────────────────────────────
+// ── Demo (Reset Database)
 Route::get('/reset-demo', function () {
     try {
-        // 1. Borrar y recrear todo de cero
-        \Illuminate\Support\Facades\Artisan::call('migrate:fresh', ['--force' => true]);
+        Artisan::call('migrate:fresh', ['--force' => true]);
 
-        // 2. Sembrar la categoría base
-        $categoria = \App\Models\Categoria::create([
-            'nombre' => 'General', 
-            'slug' => 'general', 
-            'activo' => true
-        ]);
-
-        // 3. Sembrar Negocio
-        $negocio = \App\Models\Negocio::create([
-            'nombre' => 'CitasPro Demo', 
-            'slug' => 'demo', 
-            'categoria_id' => $categoria->id, 
-            'activo' => true
-        ]);
-
-        // 4. Sembrar Profesional Maestro
+        $categoria = \App\Models\Categoria::create(['nombre' => 'General', 'slug' => 'general', 'activo' => true]);
+        $negocio = \App\Models\Negocio::create(['nombre' => 'CitasPro Demo', 'slug' => 'demo', 'categoria_id' => $categoria->id, 'activo' => true]);
+        
         $profesional = \App\Models\Profesional::create([
             'negocio_id'   => $negocio->id,
             'nombre'       => 'Maestro',
             'apellido'     => 'Demo',
             'email'        => 'demo@citaspro.com',
-            'telefono'     => '+34600111222', // Para que entre al backdoor
+            'telefono'     => '+34600111222', 
             'especialidad' => 'Administrador',
             'activo'       => true
         ]);
 
-        // 5. Sembrar Clientes
         $cliente1 = \App\Models\Cliente::create(['telefono' => '+34600000001', 'nombre' => 'Ana', 'apellido' => 'Gómez']);
         $cliente2 = \App\Models\Cliente::create(['telefono' => '+34600000002', 'nombre' => 'Carlos', 'apellido' => 'Ruiz']);
         $cliente3 = \App\Models\Cliente::create(['telefono' => '+34600000003', 'nombre' => 'Laura', 'apellido' => 'Méndez']);
 
-        // 6. Servicios de ejemplo variados
-        $servicioVIP = \App\Models\Servicio::create([
-            'negocio_id' => $negocio->id, 
-            'nombre' => 'Tratamiento VIP (Masaje + Spa)',
-            'duracion_minutos' => 60, 
-            'precio' => 45.00, 
-            'activo' => true
-        ]);
-
-        $servicioCorte = \App\Models\Servicio::create([
-            'negocio_id' => $negocio->id, 
-            'nombre' => 'Corte de Cabello Clásico',
-            'duracion_minutos' => 30, 
-            'precio' => 15.00, 
-            'activo' => true
-        ]);
-
-        $servicioZapatos = \App\Models\Servicio::create([
-            'negocio_id' => $negocio->id, 
-            'nombre' => 'Reparación de Calzado (Zapatería)',
-            'duracion_minutos' => 45, 
-            'precio' => 25.00, 
-            'activo' => true
-        ]);
+        $servicioVIP = \App\Models\Servicio::create(['negocio_id' => $negocio->id, 'nombre' => 'Tratamiento VIP (Masaje + Spa)', 'duracion_minutos' => 60, 'precio' => 45.00, 'activo' => true]);
+        $servicioCorte = \App\Models\Servicio::create(['negocio_id' => $negocio->id, 'nombre' => 'Corte de Cabello Clásico', 'duracion_minutos' => 30, 'precio' => 15.00, 'activo' => true]);
+        $servicioZapatos = \App\Models\Servicio::create(['negocio_id' => $negocio->id, 'nombre' => 'Reparación de Calzado (Zapatería)', 'duracion_minutos' => 45, 'precio' => 25.00, 'activo' => true]);
         
         $servicios_ids = [$servicioVIP->id, $servicioCorte->id, $servicioZapatos->id];
 
-        // 7. Citas Pasadas
         for ($i = 1; $i <= 7; $i++) {
             $serv_id = $servicios_ids[array_rand($servicios_ids)];
             $cita = \App\Models\Cita::create([
@@ -331,7 +133,6 @@ Route::get('/reset-demo', function () {
             ]);
         }
 
-        // 8. Citas HOY
         $horasHoy = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
         foreach ($horasHoy as $index => $horaStr) {
             $serv_id = $servicios_ids[array_rand($servicios_ids)];
@@ -350,48 +151,125 @@ Route::get('/reset-demo', function () {
             ]);
         }
 
-        return response()->json([
-            'success' => true, 
-            'message' => '¡EXITO! La base de datos ha sido borrada desde cero y las 13 citas han sido inyectadas perfectamente.'
-        ]);
+        return response()->json(['success' => true, 'message' => '¡EXITO! Base de datos reiniciada e inyectada perfectamente.']);
     } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'HUBO UN ERROR: ' . $e->getMessage(),
-            'linea' => $e->getLine()
-        ], 500);
+        return response()->json(['success' => false, 'message' => 'HUBO UN ERROR: ' . $e->getMessage(), 'linea' => $e->getLine()], 500);
     }
 });
 
-// ─── Rutas PROTEGIDAS (requieren token Sanctum) ─────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// RUTAS PROTEGIDAS (requieren: Authorization: Bearer {token})
+// ═══════════════════════════════════════════════════════════════════════════
+
 Route::middleware('auth:sanctum')->group(function () {
 
-    // ── Reseñas ───────────────────────────────────────────────────────────
-    Route::prefix('resenas')->name('resenas.')->group(function () {
-        Route::get('/negocio/{negocio}', [ResenaController::class, 'porNegocio']);
-        Route::get('/profesional/{profesional}', [ResenaController::class, 'porProfesional']);
-        
-        Route::middleware('auth:sanctum')->group(function () {
-            Route::post('/', [ResenaController::class, 'store']);
-        });
-    });
-
-
-
-    // ── Autenticación ─────────────────────────────────────────────────────
+    // ── Sesión y perfil (Fuera del middleware para poder desloguear o ver perfil si el plan venció)
     Route::prefix('auth')->name('auth.')->group(function () {
-        /** GET /api/auth/me — Perfil del cliente autenticado */
         Route::get('/me', [OtpAuthController::class, 'me'])->name('me');
-
-        /** POST /api/auth/logout — Cierra sesión en este dispositivo */
         Route::post('/logout', [OtpAuthController::class, 'logout'])->name('logout');
-
-        /** POST /api/auth/logout-all — Cierra sesión en todos los dispositivos */
-        Route::post('/logout-all', [OtpAuthController::class, 'logoutTodos'])->name('logout-all');
+        Route::post('/logout-all', [OtpAuthController::class, 'logoutTodos'])->name('logout.all');
     });
 
-    // ── Placeholder: rutas que se implementarán en Fases posteriores ──────
-    Route::get('/negocios', fn () => response()->json(['message' => 'Próximamente — Fase 2']))->name('negocios.index');
-    Route::get('/citas', fn () => response()->json(['message' => 'Próximamente — Fase 2']))->name('citas.index');
-    Route::get('/perfil', fn () => response()->json(['message' => 'Usa /api/auth/me']))->name('perfil');
+    // ── Suscripciones (Fuera del middleware para poder cambiar de plan o cancelar)
+    Route::prefix('suscripciones')->name('suscripciones.')->group(function () {
+        Route::post('/suscribir', [SuscripcionController::class, 'suscribir'])->name('suscribir');
+        Route::delete('/cancelar', [SuscripcionController::class, 'cancelar'])->name('cancelar');
+    });
+
+    // ── Rutas de Gestión del Profesional y Citas (Protegidas contra planes inactivos/vencidos)
+    Route::middleware('suscripcion.activa:free')->group(function () {
+
+        // ── Dashboard y métricas
+        Route::prefix('dashboard')->name('dashboard.')->group(function () {
+            Route::get('/metricas', [DashboardController::class, 'metricas'])->name('metricas');
+            Route::get('/metricas/{periodo}', [DashboardController::class, 'metricas'])
+                ->name('metricas.periodo')
+                ->where('periodo', 'mes_actual|mes_anterior|semana|anio');
+            Route::get('/agenda', [DashboardController::class, 'agenda'])->name('agenda');
+            Route::get('/resumen-rapido', [DashboardController::class, 'resumenRapido'])->name('resumen.rapido');
+            Route::patch('/citas/{id}/estado', [DashboardController::class, 'actualizarEstadoCita'])->name('citas.estado.actualizar');
+        });
+
+        // ── Gestión de Portafolio
+        Route::prefix('portafolio')->name('portafolio.')->group(function () {
+            Route::post('/{profesionalId}/subir', [PortafolioController::class, 'subir'])
+                ->name('subir')->where('profesionalId', '[0-9]+');
+            Route::patch('/{id}', [PortafolioController::class, 'actualizar'])
+                ->name('actualizar')->where('id', '[0-9]+');
+            Route::delete('/{id}', [PortafolioController::class, 'eliminar'])
+                ->name('eliminar')->where('id', '[0-9]+');
+            Route::post('/reordenar', [PortafolioController::class, 'reordenar'])
+                ->name('reordenar');
+        });
+
+        // ── Gestión de Servicios
+        Route::prefix('servicios')->name('servicios.')->group(function () {
+            Route::get('/', [ServicioController::class, 'index'])->name('index');
+            Route::post('/', [ServicioController::class, 'store'])->name('store');
+            Route::patch('/{id}', [ServicioController::class, 'update'])->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [ServicioController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
+        });
+
+        // ── Gestión de Horarios
+        Route::prefix('horarios')->name('horarios.')->group(function () {
+            Route::get('/', [HorarioController::class, 'show'])->name('show');
+            Route::put('/', [HorarioController::class, 'update'])->name('update');
+        });
+
+        // ── Reseñas (Creación)
+        Route::post('/resenas', [ResenaController::class, 'store'])->name('resenas.store');
+
+        // ── Pagos
+        Route::post('/pagos/procesar', [PagoController::class, 'procesar'])->name('pagos.procesar');
+
+        // ── Gestión de Citas del Profesional
+        Route::prefix('citas')->name('citas.')->group(function () {
+            Route::get('/', [CitaController::class, 'index'])->name('index');
+            Route::post('/', [CitaController::class, 'store'])->name('store');
+            Route::patch('/{id}', [CitaController::class, 'update'])->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [CitaController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
+        });
+
+        // ── Directorio de Clientes del Negocio
+        Route::prefix('clientes')->name('clientes.')->group(function () {
+            Route::get('/', [ClienteController::class, 'index'])->name('index');
+            Route::get('/{id}', [ClienteController::class, 'show'])->name('show')->where('id', '[0-9]+');
+            Route::patch('/{id}', [ClienteController::class, 'update'])->name('update')->where('id', '[0-9]+');
+        });
+
+        // ── Ajustes del Negocio
+        Route::prefix('negocio')->name('negocio.')->group(function () {
+            Route::get('/', [NegocioController::class, 'show'])->name('show');
+            Route::patch('/', [NegocioController::class, 'update'])->name('update');
+        });
+
+    });
+
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RUTAS SÚPER ADMIN (Fase 3)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    
+    // Login de Súper Admin (email/password)
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('login');
+
+    // Rutas protegidas del Súper Admin
+    Route::middleware(['auth:sanctum', \App\Http\Middleware\IsSuperAdmin::class])->group(function () {
+        
+        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+
+        // Gestión global de Negocios
+        Route::get('/negocios', [AdminNegocioController::class, 'index'])->name('negocios.index');
+        Route::get('/negocios/{negocio}', [AdminNegocioController::class, 'show'])->name('negocios.show');
+        Route::patch('/negocios/{negocio}', [AdminNegocioController::class, 'update'])->name('negocios.update');
+
+        // Gestión global de Profesionales
+        Route::get('/profesionales', [AdminProfesionalController::class, 'index'])->name('profesionales.index');
+        Route::get('/profesionales/{profesional}', [AdminProfesionalController::class, 'show'])->name('profesionales.show');
+        Route::patch('/profesionales/{profesional}', [AdminProfesionalController::class, 'update'])->name('profesionales.update');
+    });
+});
+
