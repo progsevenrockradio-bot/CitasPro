@@ -34,4 +34,20 @@ const router = createRouter({
   routes
 });
 
+// Guard de navegación para proteger las rutas
+router.beforeEach((to, from, next) => {
+  // Verificamos si existe un token de sesión (lo implementaremos en el Login real)
+  const isAuthenticated = localStorage.getItem('token'); 
+  
+  if (to.name !== 'Login' && !isAuthenticated) {
+    // Si la ruta no es Login y no está autenticado, lo echamos al Login
+    next({ name: 'Login' });
+  } else if (to.name === 'Login' && isAuthenticated) {
+    // Si ya está logueado y quiere ir al login, lo mandamos al panel
+    next({ name: 'Dashboard' });
+  } else {
+    next();
+  }
+});
+
 export default router;
