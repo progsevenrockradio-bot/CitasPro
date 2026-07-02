@@ -40,7 +40,7 @@ class EnviarRecordatoriosCitas extends Command
         $total = $enviados24h + $enviados1h;
         $this->info("✅ Recordatorios enviados: {$total} (24h: {$enviados24h}, urgentes: {$enviados1h})");
 
-        return Command::SUCCESS;
+        return 0;
     }
 
     /**

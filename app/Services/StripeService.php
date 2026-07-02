@@ -37,7 +37,8 @@ class StripeService
         // Ejemplo: 10.50 EUR -> 1050
         $montoEnCentavos = (int) round($pago->monto * 100);
 
-        $paymentIntent = PaymentIntent::create([
+        $intentClass = '\Stripe\PaymentIntent';
+        $paymentIntent = $intentClass::create([
             'amount' => $montoEnCentavos,
             'currency' => strtolower($pago->moneda),
             'metadata' => [

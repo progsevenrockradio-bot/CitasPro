@@ -385,7 +385,7 @@ class DashboardController extends Controller
         }
 
         // MODO DEMO: Si no hay profesional activo, intentamos auto-crearlo o recuperarlo.
-        $profesional = \App\Models\Profesional::first();
+        $profesional = Profesional::first();
         if (!$profesional) {
             try {
                 $categoria = \App\Models\Categoria::firstOrCreate(
@@ -396,7 +396,7 @@ class DashboardController extends Controller
                     ['id' => 1],
                     ['nombre' => 'CitasPro Demo', 'slug' => 'demo', 'categoria_id' => $categoria->id, 'activo' => true]
                 );
-                $profesional = \App\Models\Profesional::firstOrCreate(
+                $profesional = Profesional::firstOrCreate(
                     ['email' => 'demo@citaspro.com'],
                     [
                         'negocio_id'   => $negocio->id,
@@ -410,7 +410,7 @@ class DashboardController extends Controller
             } catch (\Exception $e) {
                 // Si la BD da error (ej. SoftDeletes, Duplicate Entry por constraint oculto), 
                 // forzamos a traer cualquier profesional que exista.
-                $profesional = \App\Models\Profesional::withTrashed()->first();
+                $profesional = Profesional::withTrashed()->first();
             }
         }
 
@@ -492,7 +492,7 @@ class DashboardController extends Controller
     {
         // --- INYECCIÓN DE DATOS DE DEMO MASIVA ---
         // Si hay menos de 10 citas en Hostinger, el sistema fabricará más citas de prueba al instante.
-        if (\App\Models\Cita::count() < 10) {
+        if (Cita::count() < 10) {
             try {
                 $cliente1 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000001'], ['nombre' => 'Ana', 'apellido' => 'Gómez']);
                 $cliente2 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000002'], ['nombre' => 'Carlos', 'apellido' => 'Ruiz']);
@@ -505,7 +505,7 @@ class DashboardController extends Controller
 
                 // Crear 7 citas pasadas con ingresos (Días anteriores)
                 for ($i = 1; $i <= 7; $i++) {
-                    $cita = \App\Models\Cita::create([
+                    $cita = Cita::create([
                         'codigo_referencia' => 'DEMO-PASADA-' . $i,
                         'negocio_id' => $profesional->negocio_id,
                         'cliente_id' => ($i % 2 == 0) ? $cliente1->id : $cliente2->id,
@@ -518,7 +518,7 @@ class DashboardController extends Controller
                         'estado' => 'completada',
                         'precio_total' => 45.00,
                     ]);
-                    \App\Models\Pago::create([
+                    Pago::create([
                         'cita_id' => $cita->id,
                         'cliente_id' => $cita->cliente_id,
                         'negocio_id' => $profesional->negocio_id,
@@ -532,7 +532,7 @@ class DashboardController extends Controller
                 // Crear 6 citas para HOY
                 $horasHoy = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
                 foreach ($horasHoy as $index => $horaStr) {
-                    \App\Models\Cita::create([
+                    Cita::create([
                         'codigo_referencia' => 'DEMO-HOY-' . $index,
                         'negocio_id' => $profesional->negocio_id,
                         'cliente_id' => ($index % 3 == 0) ? $cliente3->id : $cliente1->id,
@@ -550,7 +550,7 @@ class DashboardController extends Controller
                 // Crear 3 citas para MAÑANA
                 $horasManana = ['10:00', '12:00', '16:00'];
                 foreach ($horasManana as $index => $horaStr) {
-                    \App\Models\Cita::create([
+                    Cita::create([
                         'codigo_referencia' => 'DEMO-MANANA-' . $index,
                         'negocio_id' => $profesional->negocio_id,
                         'cliente_id' => $cliente2->id,
