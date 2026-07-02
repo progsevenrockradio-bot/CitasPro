@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Proteger archivos sensibles si el Document Root no está en /public
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+<Files composer.json>
+    Order allow,deny
+    Deny from all
+</Files>
