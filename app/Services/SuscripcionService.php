@@ -36,37 +36,37 @@ class SuscripcionService
                 'precio_mes' => 0,
                 'moneda'     => 'EUR',
                 'limite_profesionales' => 1,
-                'limite_citas_mes'     => 50,
-                'portafolio'           => false,
+                'limite_citas_mes'     => 12, // Límite reducido a 12 citas/mes
+                'portafolio'           => true, // Habilitado como gancho visual (freemium agresivo)
                 'soporte'              => 'comunidad',
             ],
             'basic' => [
-                'nombre'     => 'Basic',
-                'precio_mes' => 19,
+                'nombre'     => 'Basic (Single Pro)',
+                'precio_mes' => 9,
                 'moneda'     => 'EUR',
                 'stripe_price_id' => $this->precios['basic'],
-                'limite_profesionales' => 3,
-                'limite_citas_mes'     => 300,
+                'limite_profesionales' => 1,
+                'limite_citas_mes'     => 80, // Límite de 80 citas al mes
                 'portafolio'           => true,
                 'soporte'              => 'email',
             ],
             'pro' => [
-                'nombre'     => 'Pro',
-                'precio_mes' => 49,
+                'nombre'     => 'Pro (Pyme Multi)',
+                'precio_mes' => 17, // Precio reducido a 17€/mes
                 'moneda'     => 'EUR',
                 'stripe_price_id' => $this->precios['pro'],
-                'limite_profesionales' => 10,
-                'limite_citas_mes'     => null, // ilimitadas
+                'limite_profesionales' => 5,
+                'limite_citas_mes'     => null, // Citas ilimitadas
                 'portafolio'           => true,
                 'soporte'              => 'prioritario',
             ],
             'enterprise' => [
                 'nombre'     => 'Enterprise',
-                'precio_mes' => 149,
+                'precio_mes' => 30, // Precio reducido a 30€/mes
                 'moneda'     => 'EUR',
                 'stripe_price_id' => $this->precios['enterprise'],
-                'limite_profesionales' => null, // ilimitados
-                'limite_citas_mes'     => null,
+                'limite_profesionales' => null, // Ilimitados
+                'limite_citas_mes'     => null, // Ilimitadas
                 'portafolio'           => true,
                 'soporte'              => 'dedicado',
             ],
@@ -99,25 +99,30 @@ class SuscripcionService
      */
     public function crearSesionCheckout(Negocio $negocio, string $plan): string
     {
-        $priceId = $this->precios[$plan] ?? null;
+        $priceId = (string) ($this->precios[$plan] ?? '');
 
-        if (!$priceId) {
+        if (empty($priceId)) {
             throw new \InvalidArgumentException("Plan '{$plan}' no válido o no configurado en Stripe.");
         }
 
         $customer = $this->crearOObtenerCliente($negocio);
+        $customerId = (string) $customer->id;
+        $negocioId = (string) $negocio->id;
 
-        $session = CheckoutSession::create([
-            'customer'            => $customer->id,
+        $params = [
+            'customer'            => $customerId,
             'mode'                => 'subscription',
             'line_items'          => [['price' => $priceId, 'quantity' => 1]],
             'success_url'         => config('app.url') . '/suscripcion/exito?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url'          => config('app.url') . '/suscripcion/cancelado',
-            'metadata'            => ['negocio_id' => $negocio->id, 'plan' => $plan],
+            'metadata'            => ['negocio_id' => $negocioId, 'plan' => $plan],
             'subscription_data'   => [
-                'metadata' => ['negocio_id' => $negocio->id, 'plan' => $plan],
+                'metadata' => ['negocio_id' => $negocioId, 'plan' => $plan],
             ],
-        ]);
+        ];
+
+        $sessionClass = '\Stripe\Checkout\Session';
+        $session = $sessionClass::create($params);
 
         return $session->url;
     }

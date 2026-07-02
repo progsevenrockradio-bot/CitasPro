@@ -78,5 +78,18 @@ return [
         'precio_enterprise' => env('STRIPE_PRICE_ENTERPRISE'),
     ],
 
+    // ── Google API ────────────────────────────────────────────────────────────
+    'google' => [
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect_uri'  => env('GOOGLE_REDIRECT_URI'),
+    ],
+
+    // ── WhatsApp QR API (Evolution API) ───────────────────────────────────────
+    'whatsapp_qr' => [
+        'api_url' => env('EVOLUTION_API_URL', 'https://api.tuservidor.com'),
+        'api_key' => env('EVOLUTION_API_KEY', 'su_api_key_global'),
+    ],
+
 ];
 

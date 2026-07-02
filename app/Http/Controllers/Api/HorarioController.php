@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Profesional;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -13,7 +14,8 @@ class HorarioController extends Controller
      */
     public function show(Request $request): JsonResponse
     {
-        $profesional = $request->user()->profesional;
+        $user = $request->user();
+        $profesional = $user instanceof Profesional ? $user : null;
 
         if (!$profesional) {
             return response()->json(['success' => false, 'message' => 'No tienes un perfil activo.'], 403);
@@ -33,7 +35,8 @@ class HorarioController extends Controller
      */
     public function update(Request $request): JsonResponse
     {
-        $profesional = $request->user()->profesional;
+        $user = $request->user();
+        $profesional = $user instanceof Profesional ? $user : null;
 
         if (!$profesional) {
             return response()->json(['success' => false, 'message' => 'No tienes permisos.'], 403);

@@ -18,6 +18,10 @@ use App\Http\Controllers\Api\CitaController;
 use App\Http\Controllers\Api\ClienteController;
 use App\Http\Controllers\Api\NegocioController;
 use App\Http\Controllers\Api\SuscripcionController;
+use App\Http\Controllers\Api\FichaClinicaController;
+use App\Http\Controllers\Api\FormularioIngresoController;
+use App\Http\Controllers\Api\GoogleCalendarController;
+use App\Http\Controllers\Api\WhatsAppQrController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
@@ -73,8 +77,20 @@ Route::post('/telegram/webhook', [TelegramBotController::class, 'handle'])->name
 // ── Webhook de Stripe (Pagos de citas)
 Route::post('/pagos/webhook/stripe', [PagoController::class, 'webhookStripe'])->name('pagos.webhook.stripe');
 
+// ── Webhook de MercadoPago
+Route::post('/pagos/webhook/mercadopago', [PagoController::class, 'webhookMercadoPago'])->name('pagos.webhook.mercadopago');
+
+// ── Webhook de Redsys
+Route::post('/pagos/webhook/redsys', [PagoController::class, 'webhookRedsys'])->name('pagos.webhook.redsys');
+
+// ── Webhook de Estado de WhatsApp QR
+Route::post('/whatsapp/webhook/estado/{negocioId}', [WhatsAppQrController::class, 'webhookEstado'])->name('whatsapp.webhook.estado');
+
 // ── Planes de Suscripción (público)
 Route::get('/suscripciones/planes', [SuscripcionController::class, 'planes'])->name('suscripciones.planes');
+
+// ── Callback de Google Calendar (Público)
+Route::get('/google/callback', [GoogleCalendarController::class, 'callback'])->name('google.callback');
 
 // ── Webhook de Stripe (Suscripciones SaaS)
 Route::post('/suscripciones/webhook', [SuscripcionController::class, 'webhookSuscripcion'])->name('suscripciones.webhook');
@@ -241,6 +257,23 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('negocio')->name('negocio.')->group(function () {
             Route::get('/', [NegocioController::class, 'show'])->name('show');
             Route::patch('/', [NegocioController::class, 'update'])->name('update');
+            Route::post('/whatsapp/conectar', [WhatsAppQrController::class, 'conectar'])->name('whatsapp.conectar');
+        });
+
+        // ── Módulo Médico (CitasPro Médico)
+        Route::prefix('medico')->name('medico.')->group(function () {
+            // Formulario de Ingreso / Intake
+            Route::post('/formulario-ingreso', [FormularioIngresoController::class, 'storeOrUpdate'])->name('formulario_ingreso.store_or_update');
+            Route::get('/paciente/{clienteId}/formulario-ingreso', [FormularioIngresoController::class, 'show'])->name('formulario_ingreso.show');
+
+            // Fichas Clínicas
+            Route::post('/fichas-clinicas', [FichaClinicaController::class, 'store'])->name('fichas_clinicas.store');
+            Route::get('/fichas-clinicas/paciente/{clienteId}', [FichaClinicaController::class, 'indexPaciente'])->name('fichas_clinicas.index_paciente');
+            Route::get('/fichas-clinicas/{id}', [FichaClinicaController::class, 'show'])->name('fichas_clinicas.show');
+            Route::post('/fichas-clinicas/compartir', [FichaClinicaController::class, 'compartirAcceso'])->name('fichas_clinicas.compartir_acceso');
+
+            // Google Calendar OAuth
+            Route::get('/google/redirect', [GoogleCalendarController::class, 'redirect'])->name('google.redirect');
         });
 
     });

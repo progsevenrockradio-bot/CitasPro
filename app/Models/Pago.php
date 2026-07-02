@@ -24,6 +24,7 @@ class Pago extends Model
         'notas',
         'pagado_en',
         'metadata',
+        'es_sena',
     ];
 
     protected $casts = [
@@ -33,6 +34,7 @@ class Pago extends Model
         'monto_total'  => 'decimal:2',
         'pagado_en'    => 'datetime',
         'metadata'     => 'array',
+        'es_sena'      => 'boolean',
     ];
 
     // ─── Relaciones ────────────────────────────────────────────

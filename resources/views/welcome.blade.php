@@ -385,6 +385,58 @@
             background-color: var(--primary-hover);
         }
 
+        /* Negocios Compatibles */
+        .business-section {
+            max-width: 1200px;
+            margin: 0 auto 100px auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        .business-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .business-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            text-align: left;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .business-card:hover {
+            transform: scale(1.02);
+            border-color: var(--primary);
+        }
+
+        .business-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .business-icon {
+            font-size: 24px;
+        }
+
+        .business-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .business-desc {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 20px;
+        }
+
         /* Footer */
         footer {
             border-top: 1px solid var(--border);
@@ -459,6 +511,64 @@
             </div>
         </section>
 
+        <!-- Negocios Compatibles -->
+        <section class="business-section">
+            <div class="pricing-header">
+                <h2 style="font-size: 36px; font-weight: 800; margin-bottom: 12px;">Diseñado para tu negocio</h2>
+                <p style="color: var(--text-muted); font-size: 16px;">CitasPro se adapta a una gran variedad de industrias y profesionales independientes.</p>
+            </div>
+            
+            <div class="business-grid">
+                <div class="business-card">
+                    <div class="business-header">
+                        <span class="business-icon">💇‍♀️</span>
+                        <h4 class="business-title">Estética y Belleza</h4>
+                    </div>
+                    <p class="business-desc">Pelas, salones de manicura, barberías y spas. Muestra tu portafolio visual y gestiona los turnos de estilistas en tiempo real.</p>
+                </div>
+                
+                <div class="business-card">
+                    <div class="business-header">
+                        <span class="business-icon">🐕</span>
+                        <h4 class="business-title">Servicios para Mascotas</h4>
+                    </div>
+                    <p class="business-desc">Peluquerías caninas, veterinarios y paseadores. Agenda citas basadas en la duración del servicio y tipo de mascota.</p>
+                </div>
+                
+                <div class="business-card">
+                    <div class="business-header">
+                        <span class="business-icon">🩺</span>
+                        <h4 class="business-title">Salud y Bienestar</h4>
+                    </div>
+                    <p class="business-desc">Fisioterapeutas, psicólogos, nutricionistas y dentistas. Reduce el ausentismo con recordatorios y gestiona el historial.</p>
+                </div>
+
+                <div class="business-card">
+                    <div class="business-header">
+                        <span class="business-icon">💼</span>
+                        <h4 class="business-title">Consultoría y Coaching</h4>
+                    </div>
+                    <p class="business-desc">Mentores, coaches, abogados y asesores financieros. Sincroniza con Google Calendar y automatiza los enlaces de videollamadas.</p>
+                </div>
+
+                <div class="business-card">
+                    <div class="business-header">
+                        <span class="business-icon">🎓</span>
+                        <h4 class="business-title">Clases y Educación</h4>
+                    </div>
+                    <p class="business-desc">Profesores particulares, escuelas de conducción y entrenadores personales. Permite que tus estudiantes reserven clases individuales.</p>
+                </div>
+
+                <div class="business-card">
+                    <div class="business-header">
+                        <span class="business-icon">🍔</span>
+                        <h4 class="business-title">Comida y Reservas</h4>
+                    </div>
+                    <p class="business-desc">Hamburgueserías, salas de eventos y catas. Controla el aforo y gestiona las reservas de mesas o turnos de comida sin fricción.</p>
+                </div>
+            </div>
+        </section>
+
         <!-- Planes -->
         <section class="pricing-section" id="planes">
             <div class="pricing-header">
@@ -474,8 +584,8 @@
                         <div class="plan-price">0 €<span>/mes</span></div>
                         <ul class="plan-features">
                             <li>1 Profesional</li>
-                            <li>50 citas al mes</li>
-                            <li>Agenda local y efectivo</li>
+                            <li>Hasta 12 citas al mes</li>
+                            <li>Portafolio visual habilitado</li>
                             <li>Soporte de la comunidad</li>
                         </ul>
                     </div>
@@ -486,12 +596,12 @@
                 <div class="pricing-card">
                     <div>
                         <div class="plan-name">BASIC</div>
-                        <div class="plan-price">19 €<span>/mes</span></div>
+                        <div class="plan-price">9 €<span>/mes</span></div>
                         <ul class="plan-features">
-                            <li>Hasta 3 Profesionales</li>
-                            <li>300 citas al mes</li>
-                            <li>Portafolio de fotos publicas</li>
-                            <li>WhatsApp / SMS básico</li>
+                            <li>1 Profesional (Single Pro)</li>
+                            <li>Hasta 80 citas al mes</li>
+                            <li>Portafolio de fotos públicas</li>
+                            <li>WhatsApp / SMS de respaldo</li>
                         </ul>
                     </div>
                     <a href="https://reservas.jmfn8n.top" class="btn-pricing btn-pricing-secondary">Contratar Basic</a>
@@ -501,12 +611,12 @@
                 <div class="pricing-card pricing-card-featured">
                     <div>
                         <div class="plan-name" style="color: var(--primary);">PRO</div>
-                        <div class="plan-price">49 €<span>/mes</span></div>
+                        <div class="plan-price">17 €<span>/mes</span></div>
                         <ul class="plan-features">
-                            <li>Hasta 10 Profesionales</li>
+                            <li>Hasta 5 Profesionales</li>
                             <li>Citas ilimitadas</li>
                             <li>Pasarela Stripe Integrada</li>
-                            <li>Notificaciones prioritarias</li>
+                            <li>Recordatorios prioritarios</li>
                         </ul>
                     </div>
                     <a href="https://reservas.jmfn8n.top" class="btn-pricing btn-pricing-primary">Mejorar a Pro</a>
@@ -516,7 +626,7 @@
                 <div class="pricing-card">
                     <div>
                         <div class="plan-name">ENTERPRISE</div>
-                        <div class="plan-price">149 €<span>/mes</span></div>
+                        <div class="plan-price">30 €<span>/mes</span></div>
                         <ul class="plan-features">
                             <li>Profesionales ilimitados</li>
                             <li>Citas ilimitadas</li>

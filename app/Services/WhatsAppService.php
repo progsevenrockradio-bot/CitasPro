@@ -25,14 +25,14 @@ class WhatsAppService
     private ?string $apiUrl;
     private ?string $token;
     private ?string $phoneId;
-
-    public function __construct()
+ 
+    public function __construct(private readonly WhatsAppQrService $qrService)
     {
         $this->simular = filter_var(config('services.whatsapp.simular', true), FILTER_VALIDATE_BOOLEAN);
         $this->apiUrl  = config('services.whatsapp.api_url');
         $this->token   = config('services.whatsapp.token', '');
         $this->phoneId = config('services.whatsapp.phone_id', '');
-
+ 
         $this->http = new Client([
             'timeout'         => 15,
             'connect_timeout' => 5,
@@ -59,6 +59,13 @@ class WhatsAppService
         $servicio   = $cita->servicio;
         $negocio    = $cita->negocio;
         $profesional = $cita->profesional;
+
+        if ($negocio->whatsapp_modelo === 'qr') {
+            $fecha = $cita->fecha->translatedFormat('l d \d\e F');
+            $hora = substr($cita->hora_inicio, 0, 5);
+            $texto = "Hola {$cliente->nombre}, recordatorio de tu cita para {$servicio->nombre} el {$fecha} a las {$hora} con {$profesional->nombre_completo} en {$negocio->nombre}.";
+            return $this->qrService->enviarMensaje($negocio, $cliente->telefono, $texto);
+        }
 
         $parametros = [
             $cliente->nombre,
@@ -89,6 +96,13 @@ class WhatsAppService
         $servicio = $cita->servicio;
         $negocio  = $cita->negocio;
 
+        if ($negocio->whatsapp_modelo === 'qr') {
+            $fecha = $cita->fecha->translatedFormat('l d \d\e F');
+            $hora = substr($cita->hora_inicio, 0, 5);
+            $texto = "Hola {$cliente->nombre}, confirmamos tu cita para {$servicio->nombre} el {$fecha} a las {$hora} en {$negocio->nombre}. Código de reserva: {$cita->codigo_referencia}.";
+            return $this->qrService->enviarMensaje($negocio, $cliente->telefono, $texto);
+        }
+
         $parametros = [
             $cliente->nombre,
             $servicio->nombre,
@@ -113,6 +127,14 @@ class WhatsAppService
     {
         $cliente  = $cita->cliente;
         $servicio = $cita->servicio;
+        $negocio  = $cita->negocio;
+
+        if ($negocio->whatsapp_modelo === 'qr') {
+            $fecha = $cita->fecha->translatedFormat('l d \d\e F');
+            $hora = substr($cita->hora_inicio, 0, 5);
+            $texto = "Hola {$cliente->nombre}, lamentamos informarte que tu cita para {$servicio->nombre} el {$fecha} a las {$hora} ha sido cancelada. Motivo: " . ($motivoCancelacion ?: 'No especificado') . ".";
+            return $this->qrService->enviarMensaje($negocio, $cliente->telefono, $texto);
+        }
 
         $parametros = [
             $cliente->nombre,

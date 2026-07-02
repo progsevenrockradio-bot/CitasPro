@@ -37,6 +37,14 @@ class Negocio extends Model
         'plan_vence_en',
         'activo',
         'verificado',
+        'mp_access_token',
+        'redsys_merchant_code',
+        'redsys_terminal',
+        'redsys_secret_key',
+        'whatsapp_modelo',
+        'whatsapp_session_instance',
+        'whatsapp_session_token',
+        'whatsapp_qr_status',
     ];
 
     protected $casts = [

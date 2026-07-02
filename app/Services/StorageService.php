@@ -5,7 +5,6 @@ namespace App\Services;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Facades\Image;
 
 /**
  * StorageService — Capa de abstracción para subida de archivos.
@@ -119,7 +118,9 @@ class StorageService
      */
     public function url(string $ruta, ?string $disco = null): string
     {
-        return Storage::disk($disco ?? $this->disco())->url($ruta);
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $storage */
+        $storage = Storage::disk($disco ?? $this->disco());
+        return $storage->url($ruta);
     }
 
     /**
@@ -202,7 +203,8 @@ class StorageService
             $nombreThumb = 'thumb_' . $nombreOriginal;
             $rutaThumb   = $carpeta . '/' . $nombreThumb;
 
-            $imagen = Image::make($archivo->getRealPath())
+            $imageClass = '\Intervention\Image\Facades\Image';
+            $imagen = $imageClass::make($archivo->getRealPath())
                 ->resize(self::THUMB_WIDTH_PX, null, function ($constraint) {
                     $constraint->aspectRatio();
                     $constraint->upsize(); // No ampliar si es más pequeña
@@ -226,6 +228,6 @@ class StorageService
 
     private function interventionDisponible(): bool
     {
-        return class_exists(\Intervention\Image\Facades\Image::class);
+        return class_exists('\Intervention\Image\Facades\Image');
     }
 }

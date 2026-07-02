@@ -61,6 +61,21 @@ class Cliente extends Model
         return $this->hasMany(OtpCode::class, 'telefono', 'telefono');
     }
 
+    public function formularioIngreso(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(FormularioIngreso::class, 'cliente_id');
+    }
+
+    public function fichasClinicas(): HasMany
+    {
+        return $this->hasMany(FichaClinica::class, 'cliente_id');
+    }
+
+    public function accesosCompartidos(): HasMany
+    {
+        return $this->hasMany(PacienteAcceso::class, 'cliente_id');
+    }
+
     // ─── Scopes ────────────────────────────────────────────────
 
     public function scopeActivo($query)

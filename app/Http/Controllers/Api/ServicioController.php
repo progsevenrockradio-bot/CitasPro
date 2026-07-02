@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Servicio;
+use App\Models\Profesional;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -14,7 +15,8 @@ class ServicioController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $profesional = $request->user()->profesional;
+        $user = $request->user();
+        $profesional = $user instanceof Profesional ? $user : null;
 
         if (!$profesional) {
             return response()->json(['success' => false, 'message' => 'No tienes un perfil de profesional activo.'], 403);
@@ -36,7 +38,8 @@ class ServicioController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $profesional = $request->user()->profesional;
+        $user = $request->user();
+        $profesional = $user instanceof Profesional ? $user : null;
 
         if (!$profesional) {
             return response()->json(['success' => false, 'message' => 'No tienes un perfil de profesional activo.'], 403);
@@ -71,7 +74,8 @@ class ServicioController extends Controller
      */
     public function update(Request $request, $id): JsonResponse
     {
-        $profesional = $request->user()->profesional;
+        $user = $request->user();
+        $profesional = $user instanceof Profesional ? $user : null;
 
         if (!$profesional) {
             return response()->json(['success' => false, 'message' => 'No tienes permisos.'], 403);
@@ -101,7 +105,8 @@ class ServicioController extends Controller
      */
     public function destroy(Request $request, $id): JsonResponse
     {
-        $profesional = $request->user()->profesional;
+        $user = $request->user();
+        $profesional = $user instanceof Profesional ? $user : null;
 
         if (!$profesional) {
             return response()->json(['success' => false, 'message' => 'No tienes permisos.'], 403);

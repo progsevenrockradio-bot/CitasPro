@@ -8,6 +8,7 @@ use App\Events\CitaCancelada;
 use App\Listeners\NotificarProfesionalTelegram;
 use App\Listeners\EnviarConfirmacionCliente;
 use App\Listeners\NotificarCancelacion;
+use App\Listeners\SincronizarGoogleCalendar;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -29,23 +30,26 @@ class EventServiceProvider extends ServiceProvider
         ],
 
         // ── Cita Creada ───────────────────────────────────────────────────────
-        // Dispara: confirmación al cliente + notificación Telegram al profesional
+        // Dispara: confirmación al cliente + notificación Telegram al profesional + sync Google Calendar
         CitaCreada::class => [
             EnviarConfirmacionCliente::class . '@handleCitaCreada',
             NotificarProfesionalTelegram::class . '@handleCitaCreada',
+            SincronizarGoogleCalendar::class . '@handleCitaCreada',
         ],
 
         // ── Cita Actualizada ─────────────────────────────────────────────────
-        // Dispara: notificación de cambio al cliente + actualización al profesional
+        // Dispara: notificación de cambio al cliente + actualización al profesional + sync Google Calendar
         CitaActualizada::class => [
             EnviarConfirmacionCliente::class . '@handleCitaActualizada',
             NotificarProfesionalTelegram::class . '@handleCitaActualizada',
+            SincronizarGoogleCalendar::class . '@handleCitaActualizada',
         ],
 
         // ── Cita Cancelada ───────────────────────────────────────────────────
-        // Dispara: notificación de cancelación a cliente Y profesional
+        // Dispara: notificación de cancelación a cliente Y profesional + delete de Google Calendar
         CitaCancelada::class => [
             NotificarCancelacion::class,
+            SincronizarGoogleCalendar::class . '@handleCitaCancelada',
         ],
     ];
 

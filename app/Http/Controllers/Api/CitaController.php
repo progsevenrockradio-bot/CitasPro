@@ -96,7 +96,7 @@ class CitaController extends Controller
             'fecha'            => $validated['fecha'],
             'hora_inicio'      => $horaInicio,
             'hora_fin'         => $horaFin,
-            'duracion_min'     => $servicio->duracion_minutos,
+            'duracion_min'     => $servicio->duracion_min,
             'estado'           => 'confirmada',
             'precio_total'     => $servicio->precio,
             'canal'            => $validated['canal'] ?? 'telefono',

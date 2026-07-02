@@ -27,6 +27,9 @@ class Servicio extends Model
         'categoria_servicio',
         'activo',
         'orden',
+        'requiere_sena',
+        'tipo_sena',
+        'valor_sena',
     ];
 
     protected $casts = [
@@ -36,6 +39,8 @@ class Servicio extends Model
         'duracion_min'              => 'integer',
         'max_clientes_simultaneous' => 'integer',
         'orden'                     => 'integer',
+        'requiere_sena'             => 'boolean',
+        'valor_sena'                => 'decimal:2',
     ];
 
     // ─── Relaciones ────────────────────────────────────────────

@@ -35,7 +35,7 @@ class StripeService
 
         // Stripe maneja el monto en centavos (o la unidad menor de la moneda)
         // Ejemplo: 10.50 EUR -> 1050
-        $montoEnCentavos = (int) round($pago->monto_total * 100);
+        $montoEnCentavos = (int) round($pago->monto * 100);
 
         $paymentIntent = PaymentIntent::create([
             'amount' => $montoEnCentavos,
