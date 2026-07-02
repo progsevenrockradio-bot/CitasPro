@@ -9,7 +9,7 @@
       <div class="flex gap-4 mb-6">
         <input 
           type="text" 
-          placeholder="Buscar paciente por nombre o DNI..." 
+          placeholder="Buscar paciente por nombre o teléfono..." 
           class="flex-1 bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
         />
         <button class="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2">
