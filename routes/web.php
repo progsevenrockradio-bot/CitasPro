@@ -24,6 +24,11 @@ Route::get('/p/{id}', [\App\Http\Controllers\ClienteWebController::class, 'perfi
 Route::get('/opinion/{codigo}', [\App\Http\Controllers\ClienteWebController::class, 'resenaForm'])->name('cliente.resena_form');
 Route::post('/opinion/{codigo}', [\App\Http\Controllers\ClienteWebController::class, 'resenaSubmit'])->name('cliente.resena_submit');
 
+// SPA Frontend para Profesionales (Vue 3)
+Route::get('/panel/{any?}', function () {
+    return view('app');
+})->where('any', '.*');
+
 // Auth::routes();
 
 // Permitir que el router de la SPA maneje todas las demás rutas web al refrescar (F5)
