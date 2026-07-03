@@ -45,7 +45,12 @@
       
       <div v-else-if="agenda.length === 0" class="flex flex-col items-center justify-center h-64 text-text-muted">
         <Calendar class="w-12 h-12 mx-auto mb-3 opacity-50" />
-        <p>No tienes citas programadas.</p>
+        <p class="mb-4">No tienes citas programadas.</p>
+        <button 
+          @click="showNuevaCita = true"
+          class="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl font-medium transition-all shadow-lg">
+          Agendar mi primera cita
+        </button>
       </div>
 
       <div v-else class="space-y-8">
