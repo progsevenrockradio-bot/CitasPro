@@ -26,6 +26,10 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: () => import('../Pages/Auth/Login.vue')
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    redirect: '/panel'
   }
 ];
 
