@@ -16,7 +16,7 @@ class DemoSeeder extends Seeder
         // 0. Crear una Categoría de prueba si no existe
         $categoria = \App\Models\Categoria::firstOrCreate(
             ['slug' => 'barberia'],
-            ['nombre' => 'Barbería', 'descripcion' => 'Cortes y barba', 'icono' => 'scissors', 'activa' => true]
+            ['nombre' => 'Barbería', 'descripcion' => 'Cortes y barba', 'icono' => 'scissors', 'activo' => true]
         );
 
         // 1. Crear un Negocio de prueba
