@@ -3,7 +3,7 @@
     <div class="flex justify-between items-center">
       <div>
         <h2 class="text-2xl font-bold">Profesionales</h2>
-        <p class="text-text-muted text-sm mt-1">Gestiona tu equipo de médicos o especialistas.</p>
+        <p class="text-text-muted text-sm mt-1">Gestiona tu equipo de profesionales y especialistas.</p>
       </div>
       <button @click="abrirModal()" class="bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all">
         <Plus class="w-5 h-5" />
