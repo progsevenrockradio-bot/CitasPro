@@ -232,6 +232,14 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('/', [HorarioController::class, 'update'])->name('update');
         });
 
+        // ── Gestión de Profesionales (Médicos/Staff)
+        Route::prefix('profesionales')->name('profesionales.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\ProfesionalController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Api\ProfesionalController::class, 'store'])->name('store');
+            Route::patch('/{id}', [\App\Http\Controllers\Api\ProfesionalController::class, 'update'])->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [\App\Http\Controllers\Api\ProfesionalController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
+        });
+
         // ── Reseñas (Creación)
         Route::post('/resenas', [ResenaController::class, 'store'])->name('resenas.store');
 

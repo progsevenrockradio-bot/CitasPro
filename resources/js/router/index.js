@@ -21,6 +21,16 @@ const routes = [
         component: () => import('../Pages/Dashboard/Configuracion/NegocioConfig.vue')
       },
       {
+        path: 'configuracion/servicios',
+        name: 'ConfiguracionServicios',
+        component: () => import('../Pages/Dashboard/Configuracion/ServiciosConfig.vue')
+      },
+      {
+        path: 'configuracion/profesionales',
+        name: 'ConfiguracionProfesionales',
+        component: () => import('../Pages/Dashboard/Configuracion/ProfesionalesConfig.vue')
+      },
+      {
         path: 'configuracion/whatsapp',
         name: 'WhatsAppQR',
         component: () => import('../Pages/Dashboard/Configuracion/WhatsAppQR.vue')

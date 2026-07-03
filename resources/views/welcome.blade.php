@@ -468,6 +468,7 @@
         </div>
         <div class="nav-links">
             <a href="#planes" class="nav-link">Planes</a>
+            <a href="/panel" class="nav-link" style="color: var(--primary); font-weight: bold;">Acceso Médicos/Negocios</a>
             <a href="/api/reset-demo" class="nav-link" target="_blank">Reset Demo</a>
         </div>
     </header>
@@ -481,6 +482,7 @@
                 Gestiona tus profesionales, configura servicios y horarios, cobra de forma segura y automatiza recordatorios por WhatsApp y SMS para reducir inasistencias.
             </p>
             <div class="hero-actions">
+                <a href="/panel" class="btn-primary" style="background-color: var(--text); color: var(--bg);">Entrar a mi Panel</a>
                 <a href="#planes" class="btn-primary">Ver Planes</a>
                 <a href="/api/reset-demo" target="_blank" class="btn-secondary">Reset Base de Datos</a>
             </div>
