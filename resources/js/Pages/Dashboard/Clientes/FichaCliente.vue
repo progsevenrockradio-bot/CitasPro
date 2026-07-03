@@ -143,14 +143,14 @@
                     <p class="font-bold text-white">{{ cita.servicio?.nombre || 'Servicio' }}</p>
                     <div class="flex items-center gap-2 text-sm text-text-muted mt-1">
                       <Calendar class="w-4 h-4" />
-                      {{ formatCitaDate(cita.fecha, cita.hora) }}
+                      {{ formatCitaDate(cita.fecha, cita.hora_inicio) }}
                     </div>
                   </div>
                   <div class="text-right">
                     <span :class="getStatusBadgeClass(cita.estado)" class="px-3 py-1 rounded-full text-xs font-medium border">
                       {{ cita.estado.toUpperCase() }}
                     </span>
-                    <p class="text-sm font-bold mt-2 text-white">{{ cita.precio }}€</p>
+                    <p class="text-sm font-bold mt-2 text-white">{{ cita.precio_total }}€</p>
                   </div>
                 </div>
               </div>
@@ -223,7 +223,7 @@ const cargarDatos = async () => {
       
       if (res.data.cliente) {
         ficha.value = {
-          condiciones_medicas: '', // Not used yet
+          condiciones_medicas: res.data.cliente.condiciones_medicas || '',
           notas_privadas: res.data.cliente.notas_internas || ''
         };
       }
@@ -241,7 +241,8 @@ const guardarFicha = async () => {
   try {
     const id = route.params.id;
     await axios.patch(`/api/clientes/${id}`, {
-      notas_internas: ficha.value.notas_privadas
+      notas_internas: ficha.value.notas_privadas,
+      condiciones_medicas: ficha.value.condiciones_medicas
     });
     successMsg.value = 'Notas médicas actualizadas con éxito.';
     setTimeout(() => { successMsg.value = ''; }, 3000);

@@ -84,6 +84,7 @@ class ClienteController extends Controller
                 'email'          => $cliente->email,
                 'foto'           => $cliente->foto,
                 'notas_internas' => $cliente->notas_internas,
+                'condiciones_medicas' => $cliente->condiciones_medicas,
                 'created_at'     => $cliente->created_at,
             ],
             'estadisticas' => [
@@ -118,6 +119,7 @@ class ClienteController extends Controller
 
         $validated = $request->validate([
             'notas_internas' => 'nullable|string|max:1000',
+            'condiciones_medicas' => 'nullable|string|max:1000',
         ]);
 
         $cliente->update($validated);

@@ -28,6 +28,7 @@ class Cliente extends Model
         'genero',
         'pais',
         'notas_internas',
+        'condiciones_medicas',
         'activo',
         'acepta_marketing',
         'telefono_verificado_en',
