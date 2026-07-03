@@ -18,9 +18,12 @@
         </router-link>
         
         <div class="pt-6 pb-2 px-4">
-          <p class="text-xs uppercase tracking-wider text-text-muted font-semibold">Configuración</p>
+          <p class="text-xs font-bold text-text-muted tracking-wider mb-3 px-4">CONFIGURACIÓN</p>
         </div>
         
+        <router-link to="/panel/configuracion/negocio" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+          <Settings class="w-5 h-5" /> Mi Negocio
+        </router-link>
         <router-link to="/panel/configuracion/whatsapp" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
           <MessageCircle class="w-5 h-5" /> WhatsApp QR
         </router-link>
@@ -47,7 +50,7 @@
 </template>
 
 <script setup>
-import { Calendar, Users, MessageCircle, LogOut } from 'lucide-vue-next';
+import { Calendar, Users, MessageCircle, LogOut, Settings } from 'lucide-vue-next';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 

@@ -1,106 +1,117 @@
 {
-  "_calendar-CnYt09AM.js": {
-    "file": "assets/calendar-CnYt09AM.js",
+  "_calendar-BvE_C_Yk.js": {
+    "file": "assets/calendar-BvE_C_Yk.js",
     "name": "calendar",
     "imports": [
-      "_createLucideIcon-DyYpLevV.js"
+      "_createLucideIcon-BogS_cLq.js"
     ]
   },
-  "_createLucideIcon-DyYpLevV.js": {
-    "file": "assets/createLucideIcon-DyYpLevV.js",
+  "_createLucideIcon-BogS_cLq.js": {
+    "file": "assets/createLucideIcon-BogS_cLq.js",
     "name": "createLucideIcon",
     "imports": [
       "resources/js/app.js"
     ]
   },
-  "_loader-circle-CHr4FKs7.js": {
-    "file": "assets/loader-circle-CHr4FKs7.js",
+  "_loader-circle-AsXBWLjq.js": {
+    "file": "assets/loader-circle-AsXBWLjq.js",
     "name": "loader-circle",
     "imports": [
-      "_createLucideIcon-DyYpLevV.js"
+      "_createLucideIcon-BogS_cLq.js"
     ]
   },
-  "_message-circle-DhR3bCKb.js": {
-    "file": "assets/message-circle-DhR3bCKb.js",
+  "_message-circle-BB5LRNZv.js": {
+    "file": "assets/message-circle-BB5LRNZv.js",
     "name": "message-circle",
     "imports": [
-      "_createLucideIcon-DyYpLevV.js"
+      "_createLucideIcon-BogS_cLq.js"
     ]
   },
-  "_users-EUF3ozAc.js": {
-    "file": "assets/users-EUF3ozAc.js",
+  "_users-DlGW87dp.js": {
+    "file": "assets/users-DlGW87dp.js",
     "name": "users",
     "imports": [
-      "_createLucideIcon-DyYpLevV.js"
+      "_createLucideIcon-BogS_cLq.js"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-BDpjZPLm.css",
+    "file": "assets/app-BMlqguau.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/Pages/Auth/Login.vue": {
-    "file": "assets/Login-CDBlmIxR.js",
+    "file": "assets/Login-DCcmzVwM.js",
     "name": "Login",
     "src": "resources/js/Pages/Auth/Login.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_loader-circle-CHr4FKs7.js",
-      "_createLucideIcon-DyYpLevV.js"
+      "_loader-circle-AsXBWLjq.js",
+      "_createLucideIcon-BogS_cLq.js"
     ]
   },
   "resources/js/Pages/Dashboard/Agenda.vue": {
-    "file": "assets/Agenda-6a8eHGPO.js",
+    "file": "assets/Agenda-C_eW-I0p.js",
     "name": "Agenda",
     "src": "resources/js/Pages/Dashboard/Agenda.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_createLucideIcon-DyYpLevV.js",
-      "_loader-circle-CHr4FKs7.js",
-      "_calendar-CnYt09AM.js"
+      "_createLucideIcon-BogS_cLq.js",
+      "_loader-circle-AsXBWLjq.js",
+      "_calendar-BvE_C_Yk.js"
     ]
   },
   "resources/js/Pages/Dashboard/Clientes/DirectorioClientes.vue": {
-    "file": "assets/DirectorioClientes-C1JMhOob.js",
+    "file": "assets/DirectorioClientes-CtvlIHWv.js",
     "name": "DirectorioClientes",
     "src": "resources/js/Pages/Dashboard/Clientes/DirectorioClientes.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_loader-circle-CHr4FKs7.js",
-      "_createLucideIcon-DyYpLevV.js",
-      "_users-EUF3ozAc.js"
+      "_loader-circle-AsXBWLjq.js",
+      "_createLucideIcon-BogS_cLq.js",
+      "_users-DlGW87dp.js"
+    ]
+  },
+  "resources/js/Pages/Dashboard/Configuracion/NegocioConfig.vue": {
+    "file": "assets/NegocioConfig-B4mL_rPh.js",
+    "name": "NegocioConfig",
+    "src": "resources/js/Pages/Dashboard/Configuracion/NegocioConfig.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_loader-circle-AsXBWLjq.js",
+      "_createLucideIcon-BogS_cLq.js"
     ]
   },
   "resources/js/Pages/Dashboard/Configuracion/WhatsAppQR.vue": {
-    "file": "assets/WhatsAppQR-dlu4a2KO.js",
+    "file": "assets/WhatsAppQR-DKMvHpLK.js",
     "name": "WhatsAppQR",
     "src": "resources/js/Pages/Dashboard/Configuracion/WhatsAppQR.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_loader-circle-CHr4FKs7.js",
-      "_message-circle-DhR3bCKb.js",
-      "_createLucideIcon-DyYpLevV.js"
+      "_loader-circle-AsXBWLjq.js",
+      "_message-circle-BB5LRNZv.js",
+      "_createLucideIcon-BogS_cLq.js"
     ]
   },
   "resources/js/Pages/Layouts/DashboardLayout.vue": {
-    "file": "assets/DashboardLayout-VHNXo872.js",
+    "file": "assets/DashboardLayout-Bp1IYfzV.js",
     "name": "DashboardLayout",
     "src": "resources/js/Pages/Layouts/DashboardLayout.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_createLucideIcon-DyYpLevV.js",
-      "_calendar-CnYt09AM.js",
-      "_users-EUF3ozAc.js",
-      "_message-circle-DhR3bCKb.js"
+      "_createLucideIcon-BogS_cLq.js",
+      "_calendar-BvE_C_Yk.js",
+      "_users-DlGW87dp.js",
+      "_message-circle-BB5LRNZv.js"
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-C6z1TSxH.js",
+    "file": "assets/app-DHDYqwqL.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -108,6 +119,7 @@
       "resources/js/Pages/Layouts/DashboardLayout.vue",
       "resources/js/Pages/Dashboard/Agenda.vue",
       "resources/js/Pages/Dashboard/Clientes/DirectorioClientes.vue",
+      "resources/js/Pages/Dashboard/Configuracion/NegocioConfig.vue",
       "resources/js/Pages/Dashboard/Configuracion/WhatsAppQR.vue",
       "resources/js/Pages/Auth/Login.vue"
     ]

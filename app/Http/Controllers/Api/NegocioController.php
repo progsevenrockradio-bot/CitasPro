@@ -75,6 +75,17 @@ class NegocioController extends Controller
         if ($user instanceof Profesional) {
             return $user;
         }
+        
+        // MODO DEMO para Super Admin
+        if ($user instanceof \App\Models\User) {
+            $profesional = Profesional::first();
+            if ($profesional) {
+                // Forzar permisos de dueño para que el admin pueda editar
+                $profesional->rol = 'dueño'; 
+                return $profesional;
+            }
+        }
+        
         return null;
     }
 }
