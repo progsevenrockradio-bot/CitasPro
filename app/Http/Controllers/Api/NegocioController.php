@@ -13,7 +13,7 @@ class NegocioController extends Controller
     /**
      * Obtener la configuración actual del negocio del profesional autenticado.
      */
-    public function show(Request $request): JsonResponse
+    public function me(Request $request): JsonResponse
     {
         $profesional = $this->getProfesional($request);
         if (!$profesional) {
@@ -22,7 +22,21 @@ class NegocioController extends Controller
 
         $negocio = Negocio::with('categoria')->findOrFail($profesional->negocio_id);
 
-        return response()->json($negocio);
+        return response()->json([
+            'success' => true,
+            'negocio' => [
+                'id' => $negocio->id,
+                'nombre' => $negocio->nombre,
+                'categoria_id' => $negocio->categoria_id,
+                'es_medico' => $negocio->es_medico,
+                'telefono' => $negocio->telefono,
+                'whatsapp' => $negocio->whatsapp,
+                'email' => $negocio->email,
+                'horario_apertura' => $negocio->horario_apertura,
+                'duracion_turno_min' => $negocio->duracion_turno_min,
+                'plan' => $negocio->plan,
+            ]
+        ]);
     }
 
     /**
@@ -57,6 +71,7 @@ class NegocioController extends Controller
             'duracion_turno_min'        => 'sometimes|integer|min:5|max:480',
             'anticipacion_min_reserva'  => 'sometimes|integer|min:0',
             'cancelacion_limite_horas'  => 'sometimes|integer|min:0',
+            'es_medico'                 => 'sometimes|boolean',
         ]);
 
         $negocio = Negocio::findOrFail($profesional->negocio_id);

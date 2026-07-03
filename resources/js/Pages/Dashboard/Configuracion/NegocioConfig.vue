@@ -64,6 +64,19 @@
             class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           />
         </div>
+
+        <div class="mt-6 pt-6 border-t border-border/50">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-bold text-white">Módulo Médico / Clínico</h4>
+              <p class="text-sm text-text-muted mt-1">Activa fichas clínicas, pacientes y diagnósticos.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" v-model="form.es_medico" class="sr-only peer">
+              <div class="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+          </div>
+        </div>
       </div>
 
       <!-- Contacto y Ubicación -->
@@ -149,7 +162,8 @@ const form = ref({
   email: '',
   direccion: '',
   ciudad: '',
-  pais: 'ES'
+  pais: 'ES',
+  es_medico: false
 });
 
 const cargarNegocio = async () => {
@@ -167,7 +181,8 @@ const cargarNegocio = async () => {
       email: data.email || '',
       direccion: data.direccion || '',
       ciudad: data.ciudad || '',
-      pais: data.pais || 'ES'
+      pais: data.pais || 'ES',
+      es_medico: Boolean(data.es_medico)
     };
   } catch (error) {
     console.error("Error al cargar negocio:", error);

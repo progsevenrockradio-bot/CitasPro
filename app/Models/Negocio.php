@@ -15,6 +15,7 @@ class Negocio extends Model
 
     protected $fillable = [
         'categoria_id',
+        'es_medico',
         'nombre',
         'slug',
         'descripcion',
@@ -48,6 +49,7 @@ class Negocio extends Model
     ];
 
     protected $casts = [
+        'es_medico'               => 'boolean',
         'horario_apertura'        => 'array',
         'activo'                  => 'boolean',
         'verificado'              => 'boolean',

@@ -14,7 +14,7 @@
           <Calendar class="w-5 h-5" /> Agenda
         </router-link>
         <router-link to="/panel/clientes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Users class="w-5 h-5" /> Clientes
+          <Users class="w-5 h-5" /> {{ esMedico ? 'Pacientes' : 'Clientes' }}
         </router-link>
         
         <div class="pt-6 pb-2 px-4">
@@ -28,7 +28,7 @@
           <Scissors class="w-5 h-5" /> Servicios
         </router-link>
         <router-link to="/panel/configuracion/profesionales" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Briefcase class="w-5 h-5" /> Profesionales
+          <Briefcase class="w-5 h-5" /> {{ esMedico ? 'Médicos / Staff' : 'Profesionales' }}
         </router-link>
         <router-link to="/panel/configuracion/whatsapp" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
           <MessageCircle class="w-5 h-5" /> WhatsApp QR
@@ -58,9 +58,26 @@
 <script setup>
 import { Calendar, Users, MessageCircle, LogOut, Settings, Scissors, Briefcase } from 'lucide-vue-next';
 import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
 const router = useRouter();
+const esMedico = ref(false);
+
+const loadNegocio = async () => {
+  try {
+    const res = await axios.get('/api/negocio');
+    if (res.data.success && res.data.negocio) {
+      esMedico.value = Boolean(res.data.negocio.es_medico);
+    }
+  } catch (e) {
+    console.error('Error fetching negocio config', e);
+  }
+};
+
+onMounted(() => {
+  loadNegocio();
+});
 
 const logout = async () => {
   try {
