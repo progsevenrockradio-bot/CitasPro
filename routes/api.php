@@ -269,7 +269,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // ── Ajustes del Negocio
         Route::prefix('negocio')->name('negocio.')->group(function () {
-            Route::get('/', [NegocioController::class, 'show'])->name('show');
+            Route::get('/', [NegocioController::class, 'me'])->name('show');
             Route::patch('/', [NegocioController::class, 'update'])->name('update');
             Route::post('/whatsapp/conectar', [WhatsAppQrController::class, 'conectar'])->name('whatsapp.conectar');
         });

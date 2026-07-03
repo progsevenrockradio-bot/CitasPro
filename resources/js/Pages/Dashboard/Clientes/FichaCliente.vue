@@ -179,7 +179,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ArrowLeft, Loader2, Phone, Mail, Activity, AlertTriangle, FileText, Save, CheckCircle2, Calendar } from 'lucide-vue-next';
 import axios from 'axios';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const route = useRoute();
@@ -205,13 +205,25 @@ const getInitials = (n, a) => {
 
 const formatDate = (dateString) => {
   if (!dateString) return '';
-  return format(parseISO(dateString), "MMMM yyyy", { locale: es });
+  try {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return '';
+    return format(d, "MMMM yyyy", { locale: es });
+  } catch (e) {
+    return '';
+  }
 };
 
 const formatCitaDate = (fecha, hora) => {
   if (!fecha) return '';
-  const dateObj = new Date(`${fecha}T${hora || '00:00'}`);
-  return format(dateObj, "dd MMM yyyy, HH:mm", { locale: es });
+  try {
+    const horaStr = hora ? hora.substring(0, 5) : '00:00';
+    const dateObj = new Date(`${fecha}T${horaStr}`);
+    if (isNaN(dateObj.getTime())) return fecha;
+    return format(dateObj, "dd MMM yyyy, HH:mm", { locale: es });
+  } catch (e) {
+    return fecha;
+  }
 };
 
 const getStatusBadgeClass = (status) => {
