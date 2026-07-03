@@ -47,14 +47,11 @@
         <!-- Servicio -->
         <div>
           <label class="block text-sm font-medium text-text-muted mb-2">Servicio</label>
-          <select 
+          <CustomSelect 
             v-model="form.servicio_id" 
-            class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent appearance-none">
-            <option value="" disabled selected>Selecciona un servicio</option>
-            <option v-for="servicio in servicios" :key="servicio.id" :value="servicio.id">
-              {{ servicio.nombre }} ({{ servicio.precio }}€ - {{ servicio.duracion_min }} min)
-            </option>
-          </select>
+            :options="servicioOptions" 
+            placeholder="Selecciona un servicio"
+          />
         </div>
 
         <!-- Fecha y Hora -->
@@ -114,9 +111,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { X, Loader2 } from 'lucide-vue-next';
 import axios from 'axios';
+import CustomSelect from '../../Components/CustomSelect.vue';
 
 const props = defineProps({
   show: Boolean
@@ -127,6 +125,14 @@ const emit = defineEmits(['close', 'saved']);
 const servicios = ref([]);
 const loading = ref(false);
 const errorMsg = ref('');
+
+const servicioOptions = computed(() => {
+  return servicios.value.map(s => ({
+    value: s.id,
+    label: `${s.nombre} (${s.precio}€ - ${s.duracion_min} min)`,
+    icon: '✂️' // Optional generic icon
+  }));
+});
 
 const form = ref({
   cliente: {

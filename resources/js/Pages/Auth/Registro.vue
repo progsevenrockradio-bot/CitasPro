@@ -42,10 +42,11 @@
 
         <div>
           <label class="block text-sm font-medium text-text-muted mb-1">Tipo de Negocio</label>
-          <select v-model="form.categoria_id" required class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-all">
-            <option value="" disabled>Selecciona una categoría</option>
-            <option v-for="cat in categorias" :key="cat.id" :value="cat.id">{{ cat.nombre }}</option>
-          </select>
+          <CustomSelect 
+            v-model="form.categoria_id" 
+            :options="categoriaOptions" 
+            placeholder="Selecciona una categoría"
+          />
         </div>
 
         <div v-if="errorMsg" class="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
@@ -89,10 +90,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { Loader2 } from 'lucide-vue-next';
 import axios from 'axios';
+import CustomSelect from '../Components/CustomSelect.vue';
 
 const router = useRouter();
 const step = ref(1);
@@ -109,6 +111,14 @@ const form = ref({
   categoria_id: '',
   codigo: '',
   es_registro: true
+});
+
+const categoriaOptions = computed(() => {
+  return categorias.value.map(cat => ({
+    value: cat.id,
+    label: cat.nombre,
+    icon: cat.icono
+  }));
 });
 
 onMounted(async () => {
