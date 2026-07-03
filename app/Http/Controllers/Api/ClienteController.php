@@ -55,15 +55,6 @@ class ClienteController extends Controller
 
         $cliente = Cliente::findOrFail($id);
 
-        // Verificar que el cliente pertenezca al negocio
-        $tieneCitas = Cita::where('cliente_id', $cliente->id)
-            ->where('negocio_id', $profesional->negocio_id)
-            ->exists();
-
-        if (!$tieneCitas) {
-            return response()->json(['message' => 'Cliente no encontrado en este negocio.'], 404);
-        }
-
         // Historial de citas en este negocio
         $historialCitas = Cita::with('servicio')
             ->where('cliente_id', $cliente->id)

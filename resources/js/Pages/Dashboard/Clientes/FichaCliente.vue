@@ -20,6 +20,17 @@
       <Loader2 class="w-8 h-8 animate-spin text-primary" />
     </div>
 
+    <div v-else-if="loadError" class="flex flex-col items-center justify-center py-20 text-center gap-4">
+      <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
+        <AlertTriangle class="w-8 h-8 text-red-400" />
+      </div>
+      <p class="text-xl font-bold text-white">No se pudo cargar la ficha</p>
+      <p class="text-text-muted max-w-sm">{{ loadError }}</p>
+      <button @click="cargarDatos" class="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl font-medium transition-all">
+        Reintentar
+      </button>
+    </div>
+
     <div v-else-if="cliente" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
       <!-- Panel Izquierdo: Info Rápida -->
@@ -175,6 +186,7 @@ const route = useRoute();
 const router = useRouter();
 
 const loading = ref(true);
+const loadError = ref('');
 const cliente = ref(null);
 const stats = ref({ total_citas: 0, canceladas: 0 });
 const citas = ref([]);
@@ -213,6 +225,7 @@ const getStatusBadgeClass = (status) => {
 
 const cargarDatos = async () => {
   loading.value = true;
+  loadError.value = '';
   try {
     const id = route.params.id;
     const res = await axios.get(`/api/clientes/${id}`);
@@ -220,16 +233,17 @@ const cargarDatos = async () => {
       cliente.value = res.data.cliente;
       stats.value = res.data.estadisticas || { total_citas: 0, canceladas: 0 };
       citas.value = res.data.historial_citas || [];
-      
-      if (res.data.cliente) {
-        ficha.value = {
-          condiciones_medicas: res.data.cliente.condiciones_medicas || '',
-          notas_privadas: res.data.cliente.notas_internas || ''
-        };
-      }
+      ficha.value = {
+        condiciones_medicas: res.data.cliente.condiciones_medicas || '',
+        notas_privadas: res.data.cliente.notas_internas || ''
+      };
+    } else {
+      loadError.value = 'El servidor no devolvió datos del cliente. Verifica que exista.';
     }
   } catch (error) {
     console.error("Error cargando cliente:", error);
+    const msg = error.response?.data?.message || 'Error de conexión con el servidor.';
+    loadError.value = `${msg} (${error.response?.status || 'Sin conexión'})`;
   } finally {
     loading.value = false;
   }
