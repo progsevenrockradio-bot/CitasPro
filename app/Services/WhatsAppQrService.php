@@ -36,8 +36,8 @@ class WhatsAppQrService
 
             Log::info("WhatsAppQrService: Instancia simulada creada para negocio #{$negocio->id}");
 
-            // QR en Base64 simulado (1x1 transparente)
-            $mockQrBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+            // QR simulado
+            $mockQrBase64 = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=CitasProDemoQR_'.uniqid();
             return [
                 'success' => true,
                 'status'  => 'escaneando',

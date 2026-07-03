@@ -73,6 +73,11 @@
         </div>
         
         <div class="p-6 space-y-4">
+          <div v-if="errorMsg" class="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-xl flex items-center gap-2 mb-2 text-sm">
+            <X class="w-4 h-4 flex-shrink-0" />
+            <p>{{ errorMsg }}</p>
+          </div>
+
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-text-muted mb-1">Nombre</label>
@@ -121,6 +126,7 @@ import axios from 'axios';
 const profesionales = ref([]);
 const loading = ref(true);
 const saving = ref(false);
+const errorMsg = ref('');
 
 const mostrarModal = ref(false);
 const modoEdit = ref(false);
@@ -176,8 +182,10 @@ const cerrarModal = () => {
 };
 
 const guardarProfesional = async () => {
+  errorMsg.value = '';
   if (!form.value.nombre || !form.value.telefono || !form.value.email) {
-    return alert('Nombre, teléfono y correo son obligatorios');
+    errorMsg.value = 'Nombre, teléfono y correo son obligatorios';
+    return;
   }
   
   saving.value = true;
@@ -191,7 +199,7 @@ const guardarProfesional = async () => {
     cargarProfesionales();
   } catch (error) {
     console.error("Error guardando profesional:", error);
-    alert(error.response?.data?.message || 'Hubo un error al guardar el profesional');
+    errorMsg.value = error.response?.data?.message || 'Hubo un error al guardar el profesional';
   } finally {
     saving.value = false;
   }
