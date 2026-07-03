@@ -8,6 +8,12 @@ import axios from 'axios';
 axios.defaults.withCredentials = true;
 axios.defaults.withXSRFToken = true;
 
+// Adjuntar token de Sanctum si existe
+const token = localStorage.getItem('token');
+if (token && token !== 'session-active') {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
+
 const app = createApp(App);
 app.use(router);
 

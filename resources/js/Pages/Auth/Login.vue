@@ -71,15 +71,18 @@ const handleLogin = async () => {
     await axios.get('/sanctum/csrf-cookie');
     
     // Attempt Login
-    await axios.post('/login', form.value);
+    const res = await axios.post('/api/admin/login', form.value);
     
-    // Guardamos un token falso para que el Vue Router sepa que estamos autenticados
-    localStorage.setItem('token', 'session-active');
+    // Guardamos el token real de sanctum y el indicador de sesión
+    localStorage.setItem('token', res.data.token);
+    
+    // Configurar el token por defecto para futuras peticiones
+    axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
     
     // Redirect
     router.push('/panel');
   } catch (error) {
-    if (error.response?.status === 422) {
+    if (error.response?.status === 401 || error.response?.status === 422) {
       errorMsg.value = 'Credenciales incorrectas.';
     } else {
       errorMsg.value = 'Error al intentar iniciar sesión.';
