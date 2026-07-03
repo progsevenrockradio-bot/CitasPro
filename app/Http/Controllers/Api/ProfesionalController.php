@@ -51,6 +51,9 @@ class ProfesionalController extends Controller
             'email' => 'required|email|max:150|unique:profesionales,email',
             'especialidad' => 'nullable|string|max:150',
             'activo' => 'boolean'
+        ], [
+            'telefono.unique' => '¡Ese número de teléfono ya está registrado para otro profesional!',
+            'email.unique' => '¡Ese correo electrónico ya está registrado para otro profesional!'
         ]);
 
         $profesional = Profesional::create([
@@ -91,6 +94,9 @@ class ProfesionalController extends Controller
             'email' => 'sometimes|email|max:150|unique:profesionales,email,' . $id,
             'especialidad' => 'nullable|string|max:150',
             'activo' => 'sometimes|boolean'
+        ], [
+            'telefono.unique' => '¡Ese número de teléfono ya está registrado para otro profesional!',
+            'email.unique' => '¡Ese correo electrónico ya está registrado para otro profesional!'
         ]);
 
         $profesional->update($validated);

@@ -219,7 +219,12 @@ const guardarProfesional = async () => {
     cargarProfesionales();
   } catch (error) {
     console.error("Error guardando profesional:", error);
-    errorMsg.value = error.response?.data?.message || 'Hubo un error al guardar el profesional';
+    if (error.response?.data?.errors) {
+      const firstError = Object.values(error.response.data.errors)[0][0];
+      errorMsg.value = firstError;
+    } else {
+      errorMsg.value = error.response?.data?.message || 'Hubo un error al guardar el profesional';
+    }
   } finally {
     saving.value = false;
   }
