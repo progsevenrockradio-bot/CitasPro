@@ -64,7 +64,7 @@
                 </span>
               </td>
               <td class="py-4 text-right">
-                <button class="text-primary hover:text-white transition-colors underline text-sm font-medium">
+                <button @click="verFicha(cliente.id)" class="text-primary hover:text-primary-hover font-medium underline text-sm">
                   Ver Ficha
                 </button>
               </td>
@@ -78,12 +78,18 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Search, Users, Loader2 } from 'lucide-vue-next';
+import { Search, Loader2, Users } from 'lucide-vue-next';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const searchQuery = ref('');
 const clientes = ref([]);
-const loading = ref(false);
+const loading = ref(true);
+
+const verFicha = (id) => {
+  router.push(`/panel/clientes/${id}`);
+};
 
 const buscarClientes = async () => {
   loading.value = true;

@@ -259,6 +259,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/', [ClienteController::class, 'index'])->name('index');
             Route::get('/{id}', [ClienteController::class, 'show'])->name('show')->where('id', '[0-9]+');
             Route::patch('/{id}', [ClienteController::class, 'update'])->name('update')->where('id', '[0-9]+');
+            Route::post('/{id}/ficha', [\App\Http\Controllers\Api\FichaClinicaController::class, 'store'])->name('ficha.store')->where('id', '[0-9]+');
         });
 
         // ── Ajustes del Negocio

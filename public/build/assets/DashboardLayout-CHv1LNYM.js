@@ -1,4 +1,4 @@
-import{o as h,c as b,a as t,b as s,w as l,u as a,d as r,t as n,e as p,r as x,f as v,g as y,h as w}from"./app-MCYOlWlF.js";import{c as d}from"./createLucideIcon-DpMLlt9r.js";import{C as _}from"./calendar-DJzBGIWt.js";import{U as k}from"./users-IZJFAkH_.js";import{S as C}from"./scissors-DWKMK_N9.js";import{M}from"./message-circle-BQ4y86h4.js";/**
+import{o as h,c as b,a as t,b as s,w as l,u as a,d as r,t as n,e as p,r as x,f as v,g as y,h as w}from"./app-C_JqhQAR.js";import{c as d}from"./createLucideIcon-DKe_wzpU.js";import{C as _}from"./calendar-BrgxniLN.js";import{U as k}from"./users-DxZi3-Vq.js";import{S as C}from"./scissors-DILUVFJP.js";import{M}from"./message-circle-CxQiuMmO.js";/**
  * @license lucide-vue-next v1.0.0 - ISC
  *
  * This source code is licensed under the ISC license.

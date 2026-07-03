@@ -16,6 +16,11 @@ const routes = [
         component: () => import('../Pages/Dashboard/Clientes/DirectorioClientes.vue')
       },
       {
+        path: 'clientes/:id',
+        name: 'FichaCliente',
+        component: () => import('../Pages/Dashboard/Clientes/FichaCliente.vue')
+      },
+      {
         path: 'configuracion/negocio',
         name: 'ConfiguracionNegocio',
         component: () => import('../Pages/Dashboard/Configuracion/NegocioConfig.vue')

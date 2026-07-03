@@ -107,6 +107,26 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Confirmar Eliminación -->
+    <div v-if="mostrarModalEliminar" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
+      <div class="bg-bg-card border border-border w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+        <div class="p-6 text-center">
+          <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4 text-red-500">
+            <Trash2 class="w-8 h-8" />
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Eliminar Servicio</h3>
+          <p class="text-text-muted">¿Estás seguro de que deseas eliminar este servicio? Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="p-6 border-t border-border/50 bg-black/20 flex justify-end gap-3">
+          <button @click="cerrarModalEliminar" class="px-5 py-2.5 text-text-muted hover:text-white transition-colors">Cancelar</button>
+          <button @click="confirmarEliminar" :disabled="deleting" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2">
+            <Loader2 v-if="deleting" class="w-4 h-4 animate-spin" />
+            {{ deleting ? 'Eliminando...' : 'Sí, Eliminar' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -195,13 +215,32 @@ const guardarServicio = async () => {
   }
 };
 
-const eliminarServicio = async (id) => {
-  if (!confirm('¿Estás seguro de que deseas eliminar este servicio?')) return;
+const mostrarModalEliminar = ref(false);
+const itemToDelete = ref(null);
+const deleting = ref(false);
+
+const eliminarServicio = (id) => {
+  itemToDelete.value = id;
+  mostrarModalEliminar.value = true;
+};
+
+const cerrarModalEliminar = () => {
+  mostrarModalEliminar.value = false;
+  itemToDelete.value = null;
+};
+
+const confirmarEliminar = async () => {
+  if (!itemToDelete.value) return;
+  deleting.value = true;
   try {
-    await axios.delete(`/api/servicios/${id}`);
+    await axios.delete(`/api/servicios/${itemToDelete.value}`);
     cargarServicios();
+    cerrarModalEliminar();
   } catch (error) {
     console.error("Error eliminando servicio:", error);
+    alert('Hubo un error al eliminar el servicio');
+  } finally {
+    deleting.value = false;
   }
 };
 
