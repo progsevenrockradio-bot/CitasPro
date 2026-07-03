@@ -29,6 +29,14 @@ Route::get('/panel/{any?}', function () {
     return view('app');
 })->where('any', '.*');
 
+Route::get('/login', function () {
+    return view('app');
+})->name('login');
+
+Route::get('/registro', function () {
+    return view('app');
+})->name('registro');
+
 // Auth::routes();
 
 // Permitir que el router de la SPA maneje todas las demás rutas web al refrescar (F5)
