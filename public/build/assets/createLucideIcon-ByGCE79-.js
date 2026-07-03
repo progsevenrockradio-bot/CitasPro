@@ -1,4 +1,4 @@
-import{s as l}from"./app-EAQ2ShZz.js";/**
+import{y as l}from"./app-B-ELCZn9.js";/**
  * @license lucide-vue-next v1.0.0 - ISC
  *
  * This source code is licensed under the ISC license.
@@ -38,9 +38,9 @@ import{s as l}from"./app-EAQ2ShZz.js";/**
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const k=({name:t,iconNode:e,absoluteStrokeWidth:o,"absolute-stroke-width":r,strokeWidth:s,"stroke-width":u,size:n=i.width,color:h=i.stroke,...c},{slots:a})=>l("svg",{...i,...c,width:n,height:n,stroke:h,"stroke-width":d(o)||d(r)||o===!0||r===!0?Number(s||u||i["stroke-width"])*24/Number(n):s||u||i["stroke-width"],class:p("lucide",c.class,...t?[`lucide-${w(C(t))}-icon`,`lucide-${w(t)}`]:["lucide-icon"]),...!a.default&&!m(c)&&{"aria-hidden":"true"}},[...e.map(f=>l(...f)),...a.default?[a.default()]:[]]);/**
+ */const k=({name:t,iconNode:e,absoluteStrokeWidth:o,"absolute-stroke-width":r,strokeWidth:n,"stroke-width":u,size:s=i.width,color:h=i.stroke,...c},{slots:a})=>l("svg",{...i,...c,width:s,height:s,stroke:h,"stroke-width":d(o)||d(r)||o===!0||r===!0?Number(n||u||i["stroke-width"])*24/Number(s):n||u||i["stroke-width"],class:p("lucide",c.class,...t?[`lucide-${w(C(t))}-icon`,`lucide-${w(t)}`]:["lucide-icon"]),...!a.default&&!m(c)&&{"aria-hidden":"true"}},[...e.map(f=>l(...f)),...a.default?[a.default()]:[]]);/**
  * @license lucide-vue-next v1.0.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
- */const v=(t,e)=>(o,{slots:r,attrs:s})=>l(k,{...s,...o,iconNode:e,name:t},r);export{v as c};
+ */const v=(t,e)=>(o,{slots:r,attrs:n})=>l(k,{...n,...o,iconNode:e,name:t},r);export{v as c};

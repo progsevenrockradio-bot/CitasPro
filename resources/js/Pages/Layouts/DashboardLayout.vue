@@ -13,8 +13,8 @@
         <router-link to="/panel" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
           <Calendar class="w-5 h-5" /> Agenda
         </router-link>
-        <router-link to="/panel/pacientes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Users class="w-5 h-5" /> Pacientes
+        <router-link to="/panel/clientes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+          <Users class="w-5 h-5" /> Clientes
         </router-link>
         
         <div class="pt-6 pb-2 px-4">

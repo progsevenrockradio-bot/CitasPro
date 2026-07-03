@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <div class="flex justify-between items-center">
-      <h2 class="text-2xl font-bold">Pacientes y Fichas Clínicas</h2>
+      <h2 class="text-2xl font-bold">Directorio de Clientes</h2>
     </div>
 
     <!-- Search / List -->
@@ -11,7 +11,7 @@
           v-model="searchQuery"
           @keyup.enter="buscarClientes"
           type="text" 
-          placeholder="Buscar paciente por nombre o teléfono..." 
+          placeholder="Buscar cliente por nombre o teléfono..." 
           class="flex-1 bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
         />
         <button 
@@ -30,15 +30,15 @@
 
       <div v-else-if="clientes.length === 0" class="text-center text-text-muted py-12 border-t border-border/50">
         <Users class="w-12 h-12 mx-auto mb-3 opacity-50" />
-        <p v-if="searchQuery">No se encontraron pacientes con "{{ searchQuery }}".</p>
-        <p v-else>Busca un paciente para ver su historial médico y antecedentes.</p>
+        <p v-if="searchQuery">No se encontraron clientes con "{{ searchQuery }}".</p>
+        <p v-else>Busca un cliente para ver su historial y citas.</p>
       </div>
 
       <div v-else class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="border-b border-border text-text-muted text-sm">
-              <th class="pb-3 font-medium">Paciente</th>
+              <th class="pb-3 font-medium">Cliente</th>
               <th class="pb-3 font-medium">Teléfono</th>
               <th class="pb-3 font-medium text-center">Total Citas</th>
               <th class="pb-3 font-medium text-right">Acciones</th>

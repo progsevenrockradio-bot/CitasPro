@@ -194,6 +194,12 @@ class CitaController extends Controller
         if ($user instanceof Profesional) {
             return $user;
         }
+
+        // MODO DEMO: Si el usuario es el Super Admin (modelo User), le damos el primer profesional
+        if ($user instanceof \App\Models\User) {
+            return Profesional::first();
+        }
+
         return null;
     }
 }

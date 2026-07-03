@@ -11,9 +11,9 @@ const routes = [
         component: () => import('../Pages/Dashboard/Agenda.vue')
       },
       {
-        path: 'pacientes',
-        name: 'Pacientes',
-        component: () => import('../Pages/Dashboard/Pacientes/HistorialMedico.vue')
+        path: 'clientes',
+        name: 'Clientes',
+        component: () => import('../Pages/Dashboard/Clientes/DirectorioClientes.vue')
       },
       {
         path: 'configuracion/whatsapp',
