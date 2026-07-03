@@ -48,6 +48,11 @@ const routes = [
     component: () => import('../Pages/Auth/Login.vue')
   },
   {
+    path: '/registro',
+    name: 'Registro',
+    component: () => import('../Pages/Auth/Registro.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/panel'
   }

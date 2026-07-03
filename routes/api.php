@@ -43,6 +43,11 @@ Route::get('/health', fn () => response()->json([
 // RUTAS PÚBLICAS (sin autenticación)
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ── Categorías Públicas
+Route::get('/categorias', function () {
+    return response()->json(\App\Models\Categoria::where('activo', true)->get());
+});
+
 // ── Autenticación OTP
 Route::prefix('auth/otp')->name('auth.otp.')->group(function () {
     Route::post('/enviar', [OtpAuthController::class, 'enviar'])->name('enviar');

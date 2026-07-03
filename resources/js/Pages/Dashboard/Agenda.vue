@@ -81,10 +81,24 @@
                 </div>
               </div>
               <!-- Hover Actions -->
-              <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                 <button 
-                  v-if="cita.estado !== 'cancelada'"
-                  @click="cancelarCita(cita.id)"
+                  v-if="cita.estado === 'pendiente'"
+                  @click="cambiarEstado(cita.id, 'confirmada')"
+                  class="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded-lg shadow"
+                  title="Confirmar Cita">
+                  <Check class="w-4 h-4" />
+                </button>
+                <button 
+                  v-if="cita.estado === 'confirmada'"
+                  @click="cambiarEstado(cita.id, 'completada')"
+                  class="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-lg shadow"
+                  title="Marcar Completada">
+                  <CheckCircle class="w-4 h-4" />
+                </button>
+                <button 
+                  v-if="cita.estado !== 'cancelada' && cita.estado !== 'completada'"
+                  @click="cambiarEstado(cita.id, 'cancelada')"
                   class="bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg shadow"
                   title="Cancelar Cita">
                   <X class="w-4 h-4" />
@@ -107,7 +121,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Calendar, Loader2, X } from 'lucide-vue-next';
+import { Calendar, Loader2, X, Check, CheckCircle } from 'lucide-vue-next';
 import axios from 'axios';
 import NuevaCitaModal from './Modals/NuevaCitaModal.vue';
 
@@ -116,6 +130,16 @@ const agenda = ref([]);
 const loadingMetrics = ref(true);
 const loadingAgenda = ref(true);
 const showNuevaCita = ref(false);
+
+const cambiarEstado = async (id, estado) => {
+  try {
+    await axios.patch(`/api/dashboard/citas/${id}/estado`, { estado });
+    fetchAgenda();
+  } catch (error) {
+    console.error(`Error cambiando estado a ${estado}:`, error);
+    alert('Hubo un error al actualizar la cita.');
+  }
+};
 
 const fetchMetrics = async () => {
   try {

@@ -47,6 +47,10 @@
           <span v-if="!loading">Ingresar al Panel</span>
           <Loader2 v-else class="w-5 h-5 animate-spin" />
         </button>
+        
+        <p class="text-center text-sm text-text-muted mt-4">
+          ¿No tienes cuenta? <router-link to="/registro" class="text-primary hover:underline">Registra tu negocio</router-link>
+        </p>
       </form>
     </div>
   </div>

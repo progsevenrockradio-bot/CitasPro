@@ -220,6 +220,51 @@ class OtpAuthController extends Controller
                 Log::error("Error auto-creando profesional de demo en login: " . $e->getMessage());
             }
         }
+        
+        // ── 1.5 Registro de Nuevo Negocio / Profesional ─────────
+        if ($request->boolean('es_registro')) {
+            $request->validate([
+                'nombre' => 'required|string|max:255',
+                'apellido' => 'required|string|max:255',
+                'email' => 'required|email|unique:profesionales,email',
+                'nombre_negocio' => 'required|string|max:255',
+                'categoria_id' => 'required|exists:categorias,id',
+            ], [
+                'email.unique' => 'Ese correo electrónico ya está registrado.'
+            ]);
+
+            // Comprobar si el teléfono ya está en uso como profesional
+            if (Profesional::where('telefono', $telefono)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este número de teléfono ya está registrado como profesional.',
+                ], 422);
+            }
+
+            try {
+                $negocio = \App\Models\Negocio::create([
+                    'nombre' => $request->nombre_negocio,
+                    'slug' => \Illuminate\Support\Str::slug($request->nombre_negocio . '-' . uniqid()),
+                    'categoria_id' => $request->categoria_id,
+                    'activo' => true,
+                ]);
+
+                Profesional::create([
+                    'negocio_id' => $negocio->id,
+                    'nombre' => $request->nombre,
+                    'apellido' => $request->apellido,
+                    'email' => $request->email,
+                    'telefono' => $telefono,
+                    'activo' => true,
+                ]);
+            } catch (\Exception $e) {
+                Log::error("Error registrando nuevo negocio: " . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ocurrió un error al crear la cuenta. Inténtalo de nuevo.',
+                ], 500);
+            }
+        }
 
         $profesional = Profesional::where('telefono', $telefono)->first();
         $user = null;
