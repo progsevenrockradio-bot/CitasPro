@@ -46,6 +46,11 @@ class ServicioController extends Controller
         $user = $request->user();
         $profesional = $user instanceof Profesional ? $user : null;
 
+        // MODO DEMO
+        if ($user instanceof \App\Models\User) {
+            $profesional = Profesional::first();
+        }
+
         if (!$profesional) {
             return response()->json(['success' => false, 'message' => 'No tienes un perfil de profesional activo.'], 403);
         }
@@ -82,6 +87,11 @@ class ServicioController extends Controller
         $user = $request->user();
         $profesional = $user instanceof Profesional ? $user : null;
 
+        // MODO DEMO
+        if ($user instanceof \App\Models\User) {
+            $profesional = Profesional::first();
+        }
+
         if (!$profesional) {
             return response()->json(['success' => false, 'message' => 'No tienes permisos.'], 403);
         }
@@ -112,6 +122,11 @@ class ServicioController extends Controller
     {
         $user = $request->user();
         $profesional = $user instanceof Profesional ? $user : null;
+
+        // MODO DEMO
+        if ($user instanceof \App\Models\User) {
+            $profesional = Profesional::first();
+        }
 
         if (!$profesional) {
             return response()->json(['success' => false, 'message' => 'No tienes permisos.'], 403);

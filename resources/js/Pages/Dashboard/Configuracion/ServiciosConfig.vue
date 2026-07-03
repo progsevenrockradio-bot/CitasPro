@@ -67,6 +67,11 @@
         </div>
         
         <div class="p-6 space-y-4">
+          <div v-if="errorMsg" class="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-xl flex items-center gap-2 mb-2 text-sm">
+            <X class="w-4 h-4 flex-shrink-0" />
+            <p>{{ errorMsg }}</p>
+          </div>
+
           <div>
             <label class="block text-sm font-medium text-text-muted mb-1">Nombre del Servicio</label>
             <input v-model="form.nombre" type="text" placeholder="Ej: Corte de Cabello" class="w-full bg-black/20 border border-border rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary" />
@@ -113,6 +118,7 @@ import axios from 'axios';
 const servicios = ref([]);
 const loading = ref(true);
 const saving = ref(false);
+const errorMsg = ref('');
 
 const mostrarModal = ref(false);
 const modoEdit = ref(false);
@@ -138,6 +144,7 @@ const cargarServicios = async () => {
 };
 
 const abrirModal = (servicio = null) => {
+  errorMsg.value = '';
   if (servicio) {
     modoEdit.value = true;
     editId.value = servicio.id;
@@ -165,7 +172,11 @@ const cerrarModal = () => {
 };
 
 const guardarServicio = async () => {
-  if (!form.value.nombre) return alert('El nombre es obligatorio');
+  errorMsg.value = '';
+  if (!form.value.nombre) {
+    errorMsg.value = 'El nombre del servicio es obligatorio.';
+    return;
+  }
   
   saving.value = true;
   try {
@@ -178,7 +189,7 @@ const guardarServicio = async () => {
     cargarServicios();
   } catch (error) {
     console.error("Error guardando servicio:", error);
-    alert('Hubo un error al guardar el servicio');
+    errorMsg.value = error.response?.data?.message || 'Hubo un error al guardar el servicio.';
   } finally {
     saving.value = false;
   }
