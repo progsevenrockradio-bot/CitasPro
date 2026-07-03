@@ -13,14 +13,20 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
+        // 0. Crear una Categoría de prueba si no existe
+        $categoria = \App\Models\Categoria::firstOrCreate(
+            ['slug' => 'barberia'],
+            ['nombre' => 'Barbería', 'descripcion' => 'Cortes y barba', 'icono' => 'scissors', 'activa' => true]
+        );
+
         // 1. Crear un Negocio de prueba
         $negocio = Negocio::firstOrCreate(
             ['slug' => 'barberia-demo'],
             [
+                'categoria_id' => $categoria->id,
                 'nombre' => 'Barbería Demo',
                 'telefono' => '123456789',
-                'direccion' => 'Calle Falsa 123',
-                'moneda' => '€'
+                'direccion' => 'Calle Falsa 123'
             ]
         );
 
