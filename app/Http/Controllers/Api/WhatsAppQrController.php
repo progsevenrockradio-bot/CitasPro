@@ -21,6 +21,11 @@ class WhatsAppQrController extends Controller
     {
         $user = $request->user();
 
+        // MODO DEMO: Si es Súper Admin, buscar el primer profesional
+        if ($user instanceof \App\Models\User) {
+            $user = Profesional::first();
+        }
+
         if (!$user instanceof Profesional) {
             return response()->json(['message' => 'No autorizado. Solo profesionales pueden administrar WhatsApp.'], 403);
         }

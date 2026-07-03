@@ -56,6 +56,7 @@ const router = useRouter();
 const logout = async () => {
   try {
     await axios.post('/logout');
+    localStorage.removeItem('token');
     router.push('/login');
   } catch (error) {
     console.error('Logout failed', error);

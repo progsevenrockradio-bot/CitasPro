@@ -73,6 +73,9 @@ const handleLogin = async () => {
     // Attempt Login
     await axios.post('/login', form.value);
     
+    // Guardamos un token falso para que el Vue Router sepa que estamos autenticados
+    localStorage.setItem('token', 'session-active');
+    
     // Redirect
     router.push('/panel');
   } catch (error) {
