@@ -350,7 +350,9 @@ class OtpAuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         // Revoca solo el token actual (este dispositivo)
-        $request->user()->currentAccessToken()->delete();
+        /** @var \Laravel\Sanctum\PersonalAccessToken $token */
+        $token = $request->user()->currentAccessToken();
+        $token->delete();
 
         return response()->json([
             'success' => true,

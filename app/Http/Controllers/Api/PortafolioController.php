@@ -69,6 +69,7 @@ class PortafolioController extends Controller
             $query->where('servicio_id', $servicioId);
         }
 
+        /** @var \Illuminate\Pagination\LengthAwarePaginator $portafolios */
         $portafolios = $query
             ->orderByDesc('destacado')
             ->orderBy('orden')
