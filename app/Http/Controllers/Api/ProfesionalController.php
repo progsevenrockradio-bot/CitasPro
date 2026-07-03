@@ -47,8 +47,8 @@ class ProfesionalController extends Controller
         $validated = $request->validate([
             'nombre' => 'required|string|max:150',
             'apellido' => 'required|string|max:150',
-            'telefono' => 'required|string|max:20',
-            'email' => 'required|email|max:150',
+            'telefono' => 'required|string|max:20|unique:profesionales,telefono',
+            'email' => 'required|email|max:150|unique:profesionales,email',
             'especialidad' => 'nullable|string|max:150',
             'activo' => 'boolean'
         ]);
@@ -87,8 +87,8 @@ class ProfesionalController extends Controller
         $validated = $request->validate([
             'nombre' => 'sometimes|string|max:150',
             'apellido' => 'sometimes|string|max:150',
-            'telefono' => 'sometimes|string|max:20',
-            'email' => 'sometimes|email|max:150',
+            'telefono' => 'sometimes|string|max:20|unique:profesionales,telefono,' . $id,
+            'email' => 'sometimes|email|max:150|unique:profesionales,email,' . $id,
             'especialidad' => 'nullable|string|max:150',
             'activo' => 'sometimes|boolean'
         ]);

@@ -54,12 +54,12 @@
           </h4>
           <div class="grid grid-cols-2 gap-4">
             <div class="bg-black/20 rounded-xl p-4 text-center">
-              <p class="text-2xl font-bold text-white">{{ stats.total_citas }}</p>
+              <p class="text-2xl font-bold text-white">{{ stats.total_citas || 0 }}</p>
               <p class="text-xs text-text-muted">Total Citas</p>
             </div>
             <div class="bg-black/20 rounded-xl p-4 text-center">
-              <p class="text-2xl font-bold text-red-400">{{ stats.canceladas }}</p>
-              <p class="text-xs text-text-muted">Canceladas</p>
+              <p class="text-2xl font-bold text-green-400">{{ stats.citas_completadas || 0 }}</p>
+              <p class="text-xs text-text-muted">Completadas</p>
             </div>
           </div>
         </div>
@@ -216,10 +216,10 @@ const cargarDatos = async () => {
   try {
     const id = route.params.id;
     const res = await axios.get(`/api/clientes/${id}`);
-    if (res.data.success) {
+    if (res.data && res.data.cliente) {
       cliente.value = res.data.cliente;
-      stats.value = res.data.stats || { total_citas: 0, canceladas: 0 };
-      citas.value = res.data.citas || [];
+      stats.value = res.data.estadisticas || { total_citas: 0, canceladas: 0 };
+      citas.value = res.data.historial_citas || [];
       
       if (res.data.cliente) {
         ficha.value = {
