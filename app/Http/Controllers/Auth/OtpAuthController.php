@@ -70,11 +70,59 @@ class OtpAuthController extends Controller
         }
 
         // ── Determinar canal de envío ───────────────────────────
-        $usarEmail = !empty($request->email) && config('app.otp_email_activo', true);
+        // El cliente puede mandar 'canal' = 'email', 'telegram' o 'sms'
+        $canalSolicitado = $request->input('canal', 'email');
+        
+        $usarEmail = true;
+        $usarTelegram = false;
+        $usarSms = false;
 
+        // Validar si el destinatario tiene los datos necesarios para el canal
+        if ($canalSolicitado === 'telegram') {
+            // Verificamos si existe el usuario con ese email/teléfono y si tiene chat_id
+            $chatId = null;
+            if ($request->email) {
+                $chatId = \App\Models\Profesional::where('email', $request->email)->value('telegram_chat_id') 
+                       ?? \App\Models\Cliente::where('email', $request->email)->value('telegram_chat_id');
+            }
+            if (!$chatId && $request->telefono) {
+                $telefonoLimpio = $this->normalizarTelefono($request->telefono);
+                $chatId = \App\Models\Profesional::where('telefono', $telefonoLimpio)->value('telegram_chat_id') 
+                       ?? \App\Models\Cliente::where('telefono', $telefonoLimpio)->value('telegram_chat_id');
+            }
+
+            if ($chatId) {
+                $usarTelegram = true;
+                $usarEmail = false;
+            } else {
+                // Fallback a Email si no tiene Telegram configurado
+                $usarEmail = true;
+            }
+        } elseif ($canalSolicitado === 'sms' && !empty($request->telefono)) {
+            $usarSms = true;
+            $usarEmail = false;
+        }
+
+        // Definición de destinatario principal según canal activo
         if ($usarEmail) {
-            $destinatario = strtolower(trim($request->email));
+            $destinatario = strtolower(trim($request->email ?? ''));
+            // Si el login fue con teléfono pero el canal es email, intentamos buscar su email
+            if (empty($destinatario) && $request->telefono) {
+                $tel = $this->normalizarTelefono($request->telefono);
+                $destinatario = \App\Models\Profesional::where('telefono', $tel)->value('email')
+                             ?? \App\Models\Cliente::where('telefono', $tel)->value('email');
+            }
+            // Fallback en caso extremo
+            if (empty($destinatario)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontró un correo electrónico vinculado para este usuario.',
+                ], 422);
+            }
             $rateLimiterKey = "otp_enviar:email:{$destinatario}";
+        } elseif ($usarTelegram) {
+            $destinatario = $request->email ? strtolower(trim($request->email)) : $this->normalizarTelefono($request->telefono);
+            $rateLimiterKey = "otp_enviar:telegram:{$destinatario}";
         } else {
             $destinatario = $this->normalizarTelefono($request->telefono);
             $rateLimiterKey = "otp_enviar:tel:{$destinatario}";
@@ -102,44 +150,59 @@ class OtpAuthController extends Controller
             );
         } else {
             $otp = OtpCode::crearParaTelefono(
-                telefono: $destinatario,
+                telefono: $usarSms ? $destinatario : null,
                 tipo: 'login',
                 ip: $request->ip()
             );
+            // Si es telegram guardamos también el email si existía
+            if ($usarTelegram && $request->email) {
+                $otp->update(['email' => strtolower(trim($request->email))]);
+            }
         }
 
         // ── Enviar OTP ──────────────────────────────────────────
+        $enviado = false;
+        $enviadoPorTelegram = false;
+
         if ($usarEmail) {
             $enviado = $this->enviarOtpPorEmail($destinatario, $otp->codigo);
+        } elseif ($usarTelegram) {
+            $enviadoPorTelegram = $this->enviarOtpPorTelegram($destinatario, $otp->codigo, !empty($request->email));
+            $enviado = $enviadoPorTelegram;
         } else {
             $enviado = $this->enviarOtp($destinatario, $otp->codigo);
+            // También intentamos enviar por telegram de respaldo si tiene
+            $enviadoPorTelegram = $this->enviarOtpPorTelegram($destinatario, $otp->codigo, false);
         }
-
-        // ── Canal adicional: Telegram (si el usuario lo tiene vinculado) ──
-        $enviadoPorTelegram = $this->enviarOtpPorTelegram($destinatario, $otp->codigo, $usarEmail);
 
         if (!$enviado && !$enviadoPorTelegram) {
             Log::error("OtpAuthController: Fallo total al enviar OTP a {$destinatario}");
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al enviar el código de verificación.',
+            ], 500);
         }
 
         // ── Respuesta ───────────────────────────────────────────
-        $canal = $usarEmail ? 'email' : 'telefono';
+        $canal = $usarEmail ? 'email' : ($usarTelegram ? 'telegram' : 'telefono');
         $destinatarioMostrar = $usarEmail
             ? $this->enmascararEmail($destinatario)
-            : $this->enmascararTelefono($destinatario);
+            : ($usarTelegram ? 'Telegram' : $this->enmascararTelefono($destinatario));
 
-        $canales = [$canal];
-        if ($enviadoPorTelegram) {
-            $canales[] = 'telegram';
-        }
+        $canales = [];
+        if ($usarEmail) $canales[] = 'email';
+        if ($usarSms) $canales[] = 'sms';
+        if ($enviadoPorTelegram || $usarTelegram) $canales[] = 'telegram';
 
         $response = [
             'success'           => true,
             'canal'             => $canal,
             'canales_enviados'  => $canales,
-            'message'           => $enviadoPorTelegram
-                ? "Código enviado a {$destinatarioMostrar} y también por Telegram."
-                : "Código de verificación enviado a {$destinatarioMostrar}.",
+            'message'           => $usarTelegram 
+                ? "Código de verificación enviado por Telegram."
+                : ($enviadoPorTelegram 
+                    ? "Código enviado a {$destinatarioMostrar} y también por Telegram."
+                    : "Código de verificación enviado a {$destinatarioMostrar}."),
             'expira_en_minutos' => OtpCode::DURACION_MINUTOS,
         ];
 

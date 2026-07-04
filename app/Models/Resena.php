@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use Illuminate\Database\Eloquent\Builder;
+
 class Resena extends Model
 {
     protected $table = 'resenas';
@@ -48,7 +50,7 @@ class Resena extends Model
 
     // ─── Scopes ────────────────────────────────────────────────
 
-    public function scopeActivo($query)
+    public function scopeActivo(Builder $query): Builder
     {
         return $query->where('activo', true);
     }

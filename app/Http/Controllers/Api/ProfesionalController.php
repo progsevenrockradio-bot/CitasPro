@@ -76,7 +76,7 @@ class ProfesionalController extends Controller
     /**
      * Actualiza un profesional existente.
      */
-    public function update(Request $request, $id): JsonResponse
+    public function update(Request $request, int|string $id): JsonResponse
     {
         $user = $request->user();
         $owner = $this->getOwner($user);
@@ -111,7 +111,7 @@ class ProfesionalController extends Controller
     /**
      * Elimina (o desactiva) un profesional.
      */
-    public function destroy(Request $request, $id): JsonResponse
+    public function destroy(Request $request, int|string $id): JsonResponse
     {
         $user = $request->user();
         $owner = $this->getOwner($user);
@@ -131,7 +131,7 @@ class ProfesionalController extends Controller
         ]);
     }
     
-    private function getOwner($user)
+    private function getOwner(mixed $user)
     {
         // MODO DEMO
         if ($user instanceof User) {
