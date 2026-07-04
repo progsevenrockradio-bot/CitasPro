@@ -31,8 +31,27 @@
 
         <div>
           <label class="block text-sm font-medium text-text-muted mb-1">Teléfono (WhatsApp)</label>
-          <input v-model="form.telefono" type="tel" required placeholder="+34600111222" class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-all">
-          <p class="text-xs text-text-muted mt-1">Incluye el código de país (ej. +34, +57, +58)</p>
+          <div class="flex gap-2">
+            <!-- Selector de Código de País -->
+            <div class="w-36 flex-shrink-0">
+              <CustomSelect 
+                v-model="paisSeleccionado" 
+                :options="paisOptions" 
+                placeholder="Prefijo"
+              />
+            </div>
+            <!-- Número de Teléfono -->
+            <div class="flex-1">
+              <input 
+                v-model="telefonoIngresado" 
+                type="tel" 
+                required 
+                placeholder="600111222" 
+                class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-all"
+              >
+            </div>
+          </div>
+          <p class="text-xs text-text-muted mt-1">Selecciona tu país e ingresa tu número celular sin prefijo.</p>
         </div>
 
         <div>
@@ -101,6 +120,10 @@ const step = ref(1);
 const loading = ref(false);
 const errorMsg = ref('');
 const categorias = ref([]);
+const paises = ref([]);
+
+const paisSeleccionado = ref('34'); // Por defecto España (+34)
+const telefonoIngresado = ref('');
 
 const form = ref({
   nombre: '',
@@ -121,18 +144,37 @@ const categoriaOptions = computed(() => {
   }));
 });
 
+const paisOptions = computed(() => {
+  return paises.value.map(p => ({
+    value: p.prefijo,
+    label: `+${p.prefijo}`,
+    icon: p.bandera
+  }));
+});
+
 onMounted(async () => {
   try {
-    const res = await axios.get('/api/categorias');
-    categorias.value = res.data;
+    const [resCats, resPaises] = await Promise.all([
+      axios.get('/api/categorias'),
+      axios.get('/api/paises')
+    ]);
+    categorias.value = resCats.data;
+    paises.value = resPaises.data;
   } catch (e) {
-    console.error("No se pudieron cargar las categorías");
+    console.error("No se pudieron cargar los datos iniciales");
   }
 });
 
 const enviarOtp = async () => {
   loading.value = true;
   errorMsg.value = '';
+  
+  // Limpiamos espacios y caracteres no numéricos del teléfono ingresado
+  const numLimpio = telefonoIngresado.value.replace(/\D/g, '');
+  
+  // Concatenamos el prefijo telefónico seleccionado
+  form.value.telefono = `+${paisSeleccionado.value}${numLimpio}`;
+
   try {
     await axios.post('/api/auth/otp/enviar', { telefono: form.value.telefono });
     step.value = 2;
@@ -148,6 +190,11 @@ const verificarOtp = async () => {
   errorMsg.value = '';
   try {
     await axios.get('/sanctum/csrf-cookie');
+    
+    // Aseguramos que el teléfono esté concatenado con el prefijo correcto
+    const numLimpio = telefonoIngresado.value.replace(/\D/g, '');
+    form.value.telefono = `+${paisSeleccionado.value}${numLimpio}`;
+    
     const res = await axios.post('/api/auth/otp/verificar', form.value);
     
     localStorage.setItem('token', res.data.token);
