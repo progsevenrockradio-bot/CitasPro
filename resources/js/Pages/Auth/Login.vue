@@ -12,14 +12,15 @@
         <p class="text-text-muted">Ingresa a tu panel de CitasPro</p>
       </div>
 
-      <form @submit.prevent="handleLogin" class="space-y-4">
+      <!-- PASO 1: Email y Contraseña -->
+      <form v-if="!requiere2fa" @submit.prevent="handleLogin" class="space-y-4">
         <div>
           <label class="block text-sm font-medium text-text-muted mb-1">Correo Electrónico</label>
           <input 
             v-model="form.email" 
             type="email" 
             required
-            class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-all"
             placeholder="dr@ejemplo.com"
           >
         </div>
@@ -30,7 +31,7 @@
             v-model="form.password" 
             type="password" 
             required
-            class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-all"
             placeholder="••••••••"
           >
         </div>
@@ -52,6 +53,47 @@
           ¿No tienes cuenta? <router-link to="/registro" class="text-primary hover:underline">Registra tu negocio</router-link>
         </p>
       </form>
+
+      <!-- PASO 2: OTP (Doble Factor) -->
+      <form v-else @submit.prevent="verificarOtp2fa" class="space-y-4">
+        <p class="text-center text-sm mb-4">
+          <span v-if="canal2fa === 'email'">Hemos enviado un código a tu correo <strong>{{ destinatarioMascara }}</strong></span>
+          <span v-else>Hemos enviado un código por <strong>Telegram</strong></span>
+        </p>
+        
+        <div>
+          <label class="block text-sm font-medium text-text-muted mb-1">Código PIN (2FA)</label>
+          <input 
+            v-model="codigoOtp" 
+            type="text" 
+            required 
+            maxlength="6" 
+            placeholder="123456"
+            class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white text-center text-2xl tracking-[0.5em] focus:outline-none focus:border-primary transition-all"
+          >
+        </div>
+
+        <div v-if="errorMsg" class="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          {{ errorMsg }}
+        </div>
+
+        <button 
+          type="submit" 
+          :disabled="loading"
+          class="w-full bg-primary hover:bg-primary-hover text-white font-medium py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(99,102,241,0.25)] flex justify-center items-center gap-2"
+        >
+          <span v-if="!loading">Verificar y Entrar</span>
+          <Loader2 v-else class="w-5 h-5 animate-spin" />
+        </button>
+
+        <button 
+          type="button" 
+          @click="requiere2fa = false; codigoOtp = ''" 
+          class="w-full bg-transparent hover:bg-white/5 text-text-muted font-medium py-2 rounded-xl transition-all mt-2"
+        >
+          Volver atrás
+        </button>
+      </form>
     </div>
   </div>
 </template>
@@ -67,30 +109,58 @@ const form = ref({ email: '', password: '' });
 const loading = ref(false);
 const errorMsg = ref('');
 
+// Control de 2FA
+const requiere2fa = ref(false);
+const canal2fa = ref('email');
+const destinatarioMascara = ref('');
+const codigoOtp = ref('');
+
 const handleLogin = async () => {
   loading.value = true;
   errorMsg.value = '';
   try {
-    // Inicializar CSRF de Sanctum
     await axios.get('/sanctum/csrf-cookie');
     
-    // Attempt Login
-    const res = await axios.post('/api/admin/login', form.value);
+    // Cambiamos el endpoint al de contraseñas de profesionales
+    const res = await axios.post('/api/auth/login-contrasena', form.value);
     
-    // Guardamos el token real de sanctum y el indicador de sesión
+    if (res.data.requiere_2fa) {
+      // Activar paso de 2FA
+      requiere2fa.value = true;
+      canal2fa.value = res.data.canal;
+      destinatarioMascara.value = res.data.destinatario;
+    } else {
+      // Login directo sin 2FA
+      localStorage.setItem('token', res.data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      router.push('/panel');
+    }
+  } catch (error) {
+    errorMsg.value = error.response?.data?.message || 'Credenciales incorrectas.';
+  } finally {
+    loading.value = false;
+  }
+};
+
+const verificarOtp2fa = async () => {
+  loading.value = true;
+  errorMsg.value = '';
+  try {
+    const payload = {
+      email: form.value.email,
+      codigo: codigoOtp.value,
+      es_registro: false
+    };
+    
+    // Verificamos el PIN contra la base de datos
+    const res = await axios.post('/api/auth/otp/verificar', payload);
+    
+    // Login exitoso
     localStorage.setItem('token', res.data.token);
-    
-    // Configurar el token por defecto para futuras peticiones
     axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-    
-    // Redirect
     router.push('/panel');
   } catch (error) {
-    if (error.response?.status === 401 || error.response?.status === 422) {
-      errorMsg.value = 'Credenciales incorrectas.';
-    } else {
-      errorMsg.value = 'Error al intentar iniciar sesión.';
-    }
+    errorMsg.value = error.response?.data?.message || 'Código incorrecto o expirado.';
   } finally {
     loading.value = false;
   }

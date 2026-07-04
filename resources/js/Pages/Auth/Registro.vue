@@ -29,28 +29,11 @@
           <input v-model="form.email" type="email" required class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-all">
         </div>
 
-        <!-- Selector de Canal OTP -->
         <div>
-          <label class="block text-sm font-medium text-text-muted mb-2">Enviar código PIN por</label>
-          <div class="grid grid-cols-2 gap-3">
-            <button 
-              type="button" 
-              @click="canalEnvio = 'email'"
-              class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border transition-all text-sm font-medium"
-              :class="canalEnvio === 'email' ? 'bg-primary/20 border-primary text-white shadow-[0_0_15px_rgba(99,102,241,0.15)]' : 'bg-black/20 border-border text-text-muted hover:bg-white/5'"
-            >
-              <span>📧</span> Correo Electrónico
-            </button>
-            <button 
-              type="button" 
-              @click="canalEnvio = 'telegram'"
-              class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border transition-all text-sm font-medium"
-              :class="canalEnvio === 'telegram' ? 'bg-primary/20 border-primary text-white shadow-[0_0_15px_rgba(99,102,241,0.15)]' : 'bg-black/20 border-border text-text-muted hover:bg-white/5'"
-            >
-              <span>✈️</span> Telegram Bot
-            </button>
-          </div>
+          <label class="block text-sm font-medium text-text-muted mb-1">Contraseña de acceso</label>
+          <input v-model="form.password" type="password" required placeholder="Mínimo 6 caracteres" class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-all">
         </div>
+
 
         <div>
           <label class="block text-sm font-medium text-text-muted mb-1">Teléfono (WhatsApp)</label>
@@ -157,6 +140,7 @@ const form = ref({
   nombre: '',
   apellido: '',
   email: '',
+  password: '', // Añadido
   telefono: '',
   nombre_negocio: '',
   categoria_id: '',
@@ -204,10 +188,11 @@ const enviarOtp = async () => {
   form.value.telefono = `+${paisSeleccionado.value}${numLimpio}`;
 
   try {
-    // Enviamos teléfono, email y el canal seleccionado por el usuario
+    // Enviamos teléfono, email, contraseña y el canal seleccionado por el usuario
     await axios.post('/api/auth/otp/enviar', { 
       telefono: form.value.telefono,
       email: form.value.email,
+      password: form.value.password,
       canal: canalEnvio.value
     });
     step.value = 2;
