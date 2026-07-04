@@ -371,10 +371,13 @@ class OtpAuthController extends Controller
                 'nombre' => 'required|string|max:255',
                 'apellido' => 'required|string|max:255',
                 'email' => 'required|email|unique:profesionales,email',
+                'password' => 'required|string|min:6', // Contraseña requerida de al menos 6 caracteres
                 'nombre_negocio' => 'required|string|max:255',
                 'categoria_id' => 'required|exists:categorias,id',
             ], [
-                'email.unique' => 'Ese correo electrónico ya está registrado.'
+                'email.unique' => 'Ese correo electrónico ya está registrado.',
+                'password.required' => 'La contraseña es obligatoria.',
+                'password.min' => 'La contraseña debe tener al menos 6 caracteres.'
             ]);
 
             // Comprobar si el teléfono ya está en uso como profesional
@@ -398,6 +401,7 @@ class OtpAuthController extends Controller
                     'nombre' => $request->nombre,
                     'apellido' => $request->apellido,
                     'email' => $request->email,
+                    'password' => \Illuminate\Support\Facades\Hash::make($request->password),
                     'telefono' => $telefono,
                     'activo' => true,
                 ]);
@@ -779,5 +783,134 @@ class OtpAuthController extends Controller
             Log::error("OtpAuthController: Error enviando OTP por Telegram (chat_id: {$chatId}): " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * PATCH /api/auth/perfil
+     * 
+     * Permite al profesional actualizar su propia contraseña,
+     * estado de 2FA y el canal preferido para recibir el PIN.
+     */
+    public function updatePerfil(Request $request): JsonResponse
+    {
+        $profesional = $request->user();
+        if (!$profesional || !($profesional instanceof Profesional)) {
+            return response()->json(['message' => 'Acceso no autorizado.'], 403);
+        }
+
+        $validated = $request->validate([
+            'nombre'              => 'sometimes|string|max:100',
+            'apellido'            => 'sometimes|string|max:100',
+            'telefono'            => 'sometimes|nullable|string|max:20',
+            'doble_factor_activo' => 'sometimes|boolean',
+            'canal_preferido_2fa' => 'sometimes|in:email,telegram',
+            'password'            => 'sometimes|nullable|string|min:6|confirmed', // password_confirmation es requerido si se envía password
+        ], [
+            'password.min'        => 'La nueva contraseña debe tener al menos 6 caracteres.',
+            'password.confirmed'  => 'La confirmación de la contraseña no coincide.',
+            'canal_preferido_2fa.in' => 'El canal preferido debe ser email o telegram.'
+        ]);
+
+        // Manejo de la contraseña
+        if (!empty($request->password)) {
+            $validated['password'] = \Illuminate\Support\Facades\Hash::make($request->password);
+        } else {
+            unset($validated['password']);
+        }
+
+        $profesional->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Perfil y configuración de seguridad actualizados correctamente.',
+            'user' => [
+                'id'                => $profesional->id,
+                'nombre'            => $profesional->nombre,
+                'apellido'          => $profesional->apellido,
+                'email'             => $profesional->email,
+                'telefono'          => $profesional->telefono,
+                'doble_factor_activo' => (bool) $profesional->doble_factor_activo,
+                'canal_preferido_2fa' => $profesional->canal_preferido_2fa,
+            ]
+        ]);
+    }
+
+    /**
+     * POST /api/auth/login-contrasena
+     * 
+     * Login inicial por correo y contraseña.
+     * Si el 2FA está activo, envía un código OTP y retorna requiere_2fa => true.
+     * De lo contrario, emite el token Sanctum directamente.
+     */
+    public function loginContrasena(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $profesional = Profesional::where('email', strtolower(trim($request->email)))->first();
+
+        // Si no existe o contraseña incorrecta
+        if (!$profesional || !\Illuminate\Support\Facades\Hash::check($request->password, $profesional->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Credenciales incorrectas.',
+            ], 401);
+        }
+
+        // Comprobar si tiene el doble factor activo
+        if ($profesional->doble_factor_activo) {
+            $canal = $profesional->canal_preferido_2fa ?? 'email';
+            $otp = OtpCode::crearParaEmail(
+                email: $profesional->email,
+                tipo: 'login',
+                ip: $request->ip()
+            );
+
+            $enviado = false;
+            if ($canal === 'telegram' && $profesional->telegram_chat_id) {
+                $enviado = $this->enviarOtpPorTelegram($profesional->email, $otp->codigo, true);
+            }
+
+            // Fallback a correo si falla telegram o el canal es email
+            if (!$enviado) {
+                $enviado = $this->enviarOtpPorEmail($profesional->email, $otp->codigo);
+                $canal = 'email';
+            }
+
+            return response()->json([
+                'success' => true,
+                'requiere_2fa' => true,
+                'canal' => $canal,
+                'destinatario' => $canal === 'email' 
+                    ? $this->enmascararEmail($profesional->email)
+                    : 'Telegram Bot',
+                'message' => 'Se requiere código de verificación de dos pasos (2FA).',
+            ]);
+        }
+
+        // Si no requiere 2FA, iniciamos sesión directamente emitiendo el token
+        $token = $profesional->createToken(
+            name: 'api-token-prof-' . now()->timestamp,
+            abilities: ['profesional'],
+            expiresAt: now()->addDays(30)
+        );
+
+        return response()->json([
+            'success' => true,
+            'requiere_2fa' => false,
+            'token' => $token->plainTextToken,
+            'token_tipo' => 'Bearer',
+            'expira_en' => now()->addDays(30)->toIso8601String(),
+            'user' => [
+                'id' => $profesional->id,
+                'nombre' => $profesional->nombre,
+                'apellido' => $profesional->apellido,
+                'telefono' => $profesional->telefono,
+                'email' => $profesional->email,
+                'foto' => $profesional->foto,
+            ]
+        ], 200);
     }
 }

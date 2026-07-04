@@ -58,10 +58,11 @@ Route::get('/paises', function () {
     );
 });
 
-// ── Autenticación OTP
-Route::prefix('auth/otp')->name('auth.otp.')->group(function () {
-    Route::post('/enviar', [OtpAuthController::class, 'enviar'])->name('enviar');
-    Route::post('/verificar', [OtpAuthController::class, 'verificar'])->name('verificar');
+// ── Autenticación de Profesionales (Contraseña & 2FA)
+Route::prefix('auth')->name('auth.')->group(function () {
+    Route::post('/login-contrasena', [OtpAuthController::class, 'loginContrasena'])->name('login_contrasena');
+    Route::post('/otp/enviar', [OtpAuthController::class, 'enviar'])->name('otp.enviar');
+    Route::post('/otp/verificar', [OtpAuthController::class, 'verificar'])->name('otp.verificar');
 });
 
 // ── Portafolio público (galería de trabajos del profesional)
@@ -149,6 +150,7 @@ Route::get('/reset-demo', function () {
             'nombre'       => 'Maestro',
             'apellido'     => 'Demo',
             'email'        => 'demo@citaspro.com',
+            'password'     => \Illuminate\Support\Facades\Hash::make('citaspro123'),
             'telefono'     => '+34600111222', 
             'especialidad' => 'Administrador',
             'activo'       => true
@@ -223,6 +225,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Sesión y perfil (Fuera del middleware para poder desloguear o ver perfil si el plan venció)
     Route::prefix('auth')->name('auth.')->group(function () {
         Route::get('/me', [OtpAuthController::class, 'me'])->name('me');
+        Route::patch('/perfil', [OtpAuthController::class, 'updatePerfil'])->name('perfil.update');
         Route::post('/logout', [OtpAuthController::class, 'logout'])->name('logout');
         Route::post('/logout-all', [OtpAuthController::class, 'logoutTodos'])->name('logout.all');
     });

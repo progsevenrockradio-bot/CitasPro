@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
 
-class Profesional extends Model
+class Profesional extends Authenticatable
 {
     use HasApiTokens, SoftDeletes;
 
@@ -21,6 +21,9 @@ class Profesional extends Model
         'apellido',
         'telefono',
         'email',
+        'password',
+        'doble_factor_activo',
+        'canal_preferido_2fa', // email | telegram
         'foto',
         'titulo',
         'bio',
@@ -36,10 +39,16 @@ class Profesional extends Model
         'notificaciones_whatsapp',
     ];
 
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
     protected $casts = [
         'horario_disponible'      => 'array',
         'activo'                  => 'boolean',
         'aceptar_online'          => 'boolean',
+        'doble_factor_activo'     => 'boolean',
         'notificaciones_telegram' => 'boolean',
         'notificaciones_whatsapp' => 'boolean',
         'calificacion_promedio'   => 'decimal:2',
