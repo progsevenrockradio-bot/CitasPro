@@ -32,6 +32,7 @@ class Cliente extends Model
         'activo',
         'acepta_marketing',
         'telefono_verificado_en',
+        'telegram_chat_id',
     ];
 
     protected $casts = [
