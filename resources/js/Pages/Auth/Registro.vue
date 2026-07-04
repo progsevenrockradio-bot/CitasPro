@@ -107,7 +107,11 @@
 
       <!-- PASO 2: OTP -->
       <form v-if="step === 2" @submit.prevent="verificarOtp" class="space-y-4">
-        <p class="text-center text-sm mb-4">Hemos enviado un código a <strong>{{ form.telefono }}</strong></p>
+        <p class="text-center text-sm mb-4">
+          <span v-if="canalEnvio === 'email'">Hemos enviado un código a tu correo <strong>{{ form.email }}</strong></span>
+          <span v-else-if="canalEnvio === 'telegram'">Hemos enviado un código por <strong>Telegram</strong></span>
+          <span v-else>Hemos enviado un código a <strong>{{ form.telefono }}</strong></span>
+        </p>
         
         <div>
           <label class="block text-sm font-medium text-text-muted mb-1">Código PIN</label>
