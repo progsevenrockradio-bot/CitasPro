@@ -15,6 +15,7 @@ class OtpCode extends Model
 
     protected $fillable = [
         'telefono',
+        'email',
         'codigo',
         'tipo',
         'usado',
@@ -39,16 +40,21 @@ class OtpCode extends Model
 
     // ─── Scopes ────────────────────────────────────────────────
 
-    public function scopeVigente($query)
+    public function scopeVigente(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('usado', false)
             ->where('expira_en', '>', now())
             ->where('intentos', '<', self::MAX_INTENTOS);
     }
 
-    public function scopeParaTelefono($query, string $telefono)
+    public function scopeParaTelefono(\Illuminate\Database\Eloquent\Builder $query, string $telefono): \Illuminate\Database\Eloquent\Builder
     {
         return $query->where('telefono', $telefono);
+    }
+
+    public function scopeParaEmail(\Illuminate\Database\Eloquent\Builder $query, string $email): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query->where('email', $email);
     }
 
     // ─── Helpers ───────────────────────────────────────────────
@@ -119,6 +125,30 @@ class OtpCode extends Model
 
         return static::create([
             'telefono'       => $telefono,
+            'email'          => null,
+            'codigo'         => static::generarCodigo(),
+            'tipo'           => $tipo,
+            'usado'          => false,
+            'intentos'       => 0,
+            'ip_solicitante' => $ip,
+            'expira_en'      => now()->addMinutes(static::DURACION_MINUTOS),
+        ]);
+    }
+
+    /**
+     * Crea un nuevo OTP para el email dado.
+     * Invalida los anteriores del mismo email.
+     */
+    public static function crearParaEmail(string $email, string $tipo = 'login', ?string $ip = null): static
+    {
+        // Invalida los códigos anteriores
+        static::where('email', $email)
+            ->where('usado', false)
+            ->update(['usado' => true]);
+
+        return static::create([
+            'telefono'       => null,
+            'email'          => $email,
             'codigo'         => static::generarCodigo(),
             'tipo'           => $tipo,
             'usado'          => false,

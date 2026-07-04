@@ -182,7 +182,7 @@ class RecordarCitasCommand extends Command
         $cliente  = $cita->cliente;
         $servicio = $cita->servicio;
         $negocio  = $cita->negocio;
-        $fecha    = $cita->fecha->format('d/m/Y');
+        $fecha    = Carbon::parse($cita->fecha)->format('d/m/Y');
         $hora     = substr($cita->hora_inicio, 0, 5);
 
         $this->line(

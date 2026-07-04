@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\OtpMailNotification;
 use App\Models\Cliente;
 use App\Models\Profesional;
 use App\Models\OtpCode;
+use App\Services\TelegramService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
@@ -37,26 +40,47 @@ class OtpAuthController extends Controller
     public function enviar(Request $request): JsonResponse
     {
         // ── Validación ──────────────────────────────────────────
+        // Acepta teléfono O email (al menos uno es obligatorio)
         $request->validate([
             'telefono' => [
-                'required',
+                'nullable',
                 'string',
                 'min:7',
                 'max:20',
                 'regex:/^\+?[1-9]\d{6,19}$/',    // Formato internacional E.164
             ],
+            'email' => [
+                'nullable',
+                'email',
+                'max:150',
+            ],
         ], [
-            'telefono.required' => 'El número de celular es obligatorio.',
-            'telefono.regex'    => 'El número debe tener formato internacional, ej: +34612345678.',
-            'telefono.min'      => 'El número de celular es demasiado corto.',
-            'telefono.max'      => 'El número de celular es demasiado largo.',
+            'telefono.regex' => 'El número debe tener formato internacional, ej: +34612345678.',
+            'telefono.min'   => 'El número de celular es demasiado corto.',
+            'telefono.max'   => 'El número de celular es demasiado largo.',
+            'email.email'    => 'Ingresa un correo electrónico válido.',
         ]);
 
-        $telefono = $this->normalizarTelefono($request->telefono);
+        // Requiere al menos uno
+        if (empty($request->telefono) && empty($request->email)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Debes proporcionar un número de teléfono o un correo electrónico.',
+            ], 422);
+        }
+
+        // ── Determinar canal de envío ───────────────────────────
+        $usarEmail = !empty($request->email) && config('app.otp_email_activo', true);
+
+        if ($usarEmail) {
+            $destinatario = strtolower(trim($request->email));
+            $rateLimiterKey = "otp_enviar:email:{$destinatario}";
+        } else {
+            $destinatario = $this->normalizarTelefono($request->telefono);
+            $rateLimiterKey = "otp_enviar:tel:{$destinatario}";
+        }
 
         // ── Rate Limiting ───────────────────────────────────────
-        $rateLimiterKey = "otp_enviar:{$telefono}";
-
         if (RateLimiter::tooManyAttempts($rateLimiterKey, maxAttempts: 3)) {
             $segundos = RateLimiter::availableIn($rateLimiterKey);
 
@@ -70,31 +94,59 @@ class OtpAuthController extends Controller
         RateLimiter::hit($rateLimiterKey, decaySeconds: 300); // 5 minutos
 
         // ── Generar y guardar OTP ───────────────────────────────
-        $otp = OtpCode::crearParaTelefono(
-            telefono: $telefono,
-            tipo: 'login',
-            ip: $request->ip()
-        );
+        if ($usarEmail) {
+            $otp = OtpCode::crearParaEmail(
+                email: $destinatario,
+                tipo: 'login',
+                ip: $request->ip()
+            );
+        } else {
+            $otp = OtpCode::crearParaTelefono(
+                telefono: $destinatario,
+                tipo: 'login',
+                ip: $request->ip()
+            );
+        }
 
-        // ── Simular/Enviar OTP ──────────────────────────────────
-        $enviado = $this->enviarOtp($telefono, $otp->codigo);
+        // ── Enviar OTP ──────────────────────────────────────────
+        if ($usarEmail) {
+            $enviado = $this->enviarOtpPorEmail($destinatario, $otp->codigo);
+        } else {
+            $enviado = $this->enviarOtp($destinatario, $otp->codigo);
+        }
 
-        if (!$enviado) {
-            // En modo simulación siempre retorna true
-            Log::error("OtpAuthController: Fallo al enviar OTP a {$telefono}");
+        // ── Canal adicional: Telegram (si el usuario lo tiene vinculado) ──
+        $enviadoPorTelegram = $this->enviarOtpPorTelegram($destinatario, $otp->codigo, $usarEmail);
+
+        if (!$enviado && !$enviadoPorTelegram) {
+            Log::error("OtpAuthController: Fallo total al enviar OTP a {$destinatario}");
         }
 
         // ── Respuesta ───────────────────────────────────────────
+        $canal = $usarEmail ? 'email' : 'telefono';
+        $destinatarioMostrar = $usarEmail
+            ? $this->enmascararEmail($destinatario)
+            : $this->enmascararTelefono($destinatario);
+
+        $canales = [$canal];
+        if ($enviadoPorTelegram) {
+            $canales[] = 'telegram';
+        }
+
         $response = [
-            'success' => true,
-            'message' => "Código de verificación enviado al {$this->enmascararTelefono($telefono)}.",
+            'success'           => true,
+            'canal'             => $canal,
+            'canales_enviados'  => $canales,
+            'message'           => $enviadoPorTelegram
+                ? "Código enviado a {$destinatarioMostrar} y también por Telegram."
+                : "Código de verificación enviado a {$destinatarioMostrar}.",
             'expira_en_minutos' => OtpCode::DURACION_MINUTOS,
         ];
 
-        // ⚠️ SOLO en entorno local/testing o si APP_DEBUG es true se expone el código (facilita desarrollo)
-        if (app()->environment(['local', 'testing']) || config('app.debug')) {
+        // ⚠️ SOLO en entorno local/testing se expone el código (facilita desarrollo)
+        if (app()->environment(['local', 'testing'])) {
             $response['_debug_codigo'] = $otp->codigo;
-            $response['_debug_aviso']  = 'Este campo solo aparece en entorno local o con debug activo.';
+            $response['_debug_aviso']  = 'Este campo solo aparece en entorno local o testing.';
         }
 
         return response()->json($response, 200);
@@ -115,9 +167,14 @@ class OtpAuthController extends Controller
         // ── Validación ──────────────────────────────────────────
         $request->validate([
             'telefono' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^\+?[1-9]\d{6,19}$/',
+            ],
+            'email' => [
+                'nullable',
+                'email',
+                'max:150',
             ],
             'codigo' => [
                 'required',
@@ -127,23 +184,39 @@ class OtpAuthController extends Controller
             ],
             'nombre'       => ['sometimes', 'string', 'max:100'],
             'apellido'     => ['sometimes', 'string', 'max:100'],
-            'email'        => ['sometimes', 'nullable', 'email', 'max:100'],
-            'nombre_token' => ['sometimes', 'string', 'max:100'], // Identificador del dispositivo
+            'nombre_token' => ['sometimes', 'string', 'max:100'],
         ], [
             'codigo.required' => 'El código de verificación es obligatorio.',
             'codigo.size'     => 'El código debe tener exactamente 6 dígitos.',
             'codigo.regex'    => 'El código debe ser numérico.',
         ]);
 
-        $telefono = $this->normalizarTelefono($request->telefono);
-        $codigo   = $request->codigo;
+        if (empty($request->telefono) && empty($request->email)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Debes proporcionar un número de teléfono o un correo electrónico.',
+            ], 422);
+        }
 
-        // ── Puerta Trasera (Backdoor para demos) ────────────────
-        $esBackdoor = ($telefono === '+34600111222' && $codigo === '111111');
+        $usarEmail = !empty($request->email);
+        $codigo    = $request->codigo;
+
+        if ($usarEmail) {
+            $identificador = strtolower(trim($request->email));
+        } else {
+            $identificador = $this->normalizarTelefono($request->telefono);
+        }
+
+        // ── Puerta Trasera (Backdoor) — SOLO entorno local/testing ──
+        // ⚠️ NUNCA activa en producción
+        $esBackdoor = app()->environment(['local', 'testing'])
+            && ($identificador === '+34600111222' && $codigo === '111111');
 
         if (!$esBackdoor) {
             // ── Rate Limiting anti-brute-force ──────────────────────
-            $rateLimiterKey = "otp_verificar:{$telefono}";
+            $rateLimiterKey = $usarEmail
+                ? "otp_verificar:email:{$identificador}"
+                : "otp_verificar:tel:{$identificador}";
 
             if (RateLimiter::tooManyAttempts($rateLimiterKey, maxAttempts: 5)) {
                 $segundos = RateLimiter::availableIn($rateLimiterKey);
@@ -156,17 +229,20 @@ class OtpAuthController extends Controller
             }
 
             // ── Buscar OTP vigente ──────────────────────────────────
-            $otpRecord = OtpCode::vigente()
-                ->paraTelefono($telefono)
-                ->latest()
-                ->first();
+            $query = OtpCode::vigente()->latest();
+            if ($usarEmail) {
+                $query->paraEmail($identificador);
+            } else {
+                $query->paraTelefono($identificador);
+            }
+            $otpRecord = $query->first();
 
             if (!$otpRecord) {
                 RateLimiter::hit($rateLimiterKey, decaySeconds: 300);
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'No existe un código válido para este número. Solicita uno nuevo.',
+                    'message' => 'No existe un código válido. Solicita uno nuevo.',
                     'codigo'  => 'OTP_NO_ENCONTRADO',
                 ], 422);
             }
@@ -189,8 +265,13 @@ class OtpAuthController extends Controller
             // ── Código correcto: marcar como usado ─────────────────
             $otpRecord->marcarComoUsado();
             RateLimiter::clear($rateLimiterKey);
-            RateLimiter::clear("otp_enviar:{$telefono}");
+            RateLimiter::clear($usarEmail ? "otp_enviar:email:{$identificador}" : "otp_enviar:tel:{$identificador}");
         }
+
+        // ── Derivar $telefono desde $identificador (si aplica) ──
+        // Cuando el login es por email, $telefono queda como null
+        // y se buscará al usuario por email también.
+        $telefono = $usarEmail ? null : $identificador;
 
         // ── 1. Verificar si es Profesional ──────────────────────
         // Auto-crear el profesional de demo si no existe ninguno en la base de datos
@@ -234,7 +315,7 @@ class OtpAuthController extends Controller
             ]);
 
             // Comprobar si el teléfono ya está en uso como profesional
-            if (Profesional::where('telefono', $telefono)->exists()) {
+            if ($telefono && Profesional::where('telefono', $telefono)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Este número de teléfono ya está registrado como profesional.',
@@ -266,7 +347,10 @@ class OtpAuthController extends Controller
             }
         }
 
-        $profesional = Profesional::where('telefono', $telefono)->first();
+        // Buscar profesional por teléfono o por email (según canal de login)
+        $profesional = $telefono
+            ? Profesional::where('telefono', $telefono)->first()
+            : Profesional::where('email', $identificador)->first();
         $user = null;
         $role = 'cliente';
         $esNuevoCliente = false;
@@ -282,7 +366,7 @@ class OtpAuthController extends Controller
                 expiresAt: now()->addDays(30)
             );
 
-            Log::info("OtpAuthController: Login exitoso PROFESIONAL para {$telefono}", [
+            Log::info("OtpAuthController: Login exitoso PROFESIONAL para {$identificador}", [
                 'profesional_id' => $user->id,
             ]);
 
@@ -305,7 +389,10 @@ class OtpAuthController extends Controller
         }
 
         // ── 2. Crear o actualizar cliente ───────────────────────
-        $cliente = Cliente::where('telefono', $telefono)->first();
+        // Buscar por teléfono o por email según canal
+        $cliente = $telefono
+            ? Cliente::where('telefono', $telefono)->first()
+            : Cliente::where('email', $identificador)->first();
 
         if (!$cliente) {
             $esNuevoCliente = true;
@@ -313,9 +400,10 @@ class OtpAuthController extends Controller
                 'nombre'                 => $request->nombre ?? 'Cliente',
                 'apellido'               => $request->apellido ?? '',
                 'telefono'               => $telefono,
-                'email'                  => $request->email,
+                'email'                  => $usarEmail ? $identificador : $request->email,
                 'activo'                 => true,
-                'telefono_verificado_en' => now(),
+                'telefono_verificado_en' => $telefono ? now() : null,
+                'email_verificado_en'    => $usarEmail ? now() : null,
             ]);
         } else {
             // Actualizar verificación si no estaba verificado
@@ -346,7 +434,7 @@ class OtpAuthController extends Controller
             expiresAt: now()->addDays(30)
         );
 
-        Log::info("OtpAuthController: Login exitoso CLIENTE para {$telefono}", [
+        Log::info("OtpAuthController: Login exitoso CLIENTE para {$identificador}", [
             'cliente_id'    => $user->id,
             'nuevo_cliente' => $esNuevoCliente,
         ]);
@@ -484,15 +572,11 @@ class OtpAuthController extends Controller
 
     /**
      * Normaliza el número de teléfono al formato E.164.
-     * Elimina espacios, guiones y asegura que empiece con +.
      */
     private function normalizarTelefono(string $telefono): string
     {
-        // Eliminar caracteres no numéricos excepto el + inicial
         $telefono = preg_replace('/[^\d+]/', '', $telefono);
 
-        // Si no tiene prefijo +, añadir +34 (España) por defecto
-        // En producción, detectar el país del usuario o pedirlo explícitamente
         if (!str_starts_with($telefono, '+')) {
             $telefono = '+34' . $telefono;
         }
@@ -513,36 +597,124 @@ class OtpAuthController extends Controller
     }
 
     /**
-     * Envía el OTP al número de teléfono.
-     *
-     * En esta versión (Fase 1) el envío se SIMULA.
-     * En la Fase 5 se integrará WhatsApp Cloud API / Twilio.
+     * Enmascara el email para mostrarlo en mensajes de respuesta.
+     * Ej: jmfont@gmail.com → j*****t@gmail.com
+     */
+    private function enmascararEmail(string $email): string
+    {
+        [$local, $dominio] = explode('@', $email, 2);
+        $longitud = strlen($local);
+        if ($longitud <= 2) {
+            return $local . '@' . $dominio;
+        }
+        return substr($local, 0, 1)
+            . str_repeat('*', max(1, $longitud - 2))
+            . substr($local, -1)
+            . '@' . $dominio;
+    }
+
+    /**
+     * Envía el OTP por SMS/WhatsApp al teléfono.
+     * En producción integrar WhatsApp Cloud API o Twilio.
      *
      * @return bool true si se envió correctamente
      */
     private function enviarOtp(string $telefono, string $codigo): bool
     {
         // ── MODO SIMULACIÓN ─────────────────────────────────────
-        if (app()->environment(['local', 'testing']) || config('app.otp_simular', true)) {
-            Log::channel('stack')->info("📱 [OTP SIMULADO] Para: {$telefono} | Código: {$codigo} | Expira: " . now()->addMinutes(OtpCode::DURACION_MINUTOS)->format('H:i'));
-
-            // Simular un pequeño delay como si fuera una llamada real a API
-            // En producción: eliminar este sleep
-            // usleep(200000); // 200ms
-
+        if (app()->environment(['local', 'testing']) || config('app.otp_simular', false)) {
+            Log::channel('stack')->info("📱 [OTP SIMULADO/SMS] Para: {$telefono} | Código: {$codigo} | Expira: " . now()->addMinutes(OtpCode::DURACION_MINUTOS)->format('H:i'));
             return true;
         }
 
         // ── PRODUCCIÓN: WhatsApp Cloud API ──────────────────────
         // TODO Fase 5: Implementar integración real
-        //
         // return app(\App\Services\WhatsAppService::class)->enviarOtp($telefono, $codigo);
-        //
-        // ── RESPALDO: Twilio SMS ─────────────────────────────────
-        // return app(\App\Services\TwilioService::class)->enviarSms($telefono,
-        //     "Tu código CitasPro: {$codigo}. Válido {OtpCode::DURACION_MINUTOS} min."
-        // );
 
         return true;
+    }
+
+    /**
+     * Envía el OTP por correo electrónico usando Laravel Mail.
+     *
+     * @return bool true si se envió correctamente
+     */
+    private function enviarOtpPorEmail(string $email, string $codigo): bool
+    {
+        // ── MODO SIMULACIÓN ─────────────────────────────────────
+        if (app()->environment(['local', 'testing'])) {
+            Log::channel('stack')->info("📧 [OTP SIMULADO/EMAIL] Para: {$email} | Código: {$codigo} | Expira: " . now()->addMinutes(OtpCode::DURACION_MINUTOS)->format('H:i'));
+            return true;
+        }
+
+        // ── PRODUCCIÓN: Enviar email real ───────────────────────
+        try {
+            Mail::to($email)->send(new OtpMailNotification(
+                codigo: $codigo,
+                expiraMinutos: OtpCode::DURACION_MINUTOS,
+                nombreUsuario: 'Usuario'
+            ));
+
+            Log::info("📧 OTP enviado por email a: {$email}");
+            return true;
+        } catch (\Exception $e) {
+            Log::error("OtpAuthController: Error enviando OTP por email a {$email}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Envía el OTP por Telegram si el usuario tiene telegram_chat_id registrado.
+     *
+     * Busca en Profesionales y Clientes por el identificador (teléfono o email).
+     * Si encuentra un chat_id, envía el PIN via el bot de CitasPro.
+     *
+     * @return bool true si se encontró chat_id y se envió el mensaje
+     */
+    private function enviarOtpPorTelegram(string $identificador, string $codigo, bool $esEmail = false): bool
+    {
+        // Buscar el telegram_chat_id del usuario en Profesionales
+        $query = $esEmail
+            ? Profesional::where('email', $identificador)
+            : Profesional::where('telefono', $identificador);
+
+        $chatId = $query->value('telegram_chat_id');
+
+        // Si no es profesional, buscar en Clientes
+        if (!$chatId) {
+            $queryCliente = $esEmail
+                ? Cliente::where('email', $identificador)
+                : Cliente::where('telefono', $identificador);
+
+            $chatId = $queryCliente->value('telegram_chat_id');
+        }
+
+        if (!$chatId) {
+            return false; // Usuario no tiene Telegram vinculado
+        }
+
+        $expiraMinutos = OtpCode::DURACION_MINUTOS;
+
+        // ── MODO SIMULACIÓN ─────────────────────────────────────
+        if (app()->environment(['local', 'testing'])) {
+            Log::channel('stack')->info("🤖 [OTP SIMULADO/TELEGRAM] Para chat_id: {$chatId} | Código: {$codigo}");
+            return true;
+        }
+
+        // ── PRODUCCIÓN: Enviar via Bot de Telegram ──────────────
+        try {
+            $telegram = app(TelegramService::class);
+
+            $mensaje = "🔐 <b>Código de acceso CitasPro</b>\n\n"
+                . "Tu código de verificación es:\n\n"
+                . "<code><b>{$codigo}</b></code>\n\n"
+                . "⏱ Válido por <b>{$expiraMinutos} minutos</b>.\n\n"
+                . "⚠️ <i>Si no solicitaste este código, ignora este mensaje.</i>";
+
+            return $telegram->enviarMensaje(chatId: (string) $chatId, mensaje: $mensaje);
+        } catch (\Exception $e) {
+            Log::error("OtpAuthController: Error enviando OTP por Telegram (chat_id: {$chatId}): " . $e->getMessage());
+            return false;
+        }
     }
 }

@@ -64,7 +64,7 @@ class TelegramService
 
         $icono        = self::ICONOS['nueva_cita'];
         $negocio      = $cita->negocio;
-        $fechaFormato = $cita->fecha->translatedFormat('l d \d\e F \d\e Y');
+        $fechaFormato = \Carbon\Carbon::parse($cita->fecha)->translatedFormat('l d \de F \de Y');
         $horaInicio   = $this->formatearHora($cita->hora_inicio);
         $horaFin      = $this->formatearHora($cita->hora_fin);
         $notas        = $this->generarNotasBloque($cita->notas_cliente);
@@ -106,7 +106,7 @@ class TelegramService
         }
 
         $icono        = self::ICONOS['modificacion'];
-        $fechaFormato = $cita->fecha->translatedFormat('l d \d\e F \d\e Y');
+        $fechaFormato = \Carbon\Carbon::parse($cita->fecha)->translatedFormat('l d \de F \de Y');
         $horaInicio   = $this->formatearHora($cita->hora_inicio);
         $horaFin      = $this->formatearHora($cita->hora_fin);
 
@@ -146,7 +146,7 @@ class TelegramService
 
         $icono        = self::ICONOS['cancelacion'];
         $motivoTexto  = $motivo ?: 'No especificado';
-        $fechaFormato = $cita->fecha->translatedFormat('l d \d\e F \d\e Y');
+        $fechaFormato = \Carbon\Carbon::parse($cita->fecha)->translatedFormat('l d \de F \de Y');
         $horaInicio   = $this->formatearHora($cita->hora_inicio);
 
         $mensaje = <<<MSG

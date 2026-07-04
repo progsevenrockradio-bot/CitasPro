@@ -18,9 +18,8 @@ const Stack = createStackNavigator();
 const linking = {
   prefixes: [
     'http://localhost:8081', 
-    'https://reservas.jmfn8n.top',
-    'https://jmfn8n.top/reservas',
-    'http://jmfn8n.top/reservas'
+    'https://citaspro.app',
+    'https://reservas.citaspro.app',
   ],
   config: {
     screens: {

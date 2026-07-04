@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const getBaseUrl = () => {
-  return 'https://citaspro.jmfn8n.top/api';
+  return 'https://citaspro.app/api';
 };
 
 const api = axios.create({

@@ -51,7 +51,7 @@ class SmsService
         $servicio = $cita->servicio;
         $negocio  = $cita->negocio;
 
-        $fecha = $cita->fecha->format('d/m/Y');
+        $fecha = \Carbon\Carbon::parse($cita->fecha)->format('d/m/Y');
         $hora  = substr($cita->hora_inicio, 0, 5);
 
         $texto = "CitasPro: Recordatorio! {$cliente->nombre}, tienes {$servicio->nombre} "
@@ -70,7 +70,7 @@ class SmsService
         $servicio = $cita->servicio;
         $negocio  = $cita->negocio;
 
-        $fecha = $cita->fecha->format('d/m/Y');
+        $fecha = \Carbon\Carbon::parse($cita->fecha)->format('d/m/Y');
         $hora  = substr($cita->hora_inicio, 0, 5);
 
         $texto = "CitasPro: Cita confirmada! {$servicio->nombre} el {$fecha} a las {$hora} "
@@ -87,7 +87,7 @@ class SmsService
         $cliente  = $cita->cliente;
         $servicio = $cita->servicio;
 
-        $fecha = $cita->fecha->format('d/m/Y');
+        $fecha = \Carbon\Carbon::parse($cita->fecha)->format('d/m/Y');
         $hora  = substr($cita->hora_inicio, 0, 5);
 
         $texto = "CitasPro: Cita cancelada. {$servicio->nombre} del {$fecha} a las {$hora} "

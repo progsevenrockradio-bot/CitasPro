@@ -175,12 +175,12 @@ class TelegramBotController extends Controller
     /**
      * Actualiza el texto en Telegram y elimina los botones.
      */
-    private function actualizarMensajeTelegramSinBotones(Cita $cita, $chatId, $messageId, string $nuevoEstado): void
+    private function actualizarMensajeTelegramSinBotones(Cita $cita, int|string $chatId, int $messageId, string $nuevoEstado): void
     {
         $icono = $nuevoEstado === 'confirmada' ? '✅' : '❌';
         $estadoLabel = $nuevoEstado === 'confirmada' ? 'CONFIRMADA' : 'RECHAZADA';
 
-        $fechaFormato = $cita->fecha->translatedFormat('l d \d\e F \d\e Y');
+        $fechaFormato = \Carbon\Carbon::parse($cita->fecha)->translatedFormat('l d \de F \de Y');
         $horaInicio   = substr($cita->hora_inicio, 0, 5);
         $horaFin      = substr($cita->hora_fin, 0, 5);
         $notas        = empty($cita->notas_cliente) ? '' : "\n💬 <b>Notas del cliente:</b>\n<i>{$cita->notas_cliente}</i>";

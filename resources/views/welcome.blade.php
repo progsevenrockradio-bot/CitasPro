@@ -591,7 +591,7 @@
                             <li>Soporte de la comunidad</li>
                         </ul>
                     </div>
-                    <a href="https://reservas.jmfn8n.top" class="btn-pricing btn-pricing-secondary">Empezar Gratis</a>
+                    <a href="https://citaspro.app" class="btn-pricing btn-pricing-secondary">Empezar Gratis</a>
                 </div>
 
                 <!-- Basic -->
@@ -606,7 +606,7 @@
                             <li>WhatsApp / SMS de respaldo</li>
                         </ul>
                     </div>
-                    <a href="https://reservas.jmfn8n.top" class="btn-pricing btn-pricing-secondary">Contratar Basic</a>
+                    <a href="https://citaspro.app" class="btn-pricing btn-pricing-secondary">Contratar Basic</a>
                 </div>
 
                 <!-- Pro -->
@@ -621,7 +621,7 @@
                             <li>Recordatorios prioritarios</li>
                         </ul>
                     </div>
-                    <a href="https://reservas.jmfn8n.top" class="btn-pricing btn-pricing-primary">Mejorar a Pro</a>
+                    <a href="https://citaspro.app" class="btn-pricing btn-pricing-primary">Mejorar a Pro</a>
                 </div>
 
                 <!-- Enterprise -->
@@ -636,7 +636,7 @@
                             <li>Integración a medida</li>
                         </ul>
                     </div>
-                    <a href="https://reservas.jmfn8n.top" class="btn-pricing btn-pricing-secondary">Contactar Ventas</a>
+                    <a href="https://citaspro.app" class="btn-pricing btn-pricing-secondary">Contactar Ventas</a>
                 </div>
             </div>
         </section>

@@ -50,7 +50,7 @@ class GoogleCalendarController extends Controller
         $state = $request->input('state');
 
         // URL del dashboard frontend
-        $frontendUrl = env('APP_URL', 'https://jmfn8n.top') . '/dashboard';
+        $frontendUrl = config('app.url') . '/dashboard';
 
         if (!$code || !$state) {
             Log::warning("GoogleCalendarController: Callback sin código o estado.");

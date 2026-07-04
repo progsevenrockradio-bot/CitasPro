@@ -29,7 +29,7 @@ class MercadoPagoService
             Log::info("MercadoPago: Generada preferencia simulada {$mockPreferenceId} para el pago #{$pago->id}");
             
             // Retorna URL de confirmación de simulado del local
-            return env('APP_URL', 'https://jmfn8n.top') . '/api/pagos/confirmar-simulado?cita_id=' . $pago->cita_id . '&telefono=' . urlencode($pago->cliente->telefono);
+            return config('app.url') . '/api/pagos/confirmar-simulado?cita_id=' . $pago->cita_id . '&telefono=' . urlencode($pago->cliente->telefono);
         }
 
         try {
@@ -44,13 +44,13 @@ class MercadoPagoService
                         ]
                     ],
                     'back_urls' => [
-                        'success' => env('APP_URL', 'https://jmfn8n.top') . '/dashboard?mp_success=1',
-                        'failure' => env('APP_URL', 'https://jmfn8n.top') . '/dashboard?mp_fail=1',
-                        'pending' => env('APP_URL', 'https://jmfn8n.top') . '/dashboard?mp_pending=1',
+                        'success' => config('app.url') . '/dashboard?mp_success=1',
+                        'failure' => config('app.url') . '/dashboard?mp_fail=1',
+                        'pending' => config('app.url') . '/dashboard?mp_pending=1',
                     ],
                     'auto_return' => 'approved',
                     'external_reference' => (string) $pago->id,
-                    'notification_url'   => env('APP_URL', 'https://jmfn8n.top') . '/api/pagos/webhook/mercadopago',
+                    'notification_url'   => config('app.url') . '/api/pagos/webhook/mercadopago',
                 ]);
 
             if ($response->successful()) {

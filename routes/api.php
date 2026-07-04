@@ -48,6 +48,16 @@ Route::get('/categorias', function () {
     return response()->json(\App\Models\Categoria::where('activo', true)->get());
 });
 
+// ── Países y Prefijos Telefónicos Públicos
+Route::get('/paises', function () {
+    return response()->json(
+        \App\Models\Pais::where('activo', true)
+            ->orderBy('orden_preferencia', 'asc')
+            ->orderBy('nombre', 'asc')
+            ->get()
+    );
+});
+
 // ── Autenticación OTP
 Route::prefix('auth/otp')->name('auth.otp.')->group(function () {
     Route::post('/enviar', [OtpAuthController::class, 'enviar'])->name('enviar');
@@ -100,13 +110,39 @@ Route::get('/google/callback', [GoogleCalendarController::class, 'callback'])->n
 // ── Webhook de Stripe (Suscripciones SaaS)
 Route::post('/suscripciones/webhook', [SuscripcionController::class, 'webhookSuscripcion'])->name('suscripciones.webhook');
 
-// ── Demo (Reset Database)
+// ── Demo (Reset Database) — SOLO entorno local ─────────────────
 Route::get('/reset-demo', function () {
+    // 🔒 PROTECCIÓN: Solo accesible en entorno local/testing
+    if (!app()->environment(['local', 'testing'])) {
+        abort(403, 'Esta ruta no está disponible en producción.');
+    }
+
     try {
         Artisan::call('migrate:fresh', ['--force' => true]);
 
-        $categoria = \App\Models\Categoria::create(['nombre' => 'General', 'slug' => 'general', 'activo' => true]);
-        $negocio = \App\Models\Negocio::create(['nombre' => 'CitasPro Demo', 'slug' => 'demo', 'categoria_id' => $categoria->id, 'activo' => true]);
+        // Inyectar Países y Prefijos Telefónicos
+        Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\PaisSeeder', '--force' => true]);
+
+        // Inyectamos todas las categorías reales y sugeridas
+        $categorias = [
+            ['nombre' => 'Peluquería y Barbería', 'slug' => 'peluqueria-barberia', 'descripcion' => 'Cortes de cabello, coloración, barba y tratamientos capilares.', 'icono' => '✂️', 'color_hex' => '#8B5CF6', 'activo' => true],
+            ['nombre' => 'Estética y Belleza', 'slug' => 'estetica-belleza', 'descripcion' => 'Manicura, pedicura, depilación, tratamientos faciales y corporales.', 'icono' => '💅', 'color_hex' => '#EC4899', 'activo' => true],
+            ['nombre' => 'Salud y Medicina', 'slug' => 'salud-medicina', 'descripcion' => 'Consultas médicas, fisioterapia, psicología y especialidades médicas.', 'icono' => '🩺', 'color_hex' => '#14B8A6', 'activo' => true],
+            ['nombre' => 'Educación y Clases', 'slug' => 'educacion-clases', 'descripcion' => 'Clases particulares, idiomas, música, deporte y formación profesional.', 'icono' => '📚', 'color_hex' => '#F59E0B', 'activo' => true],
+            ['nombre' => 'Fitness y Bienestar', 'slug' => 'fitness-bienestar', 'descripcion' => 'Gimnasios, yoga, pilates, entrenamiento personal y meditación.', 'icono' => '🏋️', 'color_hex' => '#10B981', 'activo' => true],
+            ['nombre' => 'Veterinaria y Mascotas', 'slug' => 'veterinaria-mascotas', 'descripcion' => 'Consultas veterinarias, peluquería canina, adiestramiento.', 'icono' => '🐾', 'color_hex' => '#6366F1', 'activo' => true],
+            ['nombre' => 'Consultoría y Asesoría', 'slug' => 'consultoria-asesoria', 'descripcion' => 'Asesoría legal, financiera, empresarial y coaching.', 'icono' => '💼', 'color_hex' => '#0EA5E9', 'activo' => true],
+            ['nombre' => 'Otros Servicios', 'slug' => 'otros-servicios', 'descripcion' => 'Cualquier tipo de negocio que requiera gestión de citas (ej. Talleres, etc.).', 'icono' => '🔧', 'color_hex' => '#6B7280', 'activo' => true],
+        ];
+
+        foreach ($categorias as $cat) {
+            \App\Models\Categoria::create($cat);
+        }
+
+        // Obtener ID de la categoría Peluquería o usar la primera creada
+        $categoriaId = \App\Models\Categoria::where('slug', 'peluqueria-barberia')->value('id') ?? 1;
+
+        $negocio = \App\Models\Negocio::create(['nombre' => 'CitasPro Demo', 'slug' => 'demo', 'categoria_id' => $categoriaId, 'activo' => true]);
         
         $profesional = \App\Models\Profesional::create([
             'negocio_id'   => $negocio->id,
@@ -264,7 +300,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/', [ClienteController::class, 'index'])->name('index');
             Route::get('/{id}', [ClienteController::class, 'show'])->name('show')->where('id', '[0-9]+');
             Route::patch('/{id}', [ClienteController::class, 'update'])->name('update')->where('id', '[0-9]+');
-            Route::post('/{id}/ficha', [\App\Http\Controllers\Api\FichaClinicaController::class, 'store'])->name('ficha.store')->where('id', '[0-9]+');
+            Route::post('/{id}/ficha', [FichaClinicaController::class, 'store'])->name('ficha.store')->where('id', '[0-9]+');
         });
 
         // ── Ajustes del Negocio

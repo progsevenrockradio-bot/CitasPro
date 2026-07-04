@@ -24,7 +24,7 @@ class RedsysService
             Log::info("Redsys: Generada transacción simulada para el pago #{$pago->id}");
             return [
                 'simulado' => true,
-                'url'      => env('APP_URL', 'https://jmfn8n.top') . '/api/pagos/confirmar-simulado?cita_id=' . $pago->cita_id . '&telefono=' . urlencode($pago->cliente->telefono),
+                'url'      => config('app.url') . '/api/pagos/confirmar-simulado?cita_id=' . $pago->cita_id . '&telefono=' . urlencode($pago->cliente->telefono),
             ];
         }
 
@@ -39,9 +39,9 @@ class RedsysService
             'DS_MERCHANT_CURRENCY'       => '978', // 978 = EUR
             'DS_MERCHANT_TRANSACTIONTYPE'=> '0',
             'DS_MERCHANT_TERMINAL'       => $terminal,
-            'DS_MERCHANT_MERCHANTURL'    => env('APP_URL', 'https://jmfn8n.top') . '/api/pagos/webhook/redsys',
-            'DS_MERCHANT_URLOK'          => env('APP_URL', 'https://jmfn8n.top') . '/dashboard?redsys_success=1',
-            'DS_MERCHANT_URLKO'          => env('APP_URL', 'https://jmfn8n.top') . '/dashboard?redsys_fail=1',
+            'DS_MERCHANT_MERCHANTURL'    => config('app.url') . '/api/pagos/webhook/redsys',
+            'DS_MERCHANT_URLOK'          => config('app.url') . '/dashboard?redsys_success=1',
+            'DS_MERCHANT_URLKO'          => config('app.url') . '/dashboard?redsys_fail=1',
         ];
 
         // Activar Bizum en Redsys si es necesario
@@ -68,7 +68,7 @@ class RedsysService
             Log::error('Redsys signature error: ' . $e->getMessage());
             return [
                 'simulado' => true,
-                'url'      => env('APP_URL', 'https://jmfn8n.top') . '/api/pagos/confirmar-simulado?cita_id=' . $pago->cita_id . '&telefono=' . urlencode($pago->cliente->telefono),
+                'url'      => config('app.url') . '/api/pagos/confirmar-simulado?cita_id=' . $pago->cita_id . '&telefono=' . urlencode($pago->cliente->telefono),
             ];
         }
     }
