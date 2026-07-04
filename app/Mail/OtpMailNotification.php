@@ -9,17 +9,17 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * OtpMailNotification — Email con el código PIN de verificación.
+ * OtpMailNotification â€” Email con el cÃ³digo PIN de verificaciÃ³n.
  *
- * Se envía cuando el profesional/cliente solicita acceso sin contraseña.
+ * Se envÃ­a cuando el profesional/cliente solicita acceso sin contraseÃ±a.
  */
 class OtpMailNotification extends Mailable
 {
     use Queueable, SerializesModels;
 
     /**
-     * @param string $codigo        Código OTP de 6 dígitos
-     * @param int    $expiraMinutos Minutos hasta que el código expira
+     * @param string $codigo        CÃ³digo OTP de 6 dÃ­gitos
+     * @param int    $expiraMinutos Minutos hasta que el cÃ³digo expira
      * @param string $nombreUsuario Nombre del destinatario (si se conoce)
      */
     public function __construct(
@@ -31,7 +31,7 @@ class OtpMailNotification extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Tu código de acceso CitasPro: ' . $this->codigo,
+            subject: 'Tu cÃ³digo de acceso CitasPro: ' . $this->codigo,
         );
     }
 
