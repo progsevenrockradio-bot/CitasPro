@@ -140,18 +140,72 @@
         </div>
       </div>
     </div>
+
+    <!-- Zona Peligrosa -->
+    <div class="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 mt-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-bold text-red-400">Zona de Peligro</h3>
+          <p class="text-sm text-text-muted mt-1">Una vez que elimines tu negocio, no habrá vuelta atrás. Todos tus datos (citas, profesionales y pagos) se borrarán permanentemente.</p>
+        </div>
+        <button 
+          @click="mostrarModalEliminar = true"
+          class="bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-[0_0_15px_rgba(239,68,68,0.2)] flex items-center justify-center gap-2 self-start md:self-center">
+          <Trash2 class="w-4 h-4" />
+          Eliminar Negocio
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Confirmar Eliminación -->
+    <div v-if="mostrarModalEliminar" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+        <h3 class="text-xl font-bold text-white mb-2">¿Confirmas la eliminación?</h3>
+        <p class="text-text-muted text-sm mb-4">
+          Esta acción es **definitiva**. Para confirmar que deseas borrar permanentemente el negocio <strong>{{ form.nombre }}</strong> y todos sus datos, por favor escribe su nombre a continuación:
+        </p>
+
+        <input 
+          v-model="nombreConfirmacion" 
+          type="text" 
+          :placeholder="form.nombre" 
+          class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-all mb-4 text-center"
+        />
+
+        <div class="flex gap-3">
+          <button 
+            @click="mostrarModalEliminar = false; nombreConfirmacion = ''" 
+            class="flex-1 bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl transition-all text-sm font-medium">
+            Cancelar
+          </button>
+          <button 
+            @click="eliminarNegocioDefinitivo" 
+            :disabled="nombreConfirmacion !== form.nombre || deleting"
+            class="flex-1 bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white py-3 rounded-xl transition-all text-sm font-medium flex justify-center items-center gap-2">
+            <Loader2 v-if="deleting" class="w-4 h-4 animate-spin" />
+            <Trash2 v-else class="w-4 h-4" />
+            Confirmar Borrado
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
-
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Save, Loader2, CheckCircle, AlertCircle } from 'lucide-vue-next';
+import { Save, Loader2, CheckCircle, AlertCircle, Trash2 } from 'lucide-vue-next';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
+const router = useRouter();
 const loading = ref(true);
 const saving = ref(false);
+const deleting = ref(false);
 const successMsg = ref('');
 const errorMsg = ref('');
+
+const mostrarModalEliminar = ref(false);
+const nombreConfirmacion = ref('');
 
 const form = ref({
   nombre: '',
@@ -205,6 +259,31 @@ const guardarCambios = async () => {
     errorMsg.value = error.response?.data?.message || 'Hubo un error al guardar los cambios.';
   } finally {
     saving.value = false;
+  }
+};
+
+const eliminarNegocioDefinitivo = async () => {
+  if (nombreConfirmacion.value !== form.value.nombre) return;
+  
+  deleting.value = true;
+  errorMsg.value = '';
+  try {
+    const res = await axios.delete('/api/negocio');
+    mostrarModalEliminar.value = false;
+    
+    // Limpiamos token local y mandamos a login
+    localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
+    
+    alert(res.data.message);
+    router.push('/login');
+  } catch (error) {
+    console.error("Error al borrar negocio:", error);
+    errorMsg.value = error.response?.data?.message || 'Ocurrió un error al eliminar tu negocio.';
+    mostrarModalEliminar.value = false;
+  } finally {
+    deleting.value = false;
+    nombreConfirmacion.value = '';
   }
 };
 

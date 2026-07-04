@@ -81,7 +81,7 @@ onMounted(() => {
 
 const logout = async () => {
   try {
-    await axios.post('/logout');
+    await axios.post('/api/auth/logout');
     localStorage.removeItem('token');
     router.push('/login');
   } catch (error) {

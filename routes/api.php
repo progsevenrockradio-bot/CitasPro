@@ -303,10 +303,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/{id}/ficha', [FichaClinicaController::class, 'store'])->name('ficha.store')->where('id', '[0-9]+');
         });
 
-        // ── Ajustes del Negocio
         Route::prefix('negocio')->name('negocio.')->group(function () {
             Route::get('/', [NegocioController::class, 'me'])->name('show');
             Route::patch('/', [NegocioController::class, 'update'])->name('update');
+            Route::delete('/', [NegocioController::class, 'destroy'])->name('destroy');
             Route::post('/whatsapp/conectar', [WhatsAppQrController::class, 'conectar'])->name('whatsapp.conectar');
         });
 

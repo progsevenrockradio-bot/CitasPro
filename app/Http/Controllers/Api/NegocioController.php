@@ -89,6 +89,66 @@ class NegocioController extends Controller
         ]);
     }
 
+    /**
+     * Eliminar el negocio y todos sus datos en cascada.
+     * Solo disponible para el 'dueño' del negocio.
+     */
+    public function destroy(Request $request): JsonResponse
+    {
+        $profesional = $this->getProfesional($request);
+        if (!$profesional) {
+            return response()->json(['message' => 'Acceso no autorizado.'], 403);
+        }
+
+        // Solo el dueño original puede dar de baja el negocio completo
+        if ($profesional->rol !== 'dueño') {
+            return response()->json([
+                'message' => 'No tienes permisos para eliminar este negocio. Solo el dueño de la cuenta puede hacerlo.'
+            ], 403);
+        }
+
+        $negocio = Negocio::findOrFail($profesional->negocio_id);
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($negocio, $request) {
+                // 1. Borrar todas las citas del negocio
+                \App\Models\Cita::where('negocio_id', $negocio->id)->delete();
+
+                // 2. Borrar todos los pagos
+                \App\Models\Pago::where('negocio_id', $negocio->id)->delete();
+
+                // 3. Borrar todos los servicios
+                \App\Models\Servicio::where('negocio_id', $negocio->id)->delete();
+
+                // 4. Borrar portafolios
+                \App\Models\Portafolio::where('negocio_id', $negocio->id)->delete();
+
+                // 5. Revocar tokens de todos los profesionales antes de eliminarlos
+                $profesionales = Profesional::where('negocio_id', $negocio->id)->get();
+                foreach ($profesionales as $p) {
+                    $p->tokens()->delete();
+                    $p->delete();
+                }
+
+                // 6. Finalmente borrar el negocio
+                $negocio->delete();
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tu negocio y todos los datos asociados han sido eliminados de forma permanente de CitasPro.'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error("Error al eliminar negocio ID {$negocio->id}: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al procesar la baja de la cuenta. Inténtalo de nuevo.'
+            ], 500);
+        }
+    }
+
+
     private function getProfesional(Request $request): ?Profesional
     {
         $user = $request->user();
