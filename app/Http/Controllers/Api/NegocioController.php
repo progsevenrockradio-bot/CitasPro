@@ -7,6 +7,7 @@ use App\Models\Negocio;
 use App\Models\Profesional;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class NegocioController extends Controller
 {
@@ -140,7 +141,7 @@ class NegocioController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Log::error("Error al eliminar negocio ID {$negocio->id}: " . $e->getMessage());
+            Log::error("Error al eliminar negocio ID {$negocio->id}: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Ocurrió un error al procesar la baja de la cuenta. Inténtalo de nuevo.'
