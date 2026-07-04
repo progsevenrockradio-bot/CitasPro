@@ -171,7 +171,7 @@ const cargarNegocio = async () => {
   errorMsg.value = '';
   try {
     const res = await axios.get('/api/negocio');
-    const data = res.data;
+    const data = res.data.negocio || {};
     form.value = {
       nombre: data.nombre || '',
       descripcion: data.descripcion || '',
