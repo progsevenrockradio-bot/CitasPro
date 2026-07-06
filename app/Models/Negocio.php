@@ -119,6 +119,11 @@ class Negocio extends Model
             ->withTimestamps();
     }
 
+    public function datosFiscales()
+    {
+        return $this->hasOne(NegocioDatosFiscales::class, 'negocio_id');
+    }
+
     // ─── Scopes ──────────────────────────────────────────────────────────────
 
     public function scopeActive(Builder $query): Builder

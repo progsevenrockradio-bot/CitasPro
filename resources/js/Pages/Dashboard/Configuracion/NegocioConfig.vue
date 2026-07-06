@@ -264,6 +264,13 @@
       </div>
     </div>
 
+    <!-- Datos Fiscales -->
+    <DatosFiscalesForm 
+      :pais-id="form.pais_id"
+      :initial-data="initialDatosFiscales"
+      :initial-fields="initialFiscalFields"
+    />
+
     <!-- Zona Peligrosa -->
     <div class="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 mt-6">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -320,6 +327,7 @@ import { Save, AlertCircle, CheckCircle, Loader2, Trash2, Upload, X, Image as Im
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import LocationSelects from '../../Components/LocationSelects.vue';
+import DatosFiscalesForm from '../Components/DatosFiscalesForm.vue';
 
 const router = useRouter();
 const loading = ref(true);
@@ -334,6 +342,9 @@ const nombreConfirmacion = ref('');
 const logoUrl = ref(null);
 const logoPreview = ref(null);
 const fileToUpload = ref(null);
+
+const initialDatosFiscales = ref({});
+const initialFiscalFields = ref([]);
 
 const onLogoChange = (e) => {
   const file = e.target.files[0];
@@ -408,6 +419,9 @@ const cargarNegocio = async () => {
     const res = await axios.get('/api/negocio');
     const d = res.data.negocio || {};
     logoUrl.value = d.logo_url || d.logo || null;
+    
+    initialDatosFiscales.value = d.datos_fiscales || {};
+    initialFiscalFields.value = d.pais_fiscal_fields || [];
 
     const horario = d.horario_apertura || {};
     diasSemana.forEach(day => {

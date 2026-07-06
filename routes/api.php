@@ -58,6 +58,13 @@ Route::get('/paises', function () {
     );
 });
 
+Route::get('/paises/{pais}/fiscal-fields', function (\App\Models\Pais $pais) {
+    return response()->json([
+        'success' => true,
+        'fiscal_fields' => $pais->fiscal_fields,
+    ]);
+});
+
 // ── Autenticación de Profesionales (Contraseña & 2FA)
 Route::prefix('auth')->name('auth.')->group(function () {
     Route::post('/login-contrasena', [OtpAuthController::class, 'loginContrasena'])->name('login_contrasena');

@@ -22,7 +22,7 @@ class NegocioController extends Controller
             return response()->json(['message' => 'Acceso no autorizado.'], 403);
         }
 
-        $negocio = Negocio::with('categoria')->findOrFail($profesional->negocio_id);
+        $negocio = Negocio::with(['categoria', 'datosFiscales', 'paisObj'])->findOrFail($profesional->negocio_id);
 
         return response()->json([
             'success' => true,
@@ -35,7 +35,6 @@ class NegocioController extends Controller
                 'categoria_id'       => $negocio->categoria_id,
                 'es_medico'          => (bool) $negocio->es_medico,
                 'telefono'           => $negocio->telefono,
-                'whatsapp'           => $negocio->whatsapp,
                 'email'              => $negocio->email,
                 'sitio_web'          => $negocio->sitio_web,
                 'direccion'          => $negocio->direccion,
@@ -54,6 +53,8 @@ class NegocioController extends Controller
                 'telefonos_adicionales' => $negocio->telefonos_adicionales ?: [],
                 'verification_phone_index' => $negocio->verification_phone_index,
                 'numero_fiscal'      => $negocio->numero_fiscal,
+                'datos_fiscales'     => $negocio->datosFiscales ? $negocio->datosFiscales->datos_fiscales : null,
+                'pais_fiscal_fields' => $negocio->paisObj ? $negocio->paisObj->fiscal_fields : null,
             ]
         ]);
 
@@ -135,6 +136,36 @@ class NegocioController extends Controller
             'success' => true,
             'message' => 'Configuración del negocio actualizada correctamente.',
             'negocio' => $negocio
+        ]);
+    }
+
+    public function updateFiscalData(\App\Http\Requests\StoreNegocioDatosFiscalesRequest $request): JsonResponse
+    {
+        $profesional = $this->getProfesional($request);
+        if (!$profesional) {
+            return response()->json(['message' => 'Acceso no autorizado.'], 403);
+        }
+
+        if (!in_array($profesional->rol, ['dueño', 'admin'])) {
+            return response()->json([
+                'message' => 'No tienes permisos para modificar el negocio. Solo el dueño o admin puede hacerlo.'
+            ], 403);
+        }
+
+        $negocio = Negocio::findOrFail($profesional->negocio_id);
+        $datos = $request->validated();
+        
+        $negocio->datosFiscales()->updateOrCreate(
+            ['negocio_id' => $negocio->id],
+            [
+                'pais_id' => $datos['pais_id'],
+                'datos_fiscales' => $datos['datos_fiscales'],
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Datos fiscales actualizados correctamente.',
         ]);
     }
 

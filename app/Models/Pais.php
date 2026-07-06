@@ -21,11 +21,13 @@ class Pais extends Model
         'region',
         'orden_preferencia',
         'activo',
+        'fiscal_fields',
     ];
 
     protected $casts = [
         'activo' => 'boolean',
         'orden_preferencia' => 'integer',
+        'fiscal_fields' => 'array',
     ];
 
     public function estados(): HasMany
