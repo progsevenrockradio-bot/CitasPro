@@ -74,6 +74,13 @@ class NegocioController extends Controller
             ], 403);
         }
 
+        // Si viene como string JSON desde FormData, decodificarlo
+        if ($request->has('horario_apertura') && is_string($request->input('horario_apertura'))) {
+            $request->merge([
+                'horario_apertura' => json_decode($request->input('horario_apertura'), true)
+            ]);
+        }
+
         $validated = $request->validate([
             'nombre'                    => 'sometimes|string|max:150',
             'logo'                      => 'sometimes|nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
