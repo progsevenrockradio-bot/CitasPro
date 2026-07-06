@@ -388,7 +388,7 @@ const todayHours = computed(() => {
 const prefijosOptions = computed(() => paises.value.map(p => ({
   value: p.prefijo,
   label: p.prefijo,
-  icon: p.emoji || '🏳️'
+  icon: p.bandera || p.emoji || '🏳️'
 })));
 
 const hoy = new Date().toISOString().split('T')[0];
@@ -417,7 +417,10 @@ const checkClienteRequiereHistorial = () => {
   if (checkTimer) clearTimeout(checkTimer);
   checkTimer = setTimeout(async () => {
     try {
-      const telefonoCompleto = form.value.pais_prefijo + form.value.telefono_numero;
+      let prefijo = form.value.pais_prefijo || '';
+      if (prefijo && !prefijo.startsWith('+')) prefijo = '+' + prefijo;
+      const telefonoCompleto = prefijo + form.value.telefono_numero;
+
       const res = await axios.get(`/api/public/${slug.value}/check-cliente`, {
         params: { telefono: telefonoCompleto }
       });
@@ -554,7 +557,9 @@ const confirmarReservaFinal = async () => {
   submitError.value = null;
   sending.value = true;
 
-  const telefonoCompleto = form.value.pais_prefijo + form.value.telefono_numero;
+  let prefijo = form.value.pais_prefijo || '';
+  if (prefijo && !prefijo.startsWith('+')) prefijo = '+' + prefijo;
+  const telefonoCompleto = prefijo + form.value.telefono_numero;
 
   try {
     const res = await axios.post(`/api/public/${slug.value}/reservar`, {

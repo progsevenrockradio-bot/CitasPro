@@ -211,9 +211,26 @@ class ReservaPublicaController extends Controller
             'fecha.after_or_equal'      => 'No puedes reservar en una fecha pasada.',
         ]);
 
-        // Validar dinámicamente si hay plantilla
+        // Validar dinámicamente si hay plantilla y realmente requiere historial
         $plantilla = $negocio->plantillaHistoriaClinica();
-        if ($plantilla && $request->has('respuestas_clinicas')) {
+        $requiereHistorial = false;
+
+        if ($plantilla) {
+            $telefono = $request->input('cliente_telefono');
+            $clienteExistente = Cliente::where('telefono', $telefono)->first();
+            if (!$clienteExistente) {
+                $requiereHistorial = true;
+            } else {
+                $tieneHistorial = $negocio->entradasHistoriaClinica()
+                    ->where('cliente_id', $clienteExistente->id)
+                    ->exists();
+                if (!$tieneHistorial) {
+                    $requiereHistorial = true;
+                }
+            }
+        }
+
+        if ($plantilla && $requiereHistorial && $request->has('respuestas_clinicas')) {
             $dynamicRules = $plantilla->buildValidationRules();
             if (!empty($dynamicRules)) {
                 $request->validate($dynamicRules);
@@ -262,7 +279,7 @@ class ReservaPublicaController extends Controller
         }
 
         try {
-            $cita = DB::transaction(function () use ($validated, $negocio, $servicio, $profesional, $horaInicio) {
+            $cita = DB::transaction(function () use ($validated, $negocio, $servicio, $profesional, $horaInicio, $plantilla, $requiereHistorial) {
                 // Buscar o crear el cliente por su teléfono
                 $cliente = Cliente::firstOrCreate(
                     ['telefono' => $validated['cliente_telefono']],
@@ -301,7 +318,7 @@ class ReservaPublicaController extends Controller
                 ]);
 
                 // Guardar historia clínica si corresponde
-                if ($plantilla && !empty($validated['respuestas_clinicas'])) {
+                if ($plantilla && $requiereHistorial && !empty($validated['respuestas_clinicas'])) {
                     \App\Models\EntradaHistoriaClinica::create([
                         'negocio_id'   => $negocio->id,
                         'cliente_id'   => $cliente->id,
