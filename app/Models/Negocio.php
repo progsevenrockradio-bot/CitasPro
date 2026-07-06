@@ -54,6 +54,15 @@ class Negocio extends Model
         // Reserva pública online
         'booking_activo',
         'booking_mensaje',
+        'telefonos_adicionales',
+        'verification_phone_index',
+        'numero_fiscal',
+    ];
+
+    protected $appends = [
+        'public_booking_url',
+        'all_phones',
+        'verification_phone',
     ];
 
     protected $casts = [
@@ -68,6 +77,8 @@ class Negocio extends Model
         'duracion_turno_min'      => 'integer',
         'anticipacion_min_reserva'=> 'integer',
         'cancelacion_limite_horas'=> 'integer',
+        'telefonos_adicionales'   => 'array',
+        'verification_phone_index'=> 'integer',
     ];
 
     // ─── Relaciones ────────────────────────────────────────────
@@ -159,5 +170,33 @@ class Negocio extends Model
     public function ciudadObj(): BelongsTo
     {
         return $this->belongsTo(Ciudad::class, 'ciudad_id');
+    }
+
+    // ─── Accesores de Teléfonos ───────────────────────────────────
+
+    public function getAllPhonesAttribute(): array
+    {
+        $phones = [];
+        if ($this->telefono) {
+            $phones[] = ['number' => $this->telefono, 'type' => 'primary'];
+        }
+        if ($this->telefonos_adicionales && is_array($this->telefonos_adicionales)) {
+            foreach ($this->telefonos_adicionales as $index => $phone) {
+                $phones[] = [
+                    'number' => $phone['number'] ?? '',
+                    'type'   => $phone['type'] ?? 'additional',
+                    'index'  => $index,
+                ];
+            }
+        }
+        return $phones;
+    }
+
+    public function getVerificationPhoneAttribute(): ?string
+    {
+        if (!is_null($this->verification_phone_index) && isset($this->telefonos_adicionales[$this->verification_phone_index])) {
+            return $this->telefonos_adicionales[$this->verification_phone_index]['number'] ?? $this->telefono;
+        }
+        return $this->telefono;
     }
 }

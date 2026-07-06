@@ -53,6 +53,61 @@
     <!-- Formulario de Reserva -->
     <div v-else-if="negocio" class="max-w-2xl mx-auto px-4 pb-16">
 
+      <!-- Información de Contacto, Nro Fiscal y Horarios -->
+      <div class="bg-white/5 border border-white/10 rounded-xl p-4 mb-6 space-y-4 text-sm text-gray-300">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p class="font-bold text-white mb-1">Contacto:</p>
+            <ul class="space-y-1 text-xs">
+              <li class="flex items-center gap-1">
+                <span class="text-gray-400">Principal:</span>
+                <a :href="'tel:' + negocio.telefono" class="text-indigo-400 hover:underline font-medium">{{ negocio.telefono }}</a>
+                <span v-if="!negocio.telefonos_adicionales?.length || negocio.verification_phone_index === null || negocio.verification_phone_index === undefined" class="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-[10px]">Verif. SMS</span>
+              </li>
+              <li v-for="(phone, idx) in negocio.telefonos_adicionales" :key="idx" class="flex items-center gap-1">
+                <span class="text-gray-400 capitalize">{{ phone.type === 'mobile' ? 'Móvil' : (phone.type === 'fax' ? 'Fax' : 'Local') }}:</span>
+                <a :href="'tel:' + phone.number" class="text-indigo-400 hover:underline font-medium">{{ phone.number }}</a>
+                <span v-if="negocio.verification_phone_index === idx" class="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-[10px]">Verif. SMS</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div v-if="negocio.numero_fiscal">
+            <p class="font-bold text-white mb-1">Nro Fiscal:</p>
+            <p class="text-xs bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg text-gray-200 font-mono">{{ negocio.numero_fiscal }}</p>
+          </div>
+
+          <div>
+            <p class="font-bold text-white mb-1">Horario de hoy:</p>
+            <p class="text-xs text-indigo-300 font-semibold">{{ todayHours }}</p>
+            <button 
+              @click="showFullSchedule = !showFullSchedule"
+              class="text-[10px] text-gray-400 hover:text-white underline mt-1 block"
+            >
+              {{ showFullSchedule ? 'Ocultar horarios' : 'Ver todos los horarios' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla completa de horarios -->
+        <div v-if="showFullSchedule" class="pt-3 border-t border-white/10 animate-in fade-in duration-200">
+          <p class="font-bold text-white mb-2 text-xs">Horarios Semanales:</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <div 
+              v-for="d in diasList" 
+              :key="d.key"
+              class="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col justify-between"
+            >
+              <span class="font-semibold text-gray-200 capitalize text-[10px]">{{ d.label }}</span>
+              <span v-if="negocio.horario_apertura?.[d.key]?.cerrado" class="text-red-400 font-medium">Cerrado</span>
+              <span v-else class="text-gray-400 font-mono">
+                {{ negocio.horario_apertura?.[d.key]?.inicio || '09:00' }} - {{ negocio.horario_apertura?.[d.key]?.fin || '18:00' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- PASO 1: Confirmar Reserva (éxito) -->
       <div v-if="confirmacion" class="text-center py-12">
         <div class="w-20 h-20 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center mx-auto mb-6">
@@ -272,6 +327,28 @@ const submitError = ref(null);
 const confirmacion = ref(null);
 const paises = ref([]);
 
+const showFullSchedule = ref(false);
+
+const diasList = [
+  { key: 'lun', label: 'Lunes' },
+  { key: 'mar', label: 'Martes' },
+  { key: 'mié', label: 'Miércoles' },
+  { key: 'jue', label: 'Jueves' },
+  { key: 'vie', label: 'Viernes' },
+  { key: 'sáb', label: 'Sábado' },
+  { key: 'dom', label: 'Domingo' }
+];
+
+const todayHours = computed(() => {
+  if (!negocio.value || !negocio.value.horario_apertura) return 'No disponible';
+  const daysMap = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  const todayKey = daysMap[new Date().getDay()];
+  const todaySchedule = negocio.value.horario_apertura[todayKey];
+  if (!todaySchedule) return 'No disponible';
+  if (todaySchedule.cerrado) return 'Cerrado';
+  return `${todaySchedule.inicio} - ${todaySchedule.fin}`;
+});
+
 const prefijosOptions = computed(() => paises.value.map(p => ({
   value: p.prefijo,
   label: p.prefijo,
@@ -312,6 +389,16 @@ const cargarNegocio = async () => {
         const proId = parseInt(route.query.pro);
         const existe = profesionales.value.find(p => p.id === proId);
         if (existe) form.value.profesional_id = proId;
+      }
+
+      // Si viene ?service_id=ID en la URL, pre-seleccionar ese servicio y cargar profesionales
+      if (route.query.service_id) {
+        const serviceId = parseInt(route.query.service_id);
+        const existe = servicios.value.find(s => s.id === serviceId);
+        if (existe) {
+          form.value.servicio_id = serviceId;
+          cargarProfesionalesYFecha();
+        }
       }
     } else {
       error.value = res.data.message || 'No se pudo cargar el negocio.';

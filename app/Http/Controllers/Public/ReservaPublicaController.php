@@ -53,6 +53,11 @@ class ReservaPublicaController extends Controller
                 'duracion_turno_min'  => $negocio->duracion_turno_min,
                 'booking_mensaje'     => $negocio->booking_mensaje,
                 'categoria'           => $negocio->categoria?->only('id', 'nombre', 'icono', 'color_hex'),
+                'telefonos_adicionales' => $negocio->telefonos_adicionales ?: [],
+                'verification_phone_index' => $negocio->verification_phone_index,
+                'todos_telefonos'     => $negocio->all_phones,
+                'telefono_verificacion' => $negocio->verification_phone,
+                'numero_fiscal'       => $negocio->numero_fiscal,
             ],
             'profesionales' => $negocio->profesionales->map(fn($p) => [
                 'id'                   => $p->id,

@@ -51,6 +51,9 @@ class NegocioController extends Controller
                 'booking_activo'     => (bool) $negocio->booking_activo,
                 'booking_mensaje'    => $negocio->booking_mensaje,
                 'booking_url'        => $negocio->public_booking_url,
+                'telefonos_adicionales' => $negocio->telefonos_adicionales ?: [],
+                'verification_phone_index' => $negocio->verification_phone_index,
+                'numero_fiscal'      => $negocio->numero_fiscal,
             ]
         ]);
 
@@ -81,6 +84,12 @@ class NegocioController extends Controller
             ]);
         }
 
+        if ($request->has('telefonos_adicionales') && is_string($request->input('telefonos_adicionales'))) {
+            $request->merge([
+                'telefonos_adicionales' => json_decode($request->input('telefonos_adicionales'), true)
+            ]);
+        }
+
         $validated = $request->validate([
             'nombre'                    => 'sometimes|string|max:150',
             'logo'                      => 'sometimes|nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
@@ -100,6 +109,11 @@ class NegocioController extends Controller
             'anticipacion_min_reserva'  => 'sometimes|integer|min:0',
             'cancelacion_limite_horas'  => 'sometimes|integer|min:0',
             'es_medico'                 => 'sometimes|boolean',
+            'telefonos_adicionales'     => 'sometimes|nullable|array',
+            'telefonos_adicionales.*.number' => 'required_with:telefonos_adicionales|string',
+            'telefonos_adicionales.*.type'   => 'in:local,mobile,fax',
+            'verification_phone_index'  => 'sometimes|nullable|integer',
+            'numero_fiscal'             => 'sometimes|nullable|string|max:50',
         ]);
 
         $negocio = Negocio::findOrFail($profesional->negocio_id);

@@ -90,6 +90,16 @@
           />
         </div>
 
+        <div>
+          <label class="block text-sm font-medium text-text-muted mb-2">Número Fiscal / Identificación de Impuestos</label>
+          <input 
+            v-model="form.numero_fiscal" 
+            type="text" 
+            placeholder="Ej: B12345678, RFC, RUT"
+            class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          />
+        </div>
+
         <div class="mt-6 pt-6 border-t border-border/50">
           <div class="flex items-center justify-between">
             <div>
@@ -127,6 +137,58 @@
           </div>
         </div>
 
+        <!-- Teléfonos adicionales -->
+        <div class="mt-4 pt-4 border-t border-border/30">
+          <label class="block text-sm font-medium text-text-muted mb-3">Teléfonos Adicionales</label>
+          
+          <div v-for="(phone, index) in form.telefonos_adicionales" :key="index" class="flex gap-2 mb-3 items-center">
+            <input 
+              v-model="phone.number" 
+              type="text" 
+              placeholder="Número"
+              class="flex-1 bg-black/20 border border-border rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+            />
+            
+            <select 
+              v-model="phone.type" 
+              class="w-28 bg-black/20 border border-border rounded-xl px-2 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+            >
+              <option value="local">Local</option>
+              <option value="mobile">Móvil</option>
+              <option value="fax">Fax</option>
+            </select>
+            
+            <label class="flex items-center gap-1 cursor-pointer select-none">
+              <input 
+                type="radio" 
+                :value="index" 
+                v-model="form.verification_phone_index"
+                class="w-4 h-4 text-primary focus:ring-primary bg-black/20 border-border"
+              />
+              <span class="text-xs text-text-muted">Verif.</span>
+            </label>
+
+            <button 
+              @click.prevent="quitarTelefonoAdicional(index)"
+              class="text-red-400 hover:text-red-500 p-2 transition-colors"
+            >
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+          
+          <button 
+            @click.prevent="agregarTelefonoAdicional"
+            class="text-xs text-primary hover:text-primary-hover font-medium flex items-center gap-1 mt-2 transition-colors"
+          >
+            <Plus class="w-3.5 h-3.5" />
+            Añadir teléfono adicional
+          </button>
+          
+          <p class="text-[11px] text-text-muted mt-2">
+            * Marca la casilla "Verif." para seleccionar el número que recibirá notificaciones y códigos de verificación por SMS/WhatsApp. Si no se marca ninguno, se usará el número principal.
+          </p>
+        </div>
+
         <div>
           <label class="block text-sm font-medium text-text-muted mb-2">{{ $t('config.email') }}</label>
           <input 
@@ -151,6 +213,54 @@
           v-model:model-city-id="form.ciudad_id"
           v-model:city-text="form.ciudad"
         />
+      </div>
+
+      <!-- Horarios de Atención -->
+      <div class="bg-bg-card border border-border rounded-2xl p-6 md:col-span-2 space-y-5">
+        <h3 class="text-lg font-bold border-b border-border/50 pb-3">Horario de Atención</h3>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div 
+            v-for="day in diasSemana" 
+            :key="day.key" 
+            class="bg-black/10 border border-border/50 rounded-xl p-4 flex flex-col justify-between space-y-3"
+          >
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-sm capitalize">{{ day.label }}</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  v-model="form.horario_apertura[day.key].cerrado" 
+                  class="sr-only peer"
+                />
+                <div class="w-9 h-5 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500"></div>
+                <span class="text-xs text-text-muted ml-2">Cerrado</span>
+              </label>
+            </div>
+            
+            <div class="flex items-center gap-2 text-xs" v-if="!form.horario_apertura[day.key].cerrado">
+              <div class="flex-1">
+                <label class="block text-[10px] text-text-muted mb-1">Apertura</label>
+                <input 
+                  v-model="form.horario_apertura[day.key].inicio" 
+                  type="time" 
+                  class="w-full bg-black/20 border border-border rounded-lg px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div class="flex-1">
+                <label class="block text-[10px] text-text-muted mb-1">Cierre</label>
+                <input 
+                  v-model="form.horario_apertura[day.key].fin" 
+                  type="time" 
+                  class="w-full bg-black/20 border border-border rounded-lg px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div v-else class="text-xs text-red-400 font-semibold py-2">
+              Día no laboral / Cerrado
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -206,7 +316,7 @@
 </template>
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Save, AlertCircle, CheckCircle, Loader2, Trash2, Upload, X, Image as ImageIcon } from 'lucide-vue-next';
+import { Save, AlertCircle, CheckCircle, Loader2, Trash2, Upload, X, Image as ImageIcon, Plus } from 'lucide-vue-next';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import LocationSelects from '../../Components/LocationSelects.vue';
@@ -250,9 +360,46 @@ const form = ref({
   pais_id: null,
   estado_id: null,
   ciudad_id: null,
-  horario_apertura: {},
-  es_medico: false
+  horario_apertura: {
+    lun: { inicio: '09:00', fin: '18:00', cerrado: false },
+    mar: { inicio: '09:00', fin: '18:00', cerrado: false },
+    'mié': { inicio: '09:00', fin: '18:00', cerrado: false },
+    jue: { inicio: '09:00', fin: '18:00', cerrado: false },
+    vie: { inicio: '09:00', fin: '18:00', cerrado: false },
+    'sáb': { inicio: '09:00', fin: '18:00', cerrado: false },
+    dom: { inicio: '09:00', fin: '18:00', cerrado: true }
+  },
+  es_medico: false,
+  telefonos_adicionales: [],
+  verification_phone_index: null,
+  numero_fiscal: ''
 });
+
+const diasSemana = [
+  { key: 'lun', label: 'Lunes' },
+  { key: 'mar', label: 'Martes' },
+  { key: 'mié', label: 'Miércoles' },
+  { key: 'jue', label: 'Jueves' },
+  { key: 'vie', label: 'Viernes' },
+  { key: 'sáb', label: 'Sábado' },
+  { key: 'dom', label: 'Domingo' }
+];
+
+const agregarTelefonoAdicional = () => {
+  if (!form.value.telefonos_adicionales) {
+    form.value.telefonos_adicionales = [];
+  }
+  form.value.telefonos_adicionales.push({ number: '', type: 'mobile' });
+};
+
+const quitarTelefonoAdicional = (index) => {
+  form.value.telefonos_adicionales.splice(index, 1);
+  if (form.value.verification_phone_index === index) {
+    form.value.verification_phone_index = null;
+  } else if (form.value.verification_phone_index > index) {
+    form.value.verification_phone_index--;
+  }
+};
 
 const cargarNegocio = async () => {
   loading.value = true;
@@ -261,6 +408,20 @@ const cargarNegocio = async () => {
     const res = await axios.get('/api/negocio');
     const d = res.data.negocio || {};
     logoUrl.value = d.logo_url || d.logo || null;
+
+    const horario = d.horario_apertura || {};
+    diasSemana.forEach(day => {
+      if (!horario[day.key]) {
+        horario[day.key] = { inicio: '09:00', fin: '18:00', cerrado: false };
+      } else {
+        horario[day.key] = {
+          inicio: horario[day.key].inicio || '09:00',
+          fin: horario[day.key].fin || '18:00',
+          cerrado: Boolean(horario[day.key].cerrado)
+        };
+      }
+    });
+
     form.value = {
       nombre: d.nombre || '',
       descripcion: d.descripcion || '',
@@ -273,8 +434,11 @@ const cargarNegocio = async () => {
       pais_id: d.pais_id || null,
       estado_id: d.estado_id || null,
       ciudad_id: d.ciudad_id || null,
-      horario_apertura: d.horario_apertura || {},
-      es_medico: Boolean(d.es_medico)
+      horario_apertura: horario,
+      es_medico: Boolean(d.es_medico),
+      telefonos_adicionales: d.telefonos_adicionales || [],
+      verification_phone_index: d.verification_phone_index !== undefined ? d.verification_phone_index : null,
+      numero_fiscal: d.numero_fiscal || ''
     };
   } catch (error) {
     console.error("Error al cargar negocio:", error);
@@ -291,7 +455,7 @@ const guardarCambios = async () => {
   try {
     const formData = new FormData();
     Object.keys(form.value).forEach(key => {
-      if (key === 'horario_apertura') {
+      if (key === 'horario_apertura' || key === 'telefonos_adicionales') {
         formData.append(key, JSON.stringify(form.value[key]));
       } else if (form.value[key] !== null && form.value[key] !== undefined) {
         if (typeof form.value[key] === 'boolean') {
