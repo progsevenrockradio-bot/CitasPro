@@ -93,6 +93,12 @@
             >
               {{ $t('ficha.tab_historial') }}
             </button>
+            <button 
+              @click="activeTab = 'historia_clinica'"
+              :class="['flex-1 py-4 font-medium transition-colors border-b-2', activeTab === 'historia_clinica' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-text-muted hover:text-white hover:bg-white/5']"
+            >
+              Historia Clínica
+            </button>
           </div>
 
           <!-- Contenido Tabs -->
@@ -167,6 +173,30 @@
               </div>
             </div>
 
+            <!-- Taba: Historia Clínica -->
+            <div v-if="activeTab === 'historia_clinica'" class="space-y-6">
+              <div v-if="historialClinico.length === 0" class="py-12 text-center text-text-muted">
+                Este paciente no tiene registros de historia clínica guardados en este negocio.
+              </div>
+              <div v-else class="space-y-6">
+                <div v-for="entry in historialClinico" :key="entry.id" class="bg-black/30 border border-border/50 rounded-2xl p-6 space-y-4">
+                  <div class="flex justify-between items-center border-b border-border/30 pb-3">
+                    <div>
+                      <h4 class="font-bold text-white text-md">{{ entry.plantilla?.nombre || 'Historia Clínica' }}</h4>
+                      <p class="text-xs text-text-muted mt-0.5">Fecha de registro: {{ formatCitaDate(entry.created_at) }}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div v-for="(val, key) in entry.respuestas" :key="key" class="space-y-1">
+                      <span class="text-xs text-text-muted font-semibold block capitalize">{{ formatLabel(key, entry.plantilla?.campos) }}</span>
+                      <span class="text-white">{{ formatValue(val) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -193,6 +223,7 @@ const loadError = ref('');
 const cliente = ref(null);
 const stats = ref({ total_citas: 0, canceladas: 0 });
 const citas = ref([]);
+const historialClinico = ref([]);
 const activeTab = ref('clinica');
 
 const savingFicha = ref(false);
@@ -248,6 +279,7 @@ const cargarDatos = async () => {
       cliente.value = res.data.cliente;
       stats.value = res.data.estadisticas || { total_citas: 0, canceladas: 0 };
       citas.value = res.data.historial_citas || [];
+      historialClinico.value = res.data.historial_clinico || [];
       ficha.value = {
         condiciones_medicas: res.data.cliente.condiciones_medicas || '',
         notas_privadas: res.data.cliente.notas_internas || ''
@@ -281,6 +313,21 @@ const guardarFicha = async () => {
   } finally {
     savingFicha.value = false;
   }
+};
+
+const formatLabel = (key, campos) => {
+  if (!campos) return key;
+  const field = campos.find(c => c.key === key);
+  return field ? field.label : key;
+};
+
+const formatValue = (val) => {
+  if (Array.isArray(val)) {
+    return val.join(', ');
+  }
+  if (val === true || val === 'true') return 'Sí';
+  if (val === false || val === 'false') return 'No';
+  return val || 'No especificado';
 };
 
 onMounted(() => {

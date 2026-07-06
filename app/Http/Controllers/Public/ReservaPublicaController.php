@@ -77,7 +77,37 @@ class ReservaPublicaController extends Controller
                 'precio_desde'=> $s->precio_desde,
                 'imagen'      => $s->imagen,
             ]),
+            'plantilla_historia_clinica' => $negocio->plantillaHistoriaClinica() ? $negocio->plantillaHistoriaClinica()->campos : null,
         ]);
+    }
+
+    /**
+     * GET /api/public/{slug}/check-cliente?telefono=X
+     * Verifica si el cliente requiere rellenar historia clínica para este negocio.
+     */
+    public function checkCliente(Negocio $negocio, Request $request): JsonResponse
+    {
+        $telefono = $request->query('telefono');
+        if (!$telefono) {
+            return response()->json(['requiere_historial' => false]);
+        }
+
+        // Si el negocio no es clínica, no requiere historial
+        if (!$negocio->tipo_clinica) {
+            return response()->json(['requiere_historial' => false]);
+        }
+
+        $cliente = Cliente::where('telefono', $telefono)->first();
+        if (!$cliente) {
+            return response()->json(['requiere_historial' => true]);
+        }
+
+        // Si existe, ver si tiene historial en este negocio
+        $tieneHistorial = $negocio->entradasHistoriaClinica()
+            ->where('cliente_id', $cliente->id)
+            ->exists();
+
+        return response()->json(['requiere_historial' => !$tieneHistorial]);
     }
 
     /**
@@ -174,11 +204,21 @@ class ReservaPublicaController extends Controller
             'cliente_telefono'=> 'required|string|min:7|max:20',
             'cliente_email'  => 'sometimes|nullable|email|max:150',
             'notas_cliente'  => 'sometimes|nullable|string|max:500',
+            'respuestas_clinicas' => 'sometimes|nullable|array',
         ], [
             'cliente_nombre.required'   => 'Por favor ingresa tu nombre.',
             'cliente_telefono.required' => 'Por favor ingresa tu número de teléfono.',
             'fecha.after_or_equal'      => 'No puedes reservar en una fecha pasada.',
         ]);
+
+        // Validar dinámicamente si hay plantilla
+        $plantilla = $negocio->plantillaHistoriaClinica();
+        if ($plantilla && $request->has('respuestas_clinicas')) {
+            $dynamicRules = $plantilla->buildValidationRules();
+            if (!empty($dynamicRules)) {
+                $request->validate($dynamicRules);
+            }
+        }
 
         // Verificar que el servicio pertenece a ESTE negocio
         $servicio = $negocio->servicios()
@@ -259,6 +299,17 @@ class ReservaPublicaController extends Controller
                     'canal'          => 'web',
                     'notas_cliente'  => $validated['notas_cliente'] ?? null,
                 ]);
+
+                // Guardar historia clínica si corresponde
+                if ($plantilla && !empty($validated['respuestas_clinicas'])) {
+                    \App\Models\EntradaHistoriaClinica::create([
+                        'negocio_id'   => $negocio->id,
+                        'cliente_id'   => $cliente->id,
+                        'plantilla_id' => $plantilla->id,
+                        'cita_id'      => $cita->id,
+                        'respuestas'   => $validated['respuestas_clinicas'],
+                    ]);
+                }
 
                 return $cita;
             });

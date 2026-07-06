@@ -34,6 +34,7 @@ class DemoNegociosSeeder extends Seeder
                 'ciudad' => 'Madrid',
                 'pais' => 'ES',
                 'es_medico' => true,
+                'tipo_clinica' => 'medical',
                 'booking_activo' => true,
                 'activo' => true,
                 'descripcion' => 'Centro médico de especialidades con atención personalizada.'
@@ -81,6 +82,7 @@ class DemoNegociosSeeder extends Seeder
                 'ciudad' => 'Barcelona',
                 'pais' => 'ES',
                 'es_medico' => true,
+                'tipo_clinica' => 'dental',
                 'booking_activo' => true,
                 'activo' => true,
                 'descripcion' => 'Tu clínica dental de confianza. Especialistas en implantes y ortodoncia.'

@@ -133,6 +133,8 @@ Route::prefix('public/{negocio:slug}')->name('public.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Public\ReservaPublicaController::class, 'show'])->name('show');
     // Slots disponibles: ?fecha=YYYY-MM-DD&profesional_id=1
     Route::get('/disponibilidad', [\App\Http\Controllers\Public\ReservaPublicaController::class, 'disponibilidad'])->name('disponibilidad');
+    // Verificar si el cliente requiere historia clínica
+    Route::get('/check-cliente', [\App\Http\Controllers\Public\ReservaPublicaController::class, 'checkCliente'])->name('check_cliente');
     // Crear la reserva pública (rate limit: 5 req/min por IP)
     Route::post('/reservar', [\App\Http\Controllers\Public\ReservaPublicaController::class, 'store'])
         ->middleware('throttle:5,1')

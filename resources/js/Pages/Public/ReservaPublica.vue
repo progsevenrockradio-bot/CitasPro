@@ -283,6 +283,14 @@
               </textarea>
             </div>
           </div>
+
+          <!-- Historia Clínica Dinámica -->
+          <div v-if="clinicalTemplate && requiereHistorial" class="mt-4">
+            <ClinicalForm 
+              :fields="clinicalTemplate"
+              v-model="form.respuestas_clinicas"
+            />
+          </div>
         </section>
 
         <!-- Error de envío -->
@@ -310,6 +318,7 @@ import { useRoute } from 'vue-router';
 import axios from 'axios';
 import LanguageSwitcher from '../Components/LanguageSwitcher.vue';
 import CustomSelect from '../Components/CustomSelect.vue';
+import ClinicalForm from '../Components/ClinicalForm.vue';
 
 const route = useRoute();
 const slug = computed(() => route.params.slug);
@@ -326,6 +335,8 @@ const sending = ref(false);
 const submitError = ref(null);
 const confirmacion = ref(null);
 const paises = ref([]);
+const requiereHistorial = ref(false);
+const clinicalTemplate = ref(null);
 
 const showFullSchedule = ref(false);
 
@@ -368,7 +379,32 @@ const form = ref({
   telefono_numero: '',
   cliente_email: '',
   notas_cliente: '',
+  respuestas_clinicas: {},
 });
+
+let checkTimer = null;
+const checkClienteRequiereHistorial = () => {
+  if (!form.value.telefono_numero || form.value.telefono_numero.length < 7) {
+    requiereHistorial.value = false;
+    return;
+  }
+  
+  if (checkTimer) clearTimeout(checkTimer);
+  checkTimer = setTimeout(async () => {
+    try {
+      const telefonoCompleto = form.value.pais_prefijo + form.value.telefono_numero;
+      const res = await axios.get(`/api/public/${slug.value}/check-cliente`, {
+        params: { telefono: telefonoCompleto }
+      });
+      requiereHistorial.value = !!res.data.requiere_historial;
+    } catch {
+      requiereHistorial.value = false;
+    }
+  }, 400);
+};
+
+watch(() => form.value.telefono_numero, checkClienteRequiereHistorial);
+watch(() => form.value.pais_prefijo, checkClienteRequiereHistorial);
 
 // Carga inicial: info del negocio y países
 onMounted(async () => {
@@ -383,6 +419,7 @@ const cargarNegocio = async () => {
       negocio.value = res.data.negocio;
       servicios.value = res.data.servicios;
       profesionales.value = res.data.profesionales;
+      clinicalTemplate.value = res.data.plantilla_historia_clinica;
 
       // Si viene ?pro=ID en la URL, pre-seleccionar ese profesional
       if (route.query.pro) {
@@ -479,6 +516,7 @@ const reservar = async () => {
       cliente_telefono: telefonoCompleto,
       cliente_email: form.value.cliente_email,
       notas_cliente: form.value.notas_cliente,
+      respuestas_clinicas: form.value.respuestas_clinicas,
     });
 
     if (res.data.success) {
@@ -510,7 +548,9 @@ const reiniciar = () => {
     telefono_numero: '',
     cliente_email: '',
     notas_cliente: '',
+    respuestas_clinicas: {},
   };
   slots.value = [];
+  requiereHistorial.value = false;
 };
 </script>

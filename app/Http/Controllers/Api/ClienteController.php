@@ -76,6 +76,13 @@ class ClienteController extends Controller
         // Total gastado
         $totalGastado = $historialCitas->where('estado', 'completada')->sum('precio_total');
 
+        // Historial clínico de este cliente en este negocio
+        $historialClinico = $cliente->historiasClinicas()
+            ->where('negocio_id', $profesional->negocio_id)
+            ->with('plantilla')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         // Notas internas (campo hidden por defecto, lo exponemos aquí intencionalmente)
         return response()->json([
             'cliente' => [
@@ -95,6 +102,7 @@ class ClienteController extends Controller
                 'total_gastado'  => round($totalGastado, 2),
             ],
             'historial_citas' => $historialCitas,
+            'historial_clinico' => $historialClinico,
         ]);
     }
 

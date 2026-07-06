@@ -57,6 +57,7 @@ class Negocio extends Model
         'telefonos_adicionales',
         'verification_phone_index',
         'numero_fiscal',
+        'tipo_clinica',
     ];
 
     protected $appends = [
@@ -122,6 +123,19 @@ class Negocio extends Model
     public function datosFiscales()
     {
         return $this->hasOne(NegocioDatosFiscales::class, 'negocio_id');
+    }
+
+    public function plantillaHistoriaClinica(): ?PlantillaHistoriaClinica
+    {
+        if (!$this->tipo_clinica) return null;
+        return PlantillaHistoriaClinica::where('tipo', $this->tipo_clinica)
+            ->where('activo', true)
+            ->first();
+    }
+
+    public function entradasHistoriaClinica()
+    {
+        return $this->hasMany(EntradaHistoriaClinica::class, 'negocio_id');
     }
 
     // ─── Scopes ──────────────────────────────────────────────────────────────

@@ -74,6 +74,11 @@ class Cliente extends Model
         return $this->hasMany(FichaClinica::class, 'cliente_id');
     }
 
+    public function historiasClinicas(): HasMany
+    {
+        return $this->hasMany(EntradaHistoriaClinica::class, 'cliente_id');
+    }
+
     public function accesosCompartidos(): HasMany
     {
         return $this->hasMany(PacienteAcceso::class, 'cliente_id');
