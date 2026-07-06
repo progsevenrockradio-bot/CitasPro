@@ -354,6 +354,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('negocio')->name('negocio.')->group(function () {
             Route::get('/', [NegocioController::class, 'me'])->name('show');
             Route::patch('/', [NegocioController::class, 'update'])->name('update');
+            Route::post('/', [NegocioController::class, 'update'])->name('update_post');
             Route::delete('/', [NegocioController::class, 'destroy'])->name('destroy');
             Route::post('/whatsapp/conectar', [WhatsAppQrController::class, 'conectar'])->name('whatsapp.conectar');
         });

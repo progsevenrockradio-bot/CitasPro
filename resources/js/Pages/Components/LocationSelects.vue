@@ -3,46 +3,34 @@
     <!-- País -->
     <div>
       <label class="block text-sm font-medium text-text-muted mb-2">{{ $t ? $t('ubicacion.pais') : 'País' }}</label>
-      <select 
-        :value="modelCountryId"
-        @input="$emit('update:modelCountryId', $event.target.value ? Number($event.target.value) : null)"
-        class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-      >
-        <option value="">{{ $t ? $t('ubicacion.selecciona_pais') : 'Selecciona un país' }}</option>
-        <option v-for="p in paises" :key="p.id" :value="p.id">
-          {{ p.bandera || '🏳️' }} {{ p.nombre }}
-        </option>
-      </select>
+      <CustomSelect 
+        :modelValue="modelCountryId"
+        @update:modelValue="$emit('update:modelCountryId', $event)"
+        :options="paisesOptions"
+        :placeholder="$t ? $t('ubicacion.selecciona_pais') : 'Selecciona un país'"
+      />
     </div>
 
     <!-- Estado (sólo si el país tiene estados) -->
     <div v-if="estados.length > 0">
       <label class="block text-sm font-medium text-text-muted mb-2">{{ $t ? $t('ubicacion.estado') : 'Estado / Región' }}</label>
-      <select 
-        :value="modelStateId"
-        @input="$emit('update:modelStateId', $event.target.value ? Number($event.target.value) : null)"
-        class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-      >
-        <option value="">{{ $t ? $t('ubicacion.selecciona_estado') : 'Selecciona un estado' }}</option>
-        <option v-for="e in estados" :key="e.id" :value="e.id">
-          {{ e.nombre }}
-        </option>
-      </select>
+      <CustomSelect 
+        :modelValue="modelStateId"
+        @update:modelValue="$emit('update:modelStateId', $event)"
+        :options="estadosOptions"
+        :placeholder="$t ? $t('ubicacion.selecciona_estado') : 'Selecciona un estado'"
+      />
     </div>
 
     <!-- Ciudad -->
     <div v-if="estados.length > 0 && ciudades.length > 0">
       <label class="block text-sm font-medium text-text-muted mb-2">{{ $t ? $t('ubicacion.ciudad') : 'Ciudad' }}</label>
-      <select 
-        :value="modelCityId"
-        @input="$emit('update:modelCityId', $event.target.value ? Number($event.target.value) : null); updateCityText($event.target.value)"
-        class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-      >
-        <option value="">{{ $t ? $t('ubicacion.selecciona_ciudad') : 'Selecciona una ciudad' }}</option>
-        <option v-for="c in ciudades" :key="c.id" :value="c.id">
-          {{ c.nombre }}
-        </option>
-      </select>
+      <CustomSelect 
+        :modelValue="modelCityId"
+        @update:modelValue="(val) => { $emit('update:modelCityId', val); updateCityText(val); }"
+        :options="ciudadesOptions"
+        :placeholder="$t ? $t('ubicacion.selecciona_ciudad') : 'Selecciona una ciudad'"
+      />
     </div>
     
     <!-- Input texto libre de ciudad si el país no tiene estados registrados -->
@@ -60,8 +48,9 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import axios from 'axios';
+import CustomSelect from './CustomSelect.vue';
 
 const props = defineProps({
   modelCountryId: { type: Number, default: null },
@@ -81,6 +70,10 @@ const paises = ref([]);
 const estados = ref([]);
 const ciudades = ref([]);
 const loadingEstados = ref(false);
+
+const paisesOptions = computed(() => paises.value.map(p => ({ value: p.id, label: p.nombre, icon: p.bandera || '🏳️' })));
+const estadosOptions = computed(() => estados.value.map(e => ({ value: e.id, label: e.nombre })));
+const ciudadesOptions = computed(() => ciudades.value.map(c => ({ value: c.id, label: c.nombre })));
 
 onMounted(async () => {
   await cargarPaises();

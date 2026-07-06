@@ -3,7 +3,7 @@
     <button
       type="button"
       @click="toggleDropdown"
-      class="w-full bg-black/20 border border-border rounded-xl px-4 py-3 text-white flex justify-between items-center focus:outline-none focus:border-primary transition-all text-left"
+      :class="['w-full bg-black/20 border border-border rounded-xl text-white flex justify-between items-center focus:outline-none focus:border-primary transition-all text-left', buttonClass]"
     >
       <span v-if="selectedOption" class="flex items-center gap-2">
         <span v-if="selectedOption.icon" class="text-lg">{{ selectedOption.icon }}</span>
@@ -56,6 +56,10 @@ const props = defineProps({
   placeholder: {
     type: String,
     default: 'Selecciona una opción'
+  },
+  buttonClass: {
+    type: String,
+    default: 'px-4 py-3'
   }
 });
 

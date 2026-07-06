@@ -9,3 +9,6 @@
 ## Autenticación y Selector de Países
 - La base de datos tiene una tabla `paises` cargada con prefijos telefónicos.
 - Todo flujo de login o registro por teléfono debe consumir el endpoint `/api/paises` para mostrar los códigos y banderas correspondientes en el frontend.
+
+## Dise�o UI / Frontend
+- **Desplegables (Selects):** NUNCA usar etiquetas <select> nativas de HTML en el proyecto Vue. Se debe usar SIEMPRE el componente CustomSelect.vue (ubicado en esources/js/Pages/Components/CustomSelect.vue) para mantener la coherencia del dise�o en modo oscuro. Si un formulario requiere un select, hay que importar e implementar este componente en su lugar.

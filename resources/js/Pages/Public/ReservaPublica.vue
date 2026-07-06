@@ -204,9 +204,14 @@
             <div>
               <label class="block text-xs text-gray-400 mb-1">{{ $t ? $t('reserva.telefono_req') : 'Teléfono *' }}</label>
               <div class="flex gap-2">
-                <select v-model="form.pais_prefijo" class="bg-black/50 border border-white/20 rounded-xl px-2 py-2 text-white text-sm focus:outline-none focus:border-indigo-500 w-28">
-                  <option v-for="p in paises" :key="p.id" :value="p.prefijo">{{ p.emoji }} {{ p.prefijo }}</option>
-                </select>
+                <div class="w-32 shrink-0">
+                  <CustomSelect 
+                    :modelValue="form.pais_prefijo"
+                    @update:modelValue="form.pais_prefijo = $event"
+                    :options="prefijosOptions"
+                    buttonClass="px-2 py-2 text-sm bg-black/50 border-white/20 focus:border-indigo-500"
+                  />
+                </div>
                 <input v-model="form.telefono_numero" type="tel" :placeholder="$t ? $t('reserva.numero') : 'Número'"
                   class="flex-1 bg-black/50 border border-white/20 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500" />
               </div>
@@ -249,6 +254,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 import LanguageSwitcher from '../Components/LanguageSwitcher.vue';
+import CustomSelect from '../Components/CustomSelect.vue';
 
 const route = useRoute();
 const slug = computed(() => route.params.slug);
@@ -265,6 +271,12 @@ const sending = ref(false);
 const submitError = ref(null);
 const confirmacion = ref(null);
 const paises = ref([]);
+
+const prefijosOptions = computed(() => paises.value.map(p => ({
+  value: p.prefijo,
+  label: p.prefijo,
+  icon: p.emoji || '🏳️'
+})));
 
 const hoy = new Date().toISOString().split('T')[0];
 

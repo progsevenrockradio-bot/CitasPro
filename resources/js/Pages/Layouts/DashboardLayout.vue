@@ -3,23 +3,24 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-bg-card backdrop-blur-md border-r border-border hidden md:flex flex-col">
       <div class="p-6 flex items-center gap-3">
-        <div :class="['w-8 h-8 rounded-lg flex items-center justify-center shadow-lg', theme.badgeBg]">
+        <div v-if="logoNegocio" class="w-8 h-8 rounded-lg overflow-hidden shadow-lg border border-border shrink-0">
+          <img :src="logoNegocio" class="w-full h-full object-cover" />
+        </div>
+        <div v-else :class="['w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shrink-0', theme.badgeBg]">
           <span :class="['font-bold', theme.text]">C</span>
         </div>
-        <span class="font-bold text-xl tracking-tight">CitasPro</span>
+        <span class="font-bold text-xl tracking-tight truncate">CitasPro</span>
       </div>
 
       <!-- Selector de Área (para Administradores o Dueños) -->
       <div v-if="esAdminODueno" class="px-6 pb-4">
         <label class="block text-xs font-bold text-text-muted tracking-wider mb-2">ÁREA ACTUAL</label>
-        <select 
-          v-model="areaSeleccionada" 
-          @change="cambiarArea"
-          class="w-full bg-black/40 border border-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-primary">
-          <option value="pro">Citas Pro (General)</option>
-          <option value="medical">Clínica Médica</option>
-          <option value="dental">Clínica Dental</option>
-        </select>
+        <CustomSelect 
+          :modelValue="areaSeleccionada"
+          @update:modelValue="(val) => { areaSeleccionada = val; cambiarArea(); }"
+          :options="areasOptions"
+          buttonClass="px-3 py-2 text-sm"
+        />
       </div>
 
       <nav class="flex-1 px-4 space-y-2 mt-2">
@@ -93,15 +94,14 @@
         <h1 class="text-lg font-semibold">{{ $route.name }}</h1>
         <div class="flex items-center gap-3">
           <!-- Selector móvil -->
-          <select 
-            v-if="esAdminODueno"
-            v-model="areaSeleccionada" 
-            @change="cambiarArea"
-            class="bg-black/40 border border-border rounded-xl px-2 py-1 text-xs text-white">
-            <option value="pro">Pro</option>
-            <option value="medical">Médica</option>
-            <option value="dental">Dental</option>
-          </select>
+          <div v-if="esAdminODueno" class="w-28">
+            <CustomSelect 
+              :modelValue="areaSeleccionada"
+              @update:modelValue="(val) => { areaSeleccionada = val; cambiarArea(); }"
+              :options="areasMobileOptions"
+              buttonClass="px-2 py-1.5 text-xs"
+            />
+          </div>
           <LanguageSwitcher />
         </div>
       </header>
@@ -119,6 +119,19 @@ import { useRouter, useRoute } from 'vue-router';
 import { ref, onMounted, computed, watch } from 'vue';
 import axios from 'axios';
 import LanguageSwitcher from '../Components/LanguageSwitcher.vue';
+import CustomSelect from '../Components/CustomSelect.vue';
+
+const areasOptions = [
+  { value: 'pro', label: 'Citas Pro (General)' },
+  { value: 'medical', label: 'Clínica Médica' },
+  { value: 'dental', label: 'Clínica Dental' }
+];
+
+const areasMobileOptions = [
+  { value: 'pro', label: 'Pro' },
+  { value: 'medical', label: 'Médica' },
+  { value: 'dental', label: 'Dental' }
+];
 
 const router = useRouter();
 const route = useRoute();
@@ -127,6 +140,7 @@ const userProfile = ref(null);
 const esAdminODueno = ref(false);
 const areaSeleccionada = ref('pro');
 const bookingUrl = ref(null);
+const logoNegocio = ref(null);
 const copiado = ref(false);
 
 const theme = computed(() => {
@@ -187,8 +201,13 @@ const cambiarArea = () => {
 const loadBookingUrl = async () => {
   try {
     const res = await axios.get('/api/negocio');
-    if (res.data.success && res.data.negocio?.booking_url) {
-      bookingUrl.value = res.data.negocio.booking_url;
+    if (res.data.success && res.data.negocio) {
+      if (res.data.negocio.booking_url) {
+        bookingUrl.value = res.data.negocio.booking_url;
+      }
+      if (res.data.negocio.logo) {
+        logoNegocio.value = res.data.negocio.logo;
+      }
     }
   } catch (e) {
     // Silencioso si falla (no bloqueante)

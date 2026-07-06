@@ -8,6 +8,7 @@ use App\Models\Profesional;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class NegocioController extends Controller
 {
@@ -29,6 +30,7 @@ class NegocioController extends Controller
                 'id'                 => $negocio->id,
                 'nombre'             => $negocio->nombre,
                 'slug'               => $negocio->slug,
+                'logo'               => $negocio->logo ? asset('storage/' . $negocio->logo) : null,
                 'descripcion'        => $negocio->descripcion,
                 'categoria_id'       => $negocio->categoria_id,
                 'es_medico'          => (bool) $negocio->es_medico,
@@ -74,6 +76,7 @@ class NegocioController extends Controller
 
         $validated = $request->validate([
             'nombre'                    => 'sometimes|string|max:150',
+            'logo'                      => 'sometimes|nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'descripcion'               => 'sometimes|nullable|string|max:500',
             'telefono'                  => 'sometimes|nullable|string|max:20',
             'whatsapp'                  => 'sometimes|nullable|string|max:20',
@@ -93,7 +96,19 @@ class NegocioController extends Controller
         ]);
 
         $negocio = Negocio::findOrFail($profesional->negocio_id);
+
+        if ($request->hasFile('logo')) {
+            if ($negocio->logo) {
+                Storage::disk('public')->delete($negocio->logo);
+            }
+            $path = $request->file('logo')->store('logos', 'public');
+            $validated['logo'] = $path;
+        }
+
         $negocio->update($validated);
+        
+        // Agregar la URL completa para el frontend
+        $negocio->logo_url = $negocio->logo ? asset('storage/' . $negocio->logo) : null;
 
         return response()->json([
             'success' => true,

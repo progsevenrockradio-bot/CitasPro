@@ -36,7 +36,32 @@
       <!-- Información Básica -->
       <div class="bg-bg-card border border-border rounded-2xl p-6 space-y-5">
         <h3 class="text-lg font-bold border-b border-border/50 pb-3">{{ $t('config.info_basica') }}</h3>
-        
+        <div>
+          <label class="block text-sm font-medium text-text-muted mb-2">Logo del Negocio (1024x1024 recomendado)</label>
+          <div class="flex items-center gap-4">
+            <div class="w-20 h-20 rounded-xl border-2 border-dashed border-border bg-black/20 flex items-center justify-center overflow-hidden relative group">
+              <img v-if="logoPreview || logoUrl" :src="logoPreview || logoUrl" class="w-full h-full object-cover" />
+              <div v-else class="text-text-muted">
+                <ImageIcon class="w-8 h-8 opacity-50" />
+              </div>
+              <div v-if="logoPreview || logoUrl" class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <button @click.prevent="quitarLogo" class="text-white hover:text-red-400 p-1">
+                  <X class="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div class="flex-1">
+              <label class="cursor-pointer bg-black/20 hover:bg-black/40 border border-border rounded-xl px-4 py-2 text-white text-sm font-medium transition-all inline-flex items-center gap-2">
+                <Upload class="w-4 h-4" />
+                Subir Imagen
+                <input type="file" class="hidden" accept="image/*" @change="onLogoChange" />
+              </label>
+              <p class="text-xs text-text-muted mt-2">Formatos: JPG, PNG, WEBP. Máx: 2MB.</p>
+            </div>
+          </div>
+        </div>
+
         <div>
           <label class="block text-sm font-medium text-text-muted mb-2">{{ $t('config.nombre') }}</label>
           <input 
@@ -181,7 +206,7 @@
 </template>
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Save, AlertCircle, CheckCircle, Loader2, Trash2 } from 'lucide-vue-next';
+import { Save, AlertCircle, CheckCircle, Loader2, Trash2, Upload, X, Image as ImageIcon } from 'lucide-vue-next';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import LocationSelects from '../../Components/LocationSelects.vue';
@@ -195,6 +220,23 @@ const errorMsg = ref('');
 
 const mostrarModalEliminar = ref(false);
 const nombreConfirmacion = ref('');
+
+const logoUrl = ref(null);
+const logoPreview = ref(null);
+const fileToUpload = ref(null);
+
+const onLogoChange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  fileToUpload.value = file;
+  logoPreview.value = URL.createObjectURL(file);
+};
+
+const quitarLogo = () => {
+  fileToUpload.value = null;
+  logoPreview.value = null;
+  logoUrl.value = null;
+};
 
 const form = ref({
   nombre: '',
@@ -218,6 +260,7 @@ const cargarNegocio = async () => {
   try {
     const res = await axios.get('/api/negocio');
     const d = res.data.negocio || {};
+    logoUrl.value = d.logo_url || d.logo || null;
     form.value = {
       nombre: d.nombre || '',
       descripcion: d.descripcion || '',
@@ -246,7 +289,33 @@ const guardarCambios = async () => {
   successMsg.value = '';
   errorMsg.value = '';
   try {
-    await axios.patch('/api/negocio', form.value);
+    const formData = new FormData();
+    Object.keys(form.value).forEach(key => {
+      if (key === 'horario_apertura') {
+        formData.append(key, JSON.stringify(form.value[key]));
+      } else if (form.value[key] !== null && form.value[key] !== undefined) {
+        if (typeof form.value[key] === 'boolean') {
+           formData.append(key, form.value[key] ? 1 : 0);
+        } else {
+           formData.append(key, form.value[key]);
+        }
+      }
+    });
+
+    if (fileToUpload.value) {
+      formData.append('logo', fileToUpload.value);
+    }
+
+    const res = await axios.post('/api/negocio', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    
+    if (res.data.negocio?.logo_url || res.data.negocio?.logo) {
+      logoUrl.value = res.data.negocio.logo_url || res.data.negocio.logo;
+    }
+    fileToUpload.value = null;
+    logoPreview.value = null;
+
     successMsg.value = 'Configuración guardada exitosamente.';
     setTimeout(() => { successMsg.value = ''; }, 3000);
   } catch (error) {

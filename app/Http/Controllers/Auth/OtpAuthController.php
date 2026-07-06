@@ -82,13 +82,13 @@ class OtpAuthController extends Controller
             // Verificamos si existe el usuario con ese email/teléfono y si tiene chat_id
             $chatId = null;
             if ($request->email) {
-                $chatId = \App\Models\Profesional::where('email', $request->email)->value('telegram_chat_id') 
-                       ?? \App\Models\Cliente::where('email', $request->email)->value('telegram_chat_id');
+                $chatId = Profesional::where('email', $request->email)->value('telegram_chat_id') 
+                       ?? Cliente::where('email', $request->email)->value('telegram_chat_id');
             }
             if (!$chatId && $request->telefono) {
                 $telefonoLimpio = $this->normalizarTelefono($request->telefono);
-                $chatId = \App\Models\Profesional::where('telefono', $telefonoLimpio)->value('telegram_chat_id') 
-                       ?? \App\Models\Cliente::where('telefono', $telefonoLimpio)->value('telegram_chat_id');
+                $chatId = Profesional::where('telefono', $telefonoLimpio)->value('telegram_chat_id') 
+                       ?? Cliente::where('telefono', $telefonoLimpio)->value('telegram_chat_id');
             }
 
             if ($chatId) {
