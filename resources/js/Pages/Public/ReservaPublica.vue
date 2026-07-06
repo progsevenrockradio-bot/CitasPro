@@ -309,6 +309,17 @@
         </button>
       </div>
     </div>
+
+    <!-- Modal de Confirmación Reusable -->
+    <ConfirmModal 
+      v-model:show="showConfirmModal"
+      title="Confirmar Cita"
+      message="¿Está de acuerdo en completar la cita y enviar su información?"
+      type="question"
+      confirmText="Sí, Confirmar"
+      cancelText="Cancelar"
+      @confirm="confirmarReservaFinal"
+    />
   </div>
 </template>
 
@@ -319,6 +330,7 @@ import axios from 'axios';
 import LanguageSwitcher from '../Components/LanguageSwitcher.vue';
 import CustomSelect from '../Components/CustomSelect.vue';
 import ClinicalForm from '../Components/ClinicalForm.vue';
+import ConfirmModal from '../Components/ConfirmModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -349,6 +361,7 @@ const confirmacion = ref(null);
 const paises = ref([]);
 const requiereHistorial = ref(false);
 const clinicalTemplate = ref(null);
+const showConfirmModal = ref(false);
 
 const showFullSchedule = ref(false);
 
@@ -533,10 +546,11 @@ const cargarSlots = async () => {
   }
 };
 
-const reservar = async () => {
-  const confirmacionUsuario = window.confirm("¿Está de acuerdo en completar la cita y enviar su información?");
-  if (!confirmacionUsuario) return;
+const reservar = () => {
+  showConfirmModal.value = true;
+};
 
+const confirmarReservaFinal = async () => {
   submitError.value = null;
   sending.value = true;
 
