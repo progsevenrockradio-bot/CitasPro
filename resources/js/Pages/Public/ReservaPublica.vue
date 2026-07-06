@@ -165,7 +165,7 @@
         </section>
 
         <!-- ── Paso 2: Elegir Profesional ── -->
-        <section v-if="form.servicio_id && profesionales.length > 0">
+        <section v-if="form.servicio_id && profesionales.length > 0" ref="step2">
           <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
             <span class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-black">2</span>
             {{ $t ? $t('reserva.elige_profesional') : 'Elige tu profesional' }}
@@ -196,7 +196,7 @@
         </section>
 
         <!-- ── Paso 3: Elegir Fecha y Hora ── -->
-        <section v-if="form.profesional_id">
+        <section v-if="form.profesional_id" ref="step3">
           <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
             <span class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-black">3</span>
             {{ $t ? $t('reserva.elige_fecha_hora') : 'Elige fecha y hora' }}
@@ -238,7 +238,7 @@
         </section>
 
         <!-- ── Paso 4: Tus Datos ── -->
-        <section v-if="form.hora">
+        <section v-if="form.hora" ref="step4">
           <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
             <span class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-black">4</span>
             {{ $t ? $t('reserva.datos_personales') : 'Tus datos de contacto' }}
@@ -313,15 +313,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, onMounted, computed, watch, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import LanguageSwitcher from '../Components/LanguageSwitcher.vue';
 import CustomSelect from '../Components/CustomSelect.vue';
 import ClinicalForm from '../Components/ClinicalForm.vue';
 
 const route = useRoute();
+const router = useRouter();
 const slug = computed(() => route.params.slug);
+
+// Refs para auto-scrolling
+const step2 = ref(null);
+const step3 = ref(null);
+const step4 = ref(null);
+
+const scrollToElement = (el) => {
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
 
 // Estado
 const loading = ref(true);
@@ -405,6 +417,28 @@ const checkClienteRequiereHistorial = () => {
 
 watch(() => form.value.telefono_numero, checkClienteRequiereHistorial);
 watch(() => form.value.pais_prefijo, checkClienteRequiereHistorial);
+
+// Observadores para auto-scrolling
+watch(() => form.value.servicio_id, async (newVal) => {
+  if (newVal) {
+    await nextTick();
+    scrollToElement(step2.value);
+  }
+});
+
+watch(() => form.value.profesional_id, async (newVal) => {
+  if (newVal) {
+    await nextTick();
+    scrollToElement(step3.value);
+  }
+});
+
+watch(() => form.value.hora, async (newVal) => {
+  if (newVal) {
+    await nextTick();
+    scrollToElement(step4.value);
+  }
+});
 
 // Carga inicial: info del negocio y países
 onMounted(async () => {
