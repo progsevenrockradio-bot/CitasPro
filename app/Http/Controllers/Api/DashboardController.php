@@ -402,6 +402,11 @@ class DashboardController extends Controller
      */
     private function resolverProfesional(Request $request): ?Profesional
     {
+        $user = $request->user();
+        if ($user && $user instanceof Profesional) {
+            return $user;
+        }
+
         $profesionalId = $request->query('profesional_id');
 
         if ($profesionalId) {
