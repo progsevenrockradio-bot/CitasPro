@@ -1,5 +1,9 @@
 # Reglas del Entorno CitasPro (Hostinger & Backend)
 
+## Configuración de Negocio y Datos Fiscales
+- **Datos Fiscales Dinámicos por País**: La tabla `paises` almacena la estructura de validación y los campos requeridos para cada país en su columna `fiscal_fields` (formato JSON). El sistema utiliza esta información de manera dinámica para generar reglas de validación en el backend (`StoreNegocioDatosFiscalesRequest`) y renderizar los campos adecuados en el frontend (`DatosFiscalesForm.vue`). Los datos ingresados por el usuario se guardan en la tabla relacionada `negocio_datos_fiscales`.
+- **Teléfonos y Contactos Múltiples**: El modelo `Negocio` maneja un teléfono principal (`telefono`) y múltiples números adicionales (columna JSON `telefonos_adicionales`). Además, incluye la columna `verification_phone_index` para establecer de forma dinámica cuál de estos números recibirá los códigos SMS o WhatsApp de verificación.
+
 ## Infraestructura del Servidor (Hostinger)
 - La ruta del repositorio git del proyecto es `/home/u531780502/domains/citaspro.app/CitasPro`.
 - La ruta pública del servidor es `/home/u531780502/domains/citaspro.app/public_html`.
@@ -10,5 +14,5 @@
 - La base de datos tiene una tabla `paises` cargada con prefijos telefónicos.
 - Todo flujo de login o registro por teléfono debe consumir el endpoint `/api/paises` para mostrar los códigos y banderas correspondientes en el frontend.
 
-## Dise�o UI / Frontend
-- **Desplegables (Selects):** NUNCA usar etiquetas <select> nativas de HTML en el proyecto Vue. Se debe usar SIEMPRE el componente CustomSelect.vue (ubicado en esources/js/Pages/Components/CustomSelect.vue) para mantener la coherencia del dise�o en modo oscuro. Si un formulario requiere un select, hay que importar e implementar este componente en su lugar.
+## Diseño UI / Frontend
+- **Desplegables (Selects):** NUNCA usar etiquetas `<select>` nativas de HTML en el proyecto Vue. Se debe usar SIEMPRE el componente `CustomSelect.vue` (ubicado en `resources/js/Pages/Components/CustomSelect.vue`) para mantener la coherencia del diseño en modo oscuro. Si un formulario requiere un select, hay que importar e implementar este componente en su lugar.
