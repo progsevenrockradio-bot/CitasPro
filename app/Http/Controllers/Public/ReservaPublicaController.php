@@ -43,7 +43,7 @@ class ReservaPublicaController extends Controller
                 'nombre'              => $negocio->nombre,
                 'slug'                => $negocio->slug,
                 'descripcion'         => $negocio->descripcion,
-                'logo'                => $negocio->logo,
+                'logo'                => $negocio->logo ? asset('storage/' . $negocio->logo) : null,
                 'cover_imagen'        => $negocio->cover_imagen,
                 'telefono'            => $negocio->telefono,
                 'whatsapp'            => $negocio->whatsapp,
