@@ -5,7 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 
 class Negocio extends Model
 {
@@ -26,8 +28,11 @@ class Negocio extends Model
         'email',
         'sitio_web',
         'direccion',
-        'ciudad',
-        'pais',
+        'ciudad', // Mantenemos por compatibilidad
+        'pais',   // Mantenemos por compatibilidad
+        'pais_id',
+        'estado_id',
+        'ciudad_id',
         'latitud',
         'longitud',
         'horario_apertura',
@@ -46,6 +51,9 @@ class Negocio extends Model
         'whatsapp_session_instance',
         'whatsapp_session_token',
         'whatsapp_qr_status',
+        // Reserva pública online
+        'booking_activo',
+        'booking_mensaje',
     ];
 
     protected $casts = [
@@ -53,6 +61,7 @@ class Negocio extends Model
         'horario_apertura'        => 'array',
         'activo'                  => 'boolean',
         'verificado'              => 'boolean',
+        'booking_activo'          => 'boolean',
         'plan_vence_en'           => 'datetime',
         'latitud'                 => 'decimal:8',
         'longitud'                => 'decimal:8',
@@ -88,14 +97,25 @@ class Negocio extends Model
         return $this->hasMany(Pago::class, 'negocio_id');
     }
 
-    // ─── Scopes ────────────────────────────────────────────────
+    /**
+     * Clientes que han reservado en este negocio (vía enlace público o panel).
+     * Aislados por la tabla pivote negocio_cliente.
+     */
+    public function clientes(): BelongsToMany
+    {
+        return $this->belongsToMany(Cliente::class, 'negocio_cliente', 'negocio_id', 'cliente_id')
+            ->withPivot(['notas_negocio', 'activo'])
+            ->withTimestamps();
+    }
 
-    public function scopeActivo($query)
+    // ─── Scopes ──────────────────────────────────────────────────────────────
+
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('activo', true);
     }
 
-    public function scopeVerificado($query)
+    public function scopeVerificado(Builder $query): Builder
     {
         return $query->where('verificado', true);
     }
@@ -112,5 +132,32 @@ class Negocio extends Model
         }
 
         return $this->plan_vence_en && $this->plan_vence_en->isFuture();
+    }
+
+    // ─── Helpers de Reserva Pública ────────────────────────────
+
+    /**
+     * URL pública para que los clientes finales reserven citas en este negocio.
+     */
+    public function getPublicBookingUrlAttribute(): string
+    {
+        return url("/{$this->slug}/book");
+    }
+
+    // ─── Ubicación Jerárquica ────────────────────────────
+
+    public function paisObj(): BelongsTo
+    {
+        return $this->belongsTo(Pais::class, 'pais_id');
+    }
+
+    public function estado(): BelongsTo
+    {
+        return $this->belongsTo(Estado::class, 'estado_id');
+    }
+
+    public function ciudadObj(): BelongsTo
+    {
+        return $this->belongsTo(Ciudad::class, 'ciudad_id');
     }
 }

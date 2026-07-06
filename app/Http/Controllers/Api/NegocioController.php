@@ -26,23 +26,32 @@ class NegocioController extends Controller
         return response()->json([
             'success' => true,
             'negocio' => [
-                'id' => $negocio->id,
-                'nombre' => $negocio->nombre,
-                'descripcion' => $negocio->descripcion,
-                'categoria_id' => $negocio->categoria_id,
-                'es_medico' => (bool) $negocio->es_medico,
-                'telefono' => $negocio->telefono,
-                'whatsapp' => $negocio->whatsapp,
-                'email' => $negocio->email,
-                'sitio_web' => $negocio->sitio_web,
-                'direccion' => $negocio->direccion,
-                'ciudad' => $negocio->ciudad,
-                'pais' => $negocio->pais,
-                'horario_apertura' => $negocio->horario_apertura,
+                'id'                 => $negocio->id,
+                'nombre'             => $negocio->nombre,
+                'slug'               => $negocio->slug,
+                'descripcion'        => $negocio->descripcion,
+                'categoria_id'       => $negocio->categoria_id,
+                'es_medico'          => (bool) $negocio->es_medico,
+                'telefono'           => $negocio->telefono,
+                'whatsapp'           => $negocio->whatsapp,
+                'email'              => $negocio->email,
+                'sitio_web'          => $negocio->sitio_web,
+                'direccion'          => $negocio->direccion,
+                'ciudad'             => $negocio->ciudad,
+                'pais_id'            => $negocio->pais_id,
+                'estado_id'          => $negocio->estado_id,
+                'ciudad_id'          => $negocio->ciudad_id,
+                'pais'               => $negocio->pais,
+                'horario_apertura'   => $negocio->horario_apertura,
                 'duracion_turno_min' => $negocio->duracion_turno_min,
-                'plan' => $negocio->plan,
+                'plan'               => $negocio->plan,
+                // ── Reserva Pública ──────────────────────────────
+                'booking_activo'     => (bool) $negocio->booking_activo,
+                'booking_mensaje'    => $negocio->booking_mensaje,
+                'booking_url'        => $negocio->public_booking_url,
             ]
         ]);
+
     }
 
     /**
@@ -72,6 +81,9 @@ class NegocioController extends Controller
             'sitio_web'                 => 'sometimes|nullable|url|max:255',
             'direccion'                 => 'sometimes|nullable|string|max:255',
             'ciudad'                    => 'sometimes|nullable|string|max:100',
+            'pais_id'                   => 'sometimes|nullable|integer|exists:paises,id',
+            'estado_id'                 => 'sometimes|nullable|integer|exists:estados,id',
+            'ciudad_id'                 => 'sometimes|nullable|integer|exists:ciudades,id',
             'pais'                      => 'sometimes|nullable|string|max:100',
             'horario_apertura'          => 'sometimes|nullable|array',
             'duracion_turno_min'        => 'sometimes|integer|min:5|max:480',

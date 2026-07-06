@@ -68,12 +68,19 @@ class DashboardController extends Controller
         $inicioAnterior = $inicio->copy()->subDays($duracion);
         $finAnterior    = $inicio->copy()->subDay();
 
+        $type = $request->input('type') ?? $profesional->type;
+
         // ── Consultas base ────────────────────────────────────────────────────
         $queryCitas = Cita::where('profesional_id', $profesional->id)
             ->whereBetween('fecha', [$inicio->toDateString(), $fin->toDateString()]);
 
         $queryCitasAnt = Cita::where('profesional_id', $profesional->id)
             ->whereBetween('fecha', [$inicioAnterior->toDateString(), $finAnterior->toDateString()]);
+
+        if ($type) {
+            $queryCitas->where('type', $type);
+            $queryCitasAnt->where('type', $type);
+        }
 
         // ── Métricas del periodo actual ───────────────────────────────────────
         $totalCitas       = (clone $queryCitas)->count();
@@ -92,12 +99,12 @@ class DashboardController extends Controller
             : 0;
 
         // ── Ingresos del periodo ──────────────────────────────────────────────
-        $ingresosData = $this->calcularIngresos($profesional->id, $inicio, $fin);
+        $ingresosData = $this->calcularIngresos($profesional->id, $inicio, $fin, $type);
 
         // ── Métricas del periodo anterior (comparativa) ───────────────────────
         $totalCitasAnt  = (clone $queryCitasAnt)->count();
         $completadasAnt = (clone $queryCitasAnt)->where('estado', 'completada')->count();
-        $ingresosAnt    = $this->calcularIngresos($profesional->id, $inicioAnterior, $finAnterior);
+        $ingresosAnt    = $this->calcularIngresos($profesional->id, $inicioAnterior, $finAnterior, $type);
 
         // ── Top servicios del periodo ─────────────────────────────────────────
         $topServicios = (clone $queryCitas)
@@ -146,10 +153,15 @@ class DashboardController extends Controller
             ]);
 
         // ── Próximas citas (las siguientes 3) ────────────────────────────────
-        $proximasCitas = Cita::where('profesional_id', $profesional->id)
+        $proximasQuery = Cita::where('profesional_id', $profesional->id)
             ->where('fecha', '>=', today())
-            ->whereIn('estado', ['pendiente', 'confirmada'])
-            ->with(['cliente:id,nombre,apellido,telefono', 'servicio:id,nombre'])
+            ->whereIn('estado', ['pendiente', 'confirmada']);
+
+        if ($type) {
+            $proximasQuery->where('type', $type);
+        }
+
+        $proximasCitas = $proximasQuery->with(['cliente:id,nombre,apellido,telefono', 'servicio:id,nombre'])
             ->orderBy('fecha')
             ->orderBy('hora_inicio')
             ->limit(3)
@@ -238,13 +250,17 @@ class DashboardController extends Controller
             return response()->json(['success' => false, 'message' => 'Profesional no encontrado.'], 403);
         }
 
-        $startDate = $request->input('start_date', today()->toDateString());
-        $endDate   = $request->input('end_date', today()->copy()->addDays(7)->toDateString());
+        $type = $request->input('type') ?? $profesional->type;
 
-        $citas = Cita::where('profesional_id', $profesional->id)
+        $citasQuery = Cita::where('profesional_id', $profesional->id)
             ->whereBetween('fecha', [$startDate, $endDate])
-            ->whereIn('estado', ['pendiente', 'confirmada', 'en_curso', 'completada']) // Añadido completada para ver el historial en el calendario
-            ->with([
+            ->whereIn('estado', ['pendiente', 'confirmada', 'en_curso', 'completada']);
+
+        if ($type) {
+            $citasQuery->where('type', $type);
+        }
+
+        $citas = $citasQuery->with([
                 'cliente:id,nombre,apellido,telefono,foto',
                 'servicio:id,nombre,duracion_min,precio,moneda',
             ])
@@ -283,9 +299,14 @@ class DashboardController extends Controller
         // Resumen rápido del día
         $hoy         = today();
         $hoyStr      = $hoy->toDateString();
-        $citasDeHoy  = Cita::where('profesional_id', $profesional->id)
-            ->whereDate('fecha', $hoy)
-            ->get();
+        $citasDeHoyQuery = Cita::where('profesional_id', $profesional->id)
+            ->whereDate('fecha', $hoy);
+
+        if ($type) {
+            $citasDeHoyQuery->where('type', $type);
+        }
+
+        $citasDeHoy = $citasDeHoyQuery->get();
 
         return response()->json([
             'success' => true,
@@ -425,11 +446,14 @@ class DashboardController extends Controller
     /**
      * Calcula los ingresos de un profesional en un rango de fechas.
      */
-    private function calcularIngresos(int $profesionalId, Carbon $inicio, Carbon $fin): array
+    private function calcularIngresos(int $profesionalId, Carbon $inicio, Carbon $fin, ?string $type = null): array
     {
-        $pagos = Pago::whereHas('cita', function ($q) use ($profesionalId, $inicio, $fin) {
+        $pagos = Pago::whereHas('cita', function ($q) use ($profesionalId, $inicio, $fin, $type) {
             $q->where('profesional_id', $profesionalId)
               ->whereBetween('fecha', [$inicio->toDateString(), $fin->toDateString()]);
+            if ($type) {
+                $q->where('type', $type);
+            }
         });
 
         $cobrados  = (clone $pagos)->where('estado', 'completado');
@@ -441,11 +465,16 @@ class DashboardController extends Controller
         $totalPendiente   = (float) $pendientes->sum('monto_total');
 
         // También suma los precios de citas completadas sin pago registrado
-        $citasSinPago = Cita::where('profesional_id', $profesionalId)
+        $citasSinPagoQuery = Cita::where('profesional_id', $profesionalId)
             ->whereBetween('fecha', [$inicio->toDateString(), $fin->toDateString()])
             ->where('estado', 'completada')
-            ->whereDoesntHave('pago')
-            ->sum('precio_total');
+            ->whereDoesntHave('pago');
+
+        if ($type) {
+            $citasSinPagoQuery->where('type', $type);
+        }
+
+        $citasSinPago = $citasSinPagoQuery->sum('precio_total');
 
         return [
             'total_cobrado'    => $totalCobrado,

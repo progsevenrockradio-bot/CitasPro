@@ -1,6 +1,7 @@
 import './bootstrap';
 import { createApp } from 'vue';
 import router from './router';
+import i18n from './i18n';
 import App from './App.vue';
 
 // axios defaults for Sanctum CSRF
@@ -15,7 +16,9 @@ if (token && token !== 'session-active') {
 }
 
 const app = createApp(App);
+
 app.use(router);
+app.use(i18n);
 
 // Interceptor para redireccionar al login si expira la sesión (401 o 419)
 axios.interceptors.response.use(

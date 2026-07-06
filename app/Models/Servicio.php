@@ -30,6 +30,7 @@ class Servicio extends Model
         'requiere_sena',
         'tipo_sena',
         'valor_sena',
+        'type',
     ];
 
     protected $casts = [
@@ -72,6 +73,21 @@ class Servicio extends Model
     }
 
     // ─── Scopes ────────────────────────────────────────────────
+
+    public function scopeGeneral($query)
+    {
+        return $query->where('type', 'general');
+    }
+
+    public function scopeMedical($query)
+    {
+        return $query->where('type', 'medical');
+    }
+
+    public function scopeDental($query)
+    {
+        return $query->where('type', 'dental');
+    }
 
     public function scopeActivo($query)
     {

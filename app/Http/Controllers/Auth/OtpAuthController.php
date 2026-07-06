@@ -597,6 +597,7 @@ class OtpAuthController extends Controller
                     'foto'              => $user->foto,
                     'rol'               => $user->rol,
                     'activo'            => $user->activo,
+                    'type'              => $user->type,
                     'telegram_chat_id'  => $user->telegram_chat_id,
                     'telegram_bot_username' => config('services.telegram.bot_username', 'CitasProAlertsBot'),
                     'created_at'        => $user->created_at->toIso8601String(),

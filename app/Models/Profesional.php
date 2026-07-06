@@ -37,6 +37,7 @@ class Profesional extends Authenticatable
         'telegram_chat_id',
         'notificaciones_telegram',
         'notificaciones_whatsapp',
+        'type',
     ];
 
     protected $hidden = [
@@ -85,6 +86,21 @@ class Profesional extends Authenticatable
     }
 
     // ─── Scopes ────────────────────────────────────────────────
+
+    public function scopeGeneral($query)
+    {
+        return $query->where('type', 'general');
+    }
+
+    public function scopeMedical($query)
+    {
+        return $query->where('type', 'medical');
+    }
+
+    public function scopeDental($query)
+    {
+        return $query->where('type', 'dental');
+    }
 
     public function scopeActivo($query)
     {

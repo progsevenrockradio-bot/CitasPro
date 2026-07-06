@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -78,6 +79,16 @@ class Cliente extends Model
         return $this->hasMany(PacienteAcceso::class, 'cliente_id');
     }
 
+    /**
+     * Negocios donde este cliente ha reservado (vía enlace público o panel).
+     */
+    public function negocios(): BelongsToMany
+    {
+        return $this->belongsToMany(Negocio::class, 'negocio_cliente', 'cliente_id', 'negocio_id')
+            ->withPivot(['notas_negocio', 'activo'])
+            ->withTimestamps();
+    }
+
     // ─── Scopes ────────────────────────────────────────────────
 
     public function scopeActivo($query)
@@ -100,5 +111,13 @@ class Cliente extends Model
     public function telefonoVerificado(): bool
     {
         return !is_null($this->telefono_verificado_en);
+    }
+
+    /**
+     * Verifica si este cliente está vinculado a un negocio específico.
+     */
+    public function perteneceANegocio(int $negocioId): bool
+    {
+        return $this->negocios()->where('negocio_id', $negocioId)->exists();
     }
 }

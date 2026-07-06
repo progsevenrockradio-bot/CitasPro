@@ -37,9 +37,22 @@ Route::get('/registro', function () {
     return view('app');
 })->name('registro');
 
+// ── Páginas Públicas de Reserva (SPA, sin autenticación) ────────────────────
+// Directorio de negocios de CitasPro
+Route::get('/directorio', function () {
+    return view('app');
+})->name('directorio');
+
+// Página de reserva pública de un negocio: /{slug}/book
+// El profesional comparte este link con sus clientes
+Route::get('/{slug}/book', function () {
+    return view('app');
+})->where('slug', '[a-z0-9\-]+')->name('reserva.publica');
+
 // Auth::routes();
 
 // Permitir que el router de la SPA maneje todas las demás rutas web al refrescar (F5)
 Route::fallback(function () {
-    return view('welcome');
+    return view('app');
 });
+

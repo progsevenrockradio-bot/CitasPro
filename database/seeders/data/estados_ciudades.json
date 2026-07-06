@@ -1,0 +1,84 @@
+{
+  "ES": [
+    { "nombre": "Andalucía", "codigo": "AN", "ciudades": ["Sevilla", "Málaga", "Granada", "Córdoba", "Cádiz", "Almería", "Huelva", "Jaén", "Jerez de la Frontera"] },
+    { "nombre": "Cataluña", "codigo": "CT", "ciudades": ["Barcelona", "L'Hospitalet de Llobregat", "Badalona", "Terrassa", "Sabadell", "Tarragona", "Lleida", "Girona"] },
+    { "nombre": "Comunidad de Madrid", "codigo": "MD", "ciudades": ["Madrid", "Móstoles", "Alcalá de Henares", "Fuenlabrada", "Leganés", "Getafe", "Alcorcón", "Torrejón de Ardoz", "Parla"] },
+    { "nombre": "Comunidad Valenciana", "codigo": "VC", "ciudades": ["Valencia", "Alicante", "Elche", "Castellón de la Plana", "Torrevieja", "Orihuela", "Gandía"] },
+    { "nombre": "Galicia", "codigo": "GA", "ciudades": ["Vigo", "A Coruña", "Ourense", "Lugo", "Santiago de Compostela", "Pontevedra", "Ferrol"] },
+    { "nombre": "País Vasco", "codigo": "PV", "ciudades": ["Bilbao", "Vitoria-Gasteiz", "San Sebastián", "Barakaldo", "Getxo", "Irun"] },
+    { "nombre": "Canarias", "codigo": "CN", "ciudades": ["Las Palmas de Gran Canaria", "Santa Cruz de Tenerife", "San Cristóbal de La Laguna", "Telde", "Arona"] },
+    { "nombre": "Islas Baleares", "codigo": "IB", "ciudades": ["Palma", "Ibiza", "Manacor", "Marratxí", "Inca"] },
+    { "nombre": "Aragón", "codigo": "AR", "ciudades": ["Zaragoza", "Huesca", "Teruel"] },
+    { "nombre": "Castilla y León", "codigo": "CL", "ciudades": ["Valladolid", "Burgos", "Salamanca", "León", "Palencia", "Ponferrada", "Zamora"] },
+    { "nombre": "Castilla-La Mancha", "codigo": "CM", "ciudades": ["Albacete", "Guadalajara", "Toledo", "Talavera de la Reina", "Ciudad Real", "Cuenca"] }
+  ],
+  "VE": [
+    { "nombre": "Distrito Capital", "codigo": "DC", "ciudades": ["Caracas"] },
+    { "nombre": "Miranda", "codigo": "MI", "ciudades": ["Los Teques", "Petare", "Guarenas", "Guatire", "San Antonio de los Altos", "Cúa"] },
+    { "nombre": "Zulia", "codigo": "ZU", "ciudades": ["Maracaibo", "San Francisco", "Cabimas", "Ciudad Ojeda", "Machiques"] },
+    { "nombre": "Carabobo", "codigo": "CA", "ciudades": ["Valencia", "Puerto Cabello", "Guacara", "Mariara", "San Diego"] },
+    { "nombre": "Lara", "codigo": "LA", "ciudades": ["Barquisimeto", "Carora", "Cabudare", "El Tocuyo"] },
+    { "nombre": "Aragua", "codigo": "AR", "ciudades": ["Maracay", "Turmero", "La Victoria", "Cagua", "Villa de Cura"] },
+    { "nombre": "Anzoátegui", "codigo": "AN", "ciudades": ["Barcelona", "Puerto La Cruz", "Lechería", "El Tigre", "Anaco"] },
+    { "nombre": "Bolívar", "codigo": "BO", "ciudades": ["Ciudad Guayana", "Ciudad Bolívar", "Upata"] },
+    { "nombre": "Táchira", "codigo": "TA", "ciudades": ["San Cristóbal", "Rubio", "San Antonio del Táchira", "Táriba"] }
+  ],
+  "MX": [
+    { "nombre": "Ciudad de México", "codigo": "CMX", "ciudades": ["Ciudad de México"] },
+    { "nombre": "Estado de México", "codigo": "MEX", "ciudades": ["Ecatepec", "Nezahualcóyotl", "Toluca", "Naucalpan", "Tlalnepantla", "Chimalhuacán"] },
+    { "nombre": "Jalisco", "codigo": "JAL", "ciudades": ["Guadalajara", "Zapopan", "Tlaquepaque", "Tonalá", "Puerto Vallarta"] },
+    { "nombre": "Nuevo León", "codigo": "NLE", "ciudades": ["Monterrey", "Guadalupe", "Apodaca", "San Nicolás de los Garza", "General Escobedo"] },
+    { "nombre": "Puebla", "codigo": "PUE", "ciudades": ["Puebla", "Tehuacán", "San Martín Texmelucan", "Atlixco"] },
+    { "nombre": "Veracruz", "codigo": "VER", "ciudades": ["Veracruz", "Xalapa", "Coatzacoalcos", "Poza Rica", "Córdoba"] }
+  ],
+  "CO": [
+    { "nombre": "Bogotá D.C.", "codigo": "DC", "ciudades": ["Bogotá"] },
+    { "nombre": "Antioquia", "codigo": "ANT", "ciudades": ["Medellín", "Bello", "Itagüí", "Envigado", "Apartadó"] },
+    { "nombre": "Valle del Cauca", "codigo": "VAC", "ciudades": ["Cali", "Buenaventura", "Palmira", "Tuluá", "Yumbo"] },
+    { "nombre": "Atlántico", "codigo": "ATL", "ciudades": ["Barranquilla", "Soledad", "Malambo", "Sabanalarga"] },
+    { "nombre": "Bolívar", "codigo": "BOL", "ciudades": ["Cartagena", "Magangué", "Turbaco", "El Carmen de Bolívar"] },
+    { "nombre": "Santander", "codigo": "SAN", "ciudades": ["Bucaramanga", "Floridablanca", "Barrancabermeja", "Girón", "Piedecuesta"] }
+  ],
+  "AR": [
+    { "nombre": "Ciudad Autónoma de Buenos Aires", "codigo": "CABA", "ciudades": ["Buenos Aires"] },
+    { "nombre": "Buenos Aires", "codigo": "BA", "ciudades": ["La Plata", "Mar del Plata", "Bahía Blanca", "Tandil", "Quilmes", "Avellaneda"] },
+    { "nombre": "Córdoba", "codigo": "CBA", "ciudades": ["Córdoba", "Río Cuarto", "Villa María", "Villa Carlos Paz", "San Francisco"] },
+    { "nombre": "Santa Fe", "codigo": "SFE", "ciudades": ["Rosario", "Santa Fe", "Rafaela", "Venado Tuerto", "Reconquista"] },
+    { "nombre": "Mendoza", "codigo": "MZA", "ciudades": ["Mendoza", "San Rafael", "Godoy Cruz", "Guaymallén", "Las Heras"] }
+  ],
+  "US": [
+    { "nombre": "California", "codigo": "CA", "ciudades": ["Los Angeles", "San Diego", "San Jose", "San Francisco", "Fresno", "Sacramento"] },
+    { "nombre": "Texas", "codigo": "TX", "ciudades": ["Houston", "San Antonio", "Dallas", "Austin", "Fort Worth", "El Paso"] },
+    { "nombre": "Florida", "codigo": "FL", "ciudades": ["Jacksonville", "Miami", "Tampa", "Orlando", "St. Petersburg", "Hialeah"] },
+    { "nombre": "New York", "codigo": "NY", "ciudades": ["New York City", "Buffalo", "Rochester", "Yonkers", "Syracuse"] },
+    { "nombre": "Illinois", "codigo": "IL", "ciudades": ["Chicago", "Aurora", "Naperville", "Joliet", "Rockford"] }
+  ],
+  "IT": [
+    { "nombre": "Lazio", "codigo": "LAZ", "ciudades": ["Roma", "Latina", "Guidonia Montecelio", "Fiumicino", "Viterbo"] },
+    { "nombre": "Lombardia", "codigo": "LOM", "ciudades": ["Milano", "Brescia", "Monza", "Bergamo", "Como"] },
+    { "nombre": "Campania", "codigo": "CAM", "ciudades": ["Napoli", "Salerno", "Giugliano in Campania", "Torre del Greco", "Pozzuoli"] },
+    { "nombre": "Sicilia", "codigo": "SIC", "ciudades": ["Palermo", "Catania", "Messina", "Siracusa", "Marsala"] },
+    { "nombre": "Veneto", "codigo": "VEN", "ciudades": ["Venezia", "Verona", "Padova", "Vicenza", "Treviso"] }
+  ],
+  "PT": [
+    { "nombre": "Lisboa", "codigo": "11", "ciudades": ["Lisboa", "Sintra", "Cascais", "Loures", "Amadora", "Oeiras"] },
+    { "nombre": "Porto", "codigo": "13", "ciudades": ["Porto", "Vila Nova de Gaia", "Matosinhos", "Gondomar", "Maia"] },
+    { "nombre": "Braga", "codigo": "03", "ciudades": ["Braga", "Guimarães", "Vila Nova de Famalicão", "Barcelos"] },
+    { "nombre": "Setúbal", "codigo": "15", "ciudades": ["Setúbal", "Almada", "Seixal", "Barreiro", "Montijo"] },
+    { "nombre": "Faro", "codigo": "08", "ciudades": ["Faro", "Portimão", "Loulé", "Olhão", "Tavira"] }
+  ],
+  "CL": [
+    { "nombre": "Región Metropolitana de Santiago", "codigo": "RM", "ciudades": ["Santiago", "Puente Alto", "Maipú", "La Florida", "San Bernardo"] },
+    { "nombre": "Valparaíso", "codigo": "VA", "ciudades": ["Viña del Mar", "Valparaíso", "Quilpué", "Villa Alemana", "San Antonio"] },
+    { "nombre": "Biobío", "codigo": "BI", "ciudades": ["Concepción", "Talcahuano", "Los Ángeles", "San Pedro de la Paz", "Coronel"] },
+    { "nombre": "Araucanía", "codigo": "AR", "ciudades": ["Temuco", "Padre Las Casas", "Villarrica", "Angol"] },
+    { "nombre": "Antofagasta", "codigo": "AN", "ciudades": ["Antofagasta", "Calama", "Tocopilla", "Chuquicamata"] }
+  ],
+  "PE": [
+    { "nombre": "Lima", "codigo": "LMA", "ciudades": ["Lima", "Callao", "Huacho", "Huaral", "Cañete"] },
+    { "nombre": "Arequipa", "codigo": "ARE", "ciudades": ["Arequipa", "Mollendo", "Camaná", "Chivay"] },
+    { "nombre": "La Libertad", "codigo": "LAL", "ciudades": ["Trujillo", "Chepén", "Pacasmayo", "Huamachuco"] },
+    { "nombre": "Piura", "codigo": "PIU", "ciudades": ["Piura", "Sullana", "Talara", "Paita"] },
+    { "nombre": "Cusco", "codigo": "CUS", "ciudades": ["Cusco", "Sicuani", "Quillabamba", "Urubamba"] }
+  ]
+}

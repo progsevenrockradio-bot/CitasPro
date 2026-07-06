@@ -27,8 +27,15 @@ class ServicioController extends Controller
             return response()->json(['success' => false, 'message' => 'No tienes un perfil de profesional activo.'], 403);
         }
 
-        $servicios = Servicio::where('negocio_id', $profesional->negocio_id)
-            ->orderBy('orden', 'asc')
+        $query = Servicio::where('negocio_id', $profesional->negocio_id);
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        } else if ($profesional->type) {
+            $query->where('type', $profesional->type);
+        }
+
+        $servicios = $query->orderBy('orden', 'asc')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -60,7 +67,8 @@ class ServicioController extends Controller
             'descripcion' => 'nullable|string',
             'precio' => 'required|numeric|min:0',
             'duracion_min' => 'required|integer|min:1',
-            'activo' => 'boolean'
+            'activo' => 'boolean',
+            'type' => 'sometimes|in:general,medical,dental',
         ]);
 
         $servicio = Servicio::create([
@@ -70,6 +78,7 @@ class ServicioController extends Controller
             'precio' => $validated['precio'],
             'duracion_min' => $validated['duracion_min'],
             'activo' => $validated['activo'] ?? true,
+            'type' => $validated['type'] ?? ($profesional->type ?? 'general'),
         ]);
 
         return response()->json([

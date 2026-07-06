@@ -11,6 +11,21 @@ const routes = [
         component: () => import('../Pages/Dashboard/Agenda.vue')
       },
       {
+        path: 'pro',
+        name: 'AgendaPro',
+        component: () => import('../Pages/Appointments/Pro/AgendaPro.vue')
+      },
+      {
+        path: 'medical',
+        name: 'AgendaMedical',
+        component: () => import('../Pages/Appointments/Medical/AgendaMedical.vue')
+      },
+      {
+        path: 'dental',
+        name: 'AgendaDental',
+        component: () => import('../Pages/Appointments/Dental/AgendaDental.vue')
+      },
+      {
         path: 'clientes',
         name: 'Clientes',
         component: () => import('../Pages/Dashboard/Clientes/DirectorioClientes.vue')
@@ -42,15 +57,32 @@ const routes = [
       }
     ]
   },
+  // ── Autenticación ──────────────────────────────────────────────
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../Pages/Auth/Login.vue')
+    component: () => import('../Pages/Auth/Login.vue'),
+    meta: { public: true }
   },
   {
     path: '/registro',
     name: 'Registro',
-    component: () => import('../Pages/Auth/Registro.vue')
+    component: () => import('../Pages/Auth/Registro.vue'),
+    meta: { public: true }
+  },
+  // ── Páginas Públicas (sin autenticación) ───────────────────────
+  {
+    path: '/directorio',
+    name: 'Directorio',
+    component: () => import('../Pages/Public/Directorio.vue'),
+    meta: { public: true }
+  },
+  {
+    // Página de reserva pública: el profesional comparte /{slug}/book
+    path: '/:slug/book',
+    name: 'ReservaPublica',
+    component: () => import('../Pages/Public/ReservaPublica.vue'),
+    meta: { public: true }
   },
   {
     path: '/:pathMatch(.*)*',
@@ -63,16 +95,19 @@ const router = createRouter({
   routes
 });
 
-// Guard de navegación para proteger las rutas
+// Guard de navegación
 router.beforeEach((to, from, next) => {
-  // Verificamos si existe un token de sesión (lo implementaremos en el Login real)
-  const isAuthenticated = localStorage.getItem('token'); 
-  
-  if (to.name !== 'Login' && to.name !== 'Registro' && !isAuthenticated) {
-    // Si la ruta no es Login o Registro y no está autenticado, lo echamos al Login
+  const isAuthenticated = localStorage.getItem('token');
+  const isPublic = to.meta?.public === true;
+
+  if (isPublic) {
+    // Rutas públicas: siempre accesibles
+    next();
+  } else if (!isAuthenticated) {
+    // Ruta privada sin sesión → Login
     next({ name: 'Login' });
-  } else if (to.name === 'Login' && isAuthenticated) {
-    // Si ya está logueado y quiere ir al login, lo mandamos al panel
+  } else if ((to.name === 'Login' || to.name === 'Registro') && isAuthenticated) {
+    // Ya logueado intentando ir al login → Panel
     next({ name: 'Dashboard' });
   } else {
     next();
@@ -80,3 +115,4 @@ router.beforeEach((to, from, next) => {
 });
 
 export default router;
+

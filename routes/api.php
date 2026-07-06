@@ -111,6 +111,27 @@ Route::get('/google/callback', [GoogleCalendarController::class, 'callback'])->n
 // ── Webhook de Stripe (Suscripciones SaaS)
 Route::post('/suscripciones/webhook', [SuscripcionController::class, 'webhookSuscripcion'])->name('suscripciones.webhook');
 
+// ── Ubicaciones Jerárquicas ───────────────────────────────────────────────────
+Route::get('/locations/states/{pais_id}', [\App\Http\Controllers\Public\LocationController::class, 'states'])->name('locations.states');
+Route::get('/locations/cities/{estado_id}', [\App\Http\Controllers\Public\LocationController::class, 'cities'])->name('locations.cities');
+
+// ── Directorio Público de Negocios ────────────────────────────────────────────
+Route::get('/directorio', [\App\Http\Controllers\Public\DirectorioController::class, 'index'])->name('public.directorio');
+Route::get('/directorio/{negocio:slug}', [\App\Http\Controllers\Public\DirectorioController::class, 'show'])->name('public.directorio.show');
+
+// ── Reserva Pública por Slug del Negocio ──────────────────────────────────────
+// El profesional comparte: citaspro.app/{slug}/book
+Route::prefix('public/{negocio:slug}')->name('public.')->group(function () {
+    // Info del negocio, servicios y profesionales para montar la página
+    Route::get('/', [\App\Http\Controllers\Public\ReservaPublicaController::class, 'show'])->name('show');
+    // Slots disponibles: ?fecha=YYYY-MM-DD&profesional_id=1
+    Route::get('/disponibilidad', [\App\Http\Controllers\Public\ReservaPublicaController::class, 'disponibilidad'])->name('disponibilidad');
+    // Crear la reserva pública (rate limit: 5 req/min por IP)
+    Route::post('/reservar', [\App\Http\Controllers\Public\ReservaPublicaController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('reservar');
+});
+
 // ── Demo (Reset Database) — SOLO entorno local ─────────────────
 Route::get('/reset-demo', function () {
     // 🔒 PROTECCIÓN: Solo accesible en entorno local/testing
@@ -290,12 +311,36 @@ Route::middleware('auth:sanctum')->group(function () {
         // ── Pagos
         Route::post('/pagos/procesar', [PagoController::class, 'procesar'])->name('pagos.procesar');
 
-        // ── Gestión de Citas del Profesional
+        // ── Gestión de Citas del Profesional (General)
         Route::prefix('citas')->name('citas.')->group(function () {
             Route::get('/', [CitaController::class, 'index'])->name('index');
             Route::post('/', [CitaController::class, 'store'])->name('store');
             Route::patch('/{id}', [CitaController::class, 'update'])->name('update')->where('id', '[0-9]+');
             Route::delete('/{id}', [CitaController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
+        });
+
+        // ── Gestión de Citas Pro (General segmentado)
+        Route::prefix('citas/pro')->name('citas.pro.')->middleware('can:view-pro-appointments')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\ProCitaController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Api\ProCitaController::class, 'store'])->name('store');
+            Route::patch('/{id}', [\App\Http\Controllers\Api\ProCitaController::class, 'update'])->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [\App\Http\Controllers\Api\ProCitaController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
+        });
+
+        // ── Gestión de Citas Médicas
+        Route::prefix('citas/medical')->name('citas.medical.')->middleware('can:view-medical-appointments')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\MedicalCitaController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Api\MedicalCitaController::class, 'store'])->name('store');
+            Route::patch('/{id}', [\App\Http\Controllers\Api\MedicalCitaController::class, 'update'])->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [\App\Http\Controllers\Api\MedicalCitaController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
+        });
+
+        // ── Gestión de Citas Dentales
+        Route::prefix('citas/dental')->name('citas.dental.')->middleware('can:view-dental-appointments')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\DentalCitaController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\Api\DentalCitaController::class, 'store'])->name('store');
+            Route::patch('/{id}', [\App\Http\Controllers\Api\DentalCitaController::class, 'update'])->name('update')->where('id', '[0-9]+');
+            Route::delete('/{id}', [\App\Http\Controllers\Api\DentalCitaController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
         });
 
         // ── Directorio de Clientes del Negocio

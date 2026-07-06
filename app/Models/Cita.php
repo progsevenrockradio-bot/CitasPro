@@ -31,6 +31,7 @@ class Cita extends Model
         'notas_cliente',
         'notas_profesional',
         'canal',
+        'type',
     ];
 
     protected $casts = [
@@ -86,6 +87,21 @@ class Cita extends Model
     }
 
     // ─── Scopes ────────────────────────────────────────────────
+
+    public function scopeGeneral($query)
+    {
+        return $query->where('type', 'general');
+    }
+
+    public function scopeMedical($query)
+    {
+        return $query->where('type', 'medical');
+    }
+
+    public function scopeDental($query)
+    {
+        return $query->where('type', 'dental');
+    }
 
     public function scopePendiente($query)
     {

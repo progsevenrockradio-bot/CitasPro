@@ -13,6 +13,8 @@ class ClienteController extends Controller
 {
     /**
      * Listar todos los clientes del negocio del profesional autenticado.
+     * Incluye clientes que reservaron vía enlace público (tabla negocio_cliente)
+     * y los que tienen citas directas en el negocio.
      * Búsqueda: ?buscar=juan  (nombre o teléfono)
      */
     public function index(Request $request): JsonResponse
@@ -22,12 +24,20 @@ class ClienteController extends Controller
             return response()->json(['message' => 'Acceso no autorizado.'], 403);
         }
 
-        // Clientes que han tenido al menos una cita con este profesional/negocio
-        $query = Cliente::whereHas('citas', function ($q) use ($profesional) {
-                $q->where('negocio_id', $profesional->negocio_id);
+        // Clientes aislados por negocio: tanto los del pivote (reservas online)
+        // como los que tienen citas directas en el panel
+        $query = Cliente::where(function ($q) use ($profesional) {
+                // Via tabla pivote negocio_cliente (reservas online)
+                $q->whereHas('negocios', fn($nq) =>
+                    $nq->where('negocios.id', $profesional->negocio_id)
+                )
+                // También los que tienen citas creadas desde el panel
+                ->orWhereHas('citas', fn($cq) =>
+                    $cq->where('negocio_id', $profesional->negocio_id)
+                );
             })
-            ->withCount('citas')
-            ->withSum('pagos', 'monto_total');
+            ->withCount(['citas' => fn($q) => $q->where('negocio_id', $profesional->negocio_id)])
+            ->withSum(['pagos' => fn($q) => $q->where('negocio_id', $profesional->negocio_id)], 'monto_total');
 
         if ($request->filled('buscar')) {
             $buscar = $request->buscar;
@@ -42,6 +52,7 @@ class ClienteController extends Controller
 
         return response()->json($clientes);
     }
+
 
     /**
      * Ver el perfil completo de un cliente: historial de citas, total gastado y notas.

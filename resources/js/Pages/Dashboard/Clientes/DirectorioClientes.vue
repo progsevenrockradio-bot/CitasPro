@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <div class="flex justify-between items-center">
-      <h2 class="text-2xl font-bold">Directorio de Clientes</h2>
+      <h2 class="text-2xl font-bold">{{ $t('clientes.titulo') }}</h2>
     </div>
 
     <!-- Search / List -->
@@ -11,7 +11,7 @@
           v-model="searchQuery"
           @keyup.enter="buscarClientes"
           type="text" 
-          placeholder="Buscar cliente por nombre o teléfono..." 
+          :placeholder="$t('clientes.buscar_placeholder')" 
           class="flex-1 bg-black/20 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
         />
         <button 
@@ -20,7 +20,7 @@
           class="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2">
           <Loader2 v-if="loading" class="w-5 h-5 animate-spin" />
           <Search v-else class="w-5 h-5" /> 
-          Buscar
+          {{ $t('clientes.buscar') }}
         </button>
       </div>
 
@@ -30,18 +30,18 @@
 
       <div v-else-if="clientes.length === 0" class="text-center text-text-muted py-12 border-t border-border/50">
         <Users class="w-12 h-12 mx-auto mb-3 opacity-50" />
-        <p v-if="searchQuery">No se encontraron clientes con "{{ searchQuery }}".</p>
-        <p v-else>Busca un cliente para ver su historial y citas.</p>
+        <p v-if="searchQuery">{{ $t('clientes.sin_resultados') }} "{{ searchQuery }}".</p>
+        <p v-else>{{ $t('clientes.busqueda_vacia') }}</p>
       </div>
 
       <div v-else class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="border-b border-border text-text-muted text-sm">
-              <th class="pb-3 font-medium">Cliente</th>
-              <th class="pb-3 font-medium">Teléfono</th>
-              <th class="pb-3 font-medium text-center">Total Citas</th>
-              <th class="pb-3 font-medium text-right">Acciones</th>
+              <th class="pb-3 font-medium">{{ $t('clientes.tabla_cliente') }}</th>
+              <th class="pb-3 font-medium">{{ $t('clientes.tabla_telefono') }}</th>
+              <th class="pb-3 font-medium text-center">{{ $t('clientes.tabla_total_citas') }}</th>
+              <th class="pb-3 font-medium text-right">{{ $t('clientes.tabla_acciones') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border">
@@ -53,19 +53,19 @@
                   </div>
                   <div>
                     <p class="font-bold text-white">{{ cliente.nombre }} {{ cliente.apellido }}</p>
-                    <p class="text-xs text-text-muted">{{ cliente.email || 'Sin correo' }}</p>
+                    <p class="text-xs text-text-muted">{{ cliente.email || $t('ficha.sin_correo') }}</p>
                   </div>
                 </div>
               </td>
               <td class="py-4 text-white">{{ cliente.telefono || 'N/A' }}</td>
               <td class="py-4 text-center">
                 <span class="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs font-bold">
-                  {{ cliente.citas_count || 0 }} citas
+                  {{ cliente.citas_count || 0 }} {{ $t('clientes.citas_contador') }}
                 </span>
               </td>
               <td class="py-4 text-right">
                 <button @click="verFicha(cliente.id)" class="text-primary hover:text-primary-hover font-medium underline text-sm">
-                  Ver Ficha
+                  {{ $t('clientes.ver_ficha') }}
                 </button>
               </td>
             </tr>

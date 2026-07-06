@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PaisSeeder::class,
             CategoriaSeeder::class,
+            EstadosCiudadesSeeder::class,
             // Próximas fases:
             // NegocioSeeder::class,
             // ProfesionalSeeder::class,

@@ -22,9 +22,15 @@ class ProfesionalController extends Controller
             return response()->json(['success' => false, 'message' => 'No tienes permisos para ver esto.'], 403);
         }
 
-        $profesionales = Profesional::where('negocio_id', $owner->negocio_id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Profesional::where('negocio_id', $owner->negocio_id);
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        } else if ($owner->type) {
+            $query->where('type', $owner->type);
+        }
+
+        $profesionales = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'success' => true,
@@ -50,7 +56,8 @@ class ProfesionalController extends Controller
             'telefono' => 'required|string|max:20|unique:profesionales,telefono',
             'email' => 'required|email|max:150|unique:profesionales,email',
             'especialidad' => 'nullable|string|max:150',
-            'activo' => 'boolean'
+            'activo' => 'boolean',
+            'type' => 'sometimes|in:general,medical,dental'
         ], [
             'telefono.unique' => '¡Ese número de teléfono ya está registrado para otro profesional!',
             'email.unique' => '¡Ese correo electrónico ya está registrado para otro profesional!'
@@ -64,6 +71,7 @@ class ProfesionalController extends Controller
             'email' => $validated['email'],
             'especialidad' => $validated['especialidad'] ?? null,
             'activo' => $validated['activo'] ?? true,
+            'type' => $validated['type'] ?? ($owner->type ?? 'general'),
         ]);
 
         return response()->json([

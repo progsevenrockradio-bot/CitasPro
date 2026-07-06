@@ -8,10 +8,10 @@
         </button>
         <div>
           <h2 class="text-2xl font-bold flex items-center gap-2">
-            Ficha del Cliente
+            {{ $t('ficha.titulo') }}
             <span v-if="cliente" class="text-primary">{{ cliente.nombre }} {{ cliente.apellido }}</span>
           </h2>
-          <p class="text-text-muted mt-1">Gestión integral de historial clínico y citas.</p>
+          <p class="text-text-muted mt-1">{{ $t('ficha.subtitulo') }}</p>
         </div>
       </div>
     </div>
@@ -24,10 +24,10 @@
       <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
         <AlertTriangle class="w-8 h-8 text-red-400" />
       </div>
-      <p class="text-xl font-bold text-white">No se pudo cargar la ficha</p>
+      <p class="text-xl font-bold text-white">{{ $t('ficha.error_carga') }}</p>
       <p class="text-text-muted max-w-sm">{{ loadError }}</p>
       <button @click="cargarDatos" class="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl font-medium transition-all">
-        Reintentar
+        {{ $t('ficha.reintentar') }}
       </button>
     </div>
 
@@ -42,7 +42,7 @@
             </div>
             <div>
               <h3 class="text-xl font-bold">{{ cliente.nombre }} {{ cliente.apellido }}</h3>
-              <p class="text-text-muted text-sm">Cliente desde {{ formatDate(cliente.created_at) }}</p>
+              <p class="text-text-muted text-sm">{{ $t('ficha.cliente_desde') }} {{ formatDate(cliente.created_at) }}</p>
             </div>
           </div>
           
@@ -61,16 +61,16 @@
         <div class="bg-bg-card border border-border rounded-2xl p-6">
           <h4 class="font-bold mb-4 flex items-center gap-2">
             <Activity class="w-5 h-5 text-primary" />
-            Métricas
+            {{ $t('ficha.metricas') }}
           </h4>
           <div class="grid grid-cols-2 gap-4">
             <div class="bg-black/20 rounded-xl p-4 text-center">
               <p class="text-2xl font-bold text-white">{{ stats.total_citas || 0 }}</p>
-              <p class="text-xs text-text-muted">Total Citas</p>
+              <p class="text-xs text-text-muted">{{ $t('ficha.total_citas') }}</p>
             </div>
             <div class="bg-black/20 rounded-xl p-4 text-center">
               <p class="text-2xl font-bold text-green-400">{{ stats.citas_completadas || 0 }}</p>
-              <p class="text-xs text-text-muted">Completadas</p>
+              <p class="text-xs text-text-muted">{{ $t('ficha.citas_completadas') }}</p>
             </div>
           </div>
         </div>
@@ -85,13 +85,13 @@
               @click="activeTab = 'clinica'"
               :class="['flex-1 py-4 font-medium transition-colors border-b-2', activeTab === 'clinica' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-text-muted hover:text-white hover:bg-white/5']"
             >
-              Ficha Clínica
+              {{ $t('ficha.tab_clinica') }}
             </button>
             <button 
               @click="activeTab = 'citas'"
               :class="['flex-1 py-4 font-medium transition-colors border-b-2', activeTab === 'citas' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-text-muted hover:text-white hover:bg-white/5']"
             >
-              Historial de Citas
+              {{ $t('ficha.tab_historial') }}
             </button>
           </div>
 
@@ -110,13 +110,13 @@
               <div>
                 <label class="block text-sm font-medium text-text-muted mb-2 flex items-center gap-2">
                   <AlertTriangle class="w-4 h-4 text-orange-400" />
-                  Alergias y Condiciones Médicas
+                  {{ $t('ficha.alergias') }}
                 </label>
                 <textarea 
                   v-model="ficha.condiciones_medicas" 
                   rows="3" 
                   class="w-full bg-black/40 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors placeholder-text-muted/50"
-                  placeholder="Ej: Alergia al látex, diabetes tipo 2..."
+                  :placeholder="$t('ficha.alergias_placeholder')"
                 ></textarea>
               </div>
 
@@ -124,13 +124,13 @@
               <div>
                 <label class="block text-sm font-medium text-text-muted mb-2 flex items-center gap-2">
                   <FileText class="w-4 h-4 text-blue-400" />
-                  Notas Privadas de Evolución
+                  {{ $t('ficha.notas_privadas') }}
                 </label>
                 <textarea 
                   v-model="ficha.notas_privadas" 
                   rows="6" 
                   class="w-full bg-black/40 border border-border rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors placeholder-text-muted/50 font-mono text-sm"
-                  placeholder="Escribe aquí las notas del tratamiento de hoy. Ej: 2024-03-10: Se realiza extracción de uña encarnada..."
+                  :placeholder="$t('ficha.notas_placeholder')"
                 ></textarea>
               </div>
 
@@ -138,7 +138,7 @@
                 <button @click="guardarFicha" :disabled="savingFicha" class="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-xl font-medium transition-all shadow-[0_0_15px_rgba(99,102,241,0.25)] flex items-center gap-2">
                   <Loader2 v-if="savingFicha" class="w-5 h-5 animate-spin" />
                   <Save v-else class="w-5 h-5" />
-                  {{ savingFicha ? 'Guardando...' : 'Guardar Ficha Clínica' }}
+                  {{ savingFicha ? $t('acciones.guardando') : $t('ficha.btn_guardar_ficha') }}
                 </button>
               </div>
             </div>
@@ -146,7 +146,7 @@
             <!-- Taba: Historial Citas -->
             <div v-if="activeTab === 'citas'">
               <div v-if="citas.length === 0" class="py-12 text-center text-text-muted">
-                No hay citas registradas para este cliente.
+                {{ $t('ficha.sin_citas') }}
               </div>
               <div v-else class="space-y-3">
                 <div v-for="cita in citas" :key="cita.id" class="bg-black/30 border border-border/50 rounded-xl p-4 flex items-center justify-between hover:border-primary/30 transition-colors">
@@ -181,6 +181,9 @@ import { ArrowLeft, Loader2, Phone, Mail, Activity, AlertTriangle, FileText, Sav
 import axios from 'axios';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
@@ -270,11 +273,11 @@ const guardarFicha = async () => {
       notas_internas: ficha.value.notas_privadas,
       condiciones_medicas: ficha.value.condiciones_medicas
     });
-    successMsg.value = 'Notas médicas actualizadas con éxito.';
+    successMsg.value = t('ficha.exito_guardar');
     setTimeout(() => { successMsg.value = ''; }, 3000);
   } catch (error) {
     console.error("Error guardando ficha:", error);
-    alert('Hubo un error al guardar las notas médicas.');
+    alert(t('ficha.error_guardar'));
   } finally {
     savingFicha.value = false;
   }

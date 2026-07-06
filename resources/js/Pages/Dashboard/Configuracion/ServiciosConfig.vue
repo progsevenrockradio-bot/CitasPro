@@ -2,12 +2,12 @@
   <div class="space-y-6">
     <div class="flex justify-between items-center">
       <div>
-        <h2 class="text-2xl font-bold">Servicios</h2>
-        <p class="text-text-muted text-sm mt-1">Gestiona los servicios que ofreces a tus clientes.</p>
+        <h2 class="text-2xl font-bold">{{ $t('servicios.titulo') }}</h2>
+        <p class="text-text-muted text-sm mt-1">{{ $t('servicios.subtitulo') }}</p>
       </div>
       <button @click="abrirModal()" class="bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all">
         <Plus class="w-5 h-5" />
-        Nuevo Servicio
+        {{ $t('servicios.nuevo') }}
       </button>
     </div>
 
@@ -20,10 +20,10 @@
       <div class="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
         <Scissors class="w-8 h-8 text-primary" />
       </div>
-      <h3 class="text-xl font-bold mb-2">No tienes servicios registrados</h3>
-      <p class="text-text-muted mb-6">Agrega tu primer servicio para que tus clientes puedan reservar citas.</p>
+      <h3 class="text-xl font-bold mb-2">{{ $t('servicios.vacio_titulo') }}</h3>
+      <p class="text-text-muted mb-6">{{ $t('servicios.vacio_subtitulo') }}</p>
       <button @click="abrirModal()" class="bg-primary/20 text-primary hover:bg-primary/30 px-6 py-2 rounded-lg font-medium transition-colors">
-        Crear mi primer servicio
+        {{ $t('servicios.btn_crear_primer') }}
       </button>
     </div>
 
@@ -60,7 +60,7 @@
     <div v-if="mostrarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div class="bg-bg-card border border-border rounded-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
         <div class="p-6 border-b border-border/50 flex justify-between items-center">
-          <h3 class="font-bold text-lg">{{ modoEdit ? 'Editar Servicio' : 'Nuevo Servicio' }}</h3>
+          <h3 class="font-bold text-lg">{{ modoEdit ? $t('servicios.modal_editar') : $t('servicios.modal_nuevo') }}</h3>
           <button @click="cerrarModal" class="text-text-muted hover:text-white">
             <X class="w-5 h-5" />
           </button>
@@ -73,18 +73,18 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-text-muted mb-1">Nombre del Servicio</label>
-            <input v-model="form.nombre" type="text" placeholder="Ej: Corte de Cabello" class="w-full bg-black/20 border border-border rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary" />
+            <label class="block text-sm font-medium text-text-muted mb-1">{{ $t('servicios.nombre') }}</label>
+            <input v-model="form.nombre" type="text" class="w-full bg-black/20 border border-border rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary" />
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-text-muted mb-1">Descripción (Opcional)</label>
+            <label class="block text-sm font-medium text-text-muted mb-1">{{ $t('servicios.descripcion') }}</label>
             <textarea v-model="form.descripcion" rows="2" class="w-full bg-black/20 border border-border rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary"></textarea>
           </div>
           
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-text-muted mb-1">Precio</label>
+              <label class="block text-sm font-medium text-text-muted mb-1">{{ $t('servicios.precio') }}</label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">€</span>
                 <input v-model="form.precio" type="number" step="0.01" min="0" class="w-full bg-black/20 border border-border rounded-xl pl-8 pr-4 py-2.5 text-white focus:outline-none focus:border-primary" />
@@ -92,17 +92,17 @@
             </div>
             
             <div>
-              <label class="block text-sm font-medium text-text-muted mb-1">Duración (minutos)</label>
+              <label class="block text-sm font-medium text-text-muted mb-1">{{ $t('servicios.duracion') }}</label>
               <input v-model="form.duracion_min" type="number" step="5" min="5" class="w-full bg-black/20 border border-border rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-primary" />
             </div>
           </div>
         </div>
         
         <div class="p-6 border-t border-border/50 bg-black/20 flex justify-end gap-3">
-          <button @click="cerrarModal" class="px-5 py-2.5 text-text-muted hover:text-white transition-colors">Cancelar</button>
+          <button @click="cerrarModal" class="px-5 py-2.5 text-text-muted hover:text-white transition-colors">{{ $t('acciones.cancelar') }}</button>
           <button @click="guardarServicio" :disabled="saving" class="bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2">
             <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
-            {{ saving ? 'Guardando...' : 'Guardar' }}
+            {{ saving ? $t('acciones.guardando') : $t('acciones.guardar') }}
           </button>
         </div>
       </div>
@@ -115,14 +115,14 @@
           <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4 text-red-500">
             <Trash2 class="w-8 h-8" />
           </div>
-          <h3 class="text-xl font-bold text-white mb-2">Eliminar Servicio</h3>
-          <p class="text-text-muted">¿Estás seguro de que deseas eliminar este servicio? Esta acción no se puede deshacer.</p>
+          <h3 class="text-xl font-bold text-white mb-2">{{ $t('servicios.modal_eliminar_titulo') }}</h3>
+          <p class="text-text-muted">{{ $t('servicios.modal_eliminar_desc') }}</p>
         </div>
         <div class="p-6 border-t border-border/50 bg-black/20 flex justify-end gap-3">
-          <button @click="cerrarModalEliminar" class="px-5 py-2.5 text-text-muted hover:text-white transition-colors">Cancelar</button>
+          <button @click="cerrarModalEliminar" class="px-5 py-2.5 text-text-muted hover:text-white transition-colors">{{ $t('acciones.cancelar') }}</button>
           <button @click="confirmarEliminar" :disabled="deleting" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2">
             <Loader2 v-if="deleting" class="w-4 h-4 animate-spin" />
-            {{ deleting ? 'Eliminando...' : 'Sí, Eliminar' }}
+            {{ deleting ? $t('acciones.eliminando') : $t('acciones.si_eliminar') }}
           </button>
         </div>
       </div>
