@@ -364,6 +364,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/', [NegocioController::class, 'update'])->name('update_post');
             Route::delete('/', [NegocioController::class, 'destroy'])->name('destroy');
             Route::post('/whatsapp/conectar', [WhatsAppQrController::class, 'conectar'])->name('whatsapp.conectar');
+            Route::post('/datos-fiscales', [NegocioController::class, 'updateFiscalData'])->name('update_fiscal_data');
         });
 
         // ── Módulo Médico (CitasPro Médico)
