@@ -9,13 +9,15 @@
     <div v-if="negocio" class="relative">
       <!-- Cover Image / Gradiente conteniendo la info para estar en la franja -->
       <div
-        class="h-56 md:h-64 bg-gradient-to-br from-violet-900 via-indigo-900 to-gray-950 relative overflow-hidden flex flex-col justify-end pb-4"
+        class="min-h-[280px] py-12 md:py-16 bg-gradient-to-br from-violet-900 via-indigo-900 to-gray-950 relative overflow-hidden flex flex-col justify-center border-b border-indigo-500/10"
         :style="negocio.cover_imagen ? `background-image: url(${negocio.cover_imagen}); background-size: cover; background-position: center;` : ''"
       >
-        <div class="absolute inset-0 bg-black/60"></div>
+        <div class="absolute inset-0 bg-black/65"></div>
         
         <!-- Info del negocio adentro del banner -->
-        <div class="max-w-2xl w-full mx-auto px-4 relative z-10">
+        <div class="max-w-2xl w-full mx-auto px-4 relative z-10 space-y-6">
+          
+          <!-- Logo, Nombre, Categoría, Ciudad -->
           <div class="flex items-center gap-4">
             <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl border-2 border-white/10 overflow-hidden bg-indigo-900 flex items-center justify-center shadow-2xl flex-shrink-0">
               <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover" />
@@ -23,20 +25,75 @@
             </div>
             <div>
               <h1 class="text-xl md:text-2xl font-black text-white leading-tight drop-shadow-md">{{ negocio.nombre }}</h1>
-              <p v-if="negocio.categoria" class="text-xs md:text-sm text-indigo-300 font-semibold drop-shadow-sm">{{ negocio.categoria.icono }} {{ negocio.categoria.nombre }}</p>
-              <p v-if="negocio.ciudad" class="text-xs md:text-sm text-gray-300 drop-shadow-sm">📍 {{ negocio.ciudad }}</p>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs md:text-sm">
+                <span v-if="negocio.categoria" class="text-indigo-300 font-semibold drop-shadow-sm">{{ negocio.categoria.icono }} {{ negocio.categoria.nombre }}</span>
+                <span v-if="negocio.ciudad" class="text-gray-300 drop-shadow-sm">📍 {{ negocio.ciudad }}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Detalles del negocio abajo de la franja -->
-      <div class="max-w-2xl mx-auto px-4 mt-4">
-        <!-- Mensaje personalizado -->
-        <p v-if="negocio.booking_mensaje" class="text-gray-300 text-sm mb-4 bg-white/5 rounded-xl p-4 border border-white/10">
-          {{ negocio.booking_mensaje }}
-        </p>
-        <p v-else-if="negocio.descripcion" class="text-gray-400 text-sm mb-4">{{ negocio.descripcion }}</p>
+          <!-- Detalles del negocio -->
+          <p v-if="negocio.booking_mensaje" class="text-gray-300 text-sm leading-relaxed drop-shadow-sm max-w-xl">
+            {{ negocio.booking_mensaje }}
+          </p>
+          <p v-else-if="negocio.descripcion" class="text-gray-400 text-sm leading-relaxed drop-shadow-sm max-w-xl">{{ negocio.descripcion }}</p>
+
+          <!-- Información de Contacto, Nro Fiscal y Horarios -->
+          <div class="bg-black/45 border border-white/10 rounded-2xl p-4 space-y-4 text-xs text-gray-300 backdrop-blur-md">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p class="font-bold text-white mb-1">Contacto:</p>
+                <ul class="space-y-1">
+                  <li class="flex items-center gap-1">
+                    <span class="text-gray-400">Principal:</span>
+                    <a :href="'tel:' + negocio.telefono" class="text-indigo-300 hover:underline font-semibold">{{ negocio.telefono }}</a>
+                    <span v-if="!negocio.telefonos_adicionales?.length || negocio.verification_phone_index === null || negocio.verification_phone_index === undefined" class="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-[10px]">Verif. SMS</span>
+                  </li>
+                  <li v-for="(phone, idx) in negocio.telefonos_adicionales" :key="idx" class="flex items-center gap-1">
+                    <span class="text-gray-400 capitalize">{{ phone.type === 'mobile' ? 'Móvil' : (phone.type === 'fax' ? 'Fax' : 'Local') }}:</span>
+                    <a :href="'tel:' + phone.number" class="text-indigo-300 hover:underline font-semibold">{{ phone.number }}</a>
+                    <span v-if="negocio.verification_phone_index === idx" class="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-[10px]">Verif. SMS</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div v-if="negocio.numero_fiscal">
+                <p class="font-bold text-white mb-1">Nro Fiscal:</p>
+                <p class="text-xs bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg text-gray-200 font-mono">{{ negocio.numero_fiscal }}</p>
+              </div>
+
+              <div>
+                <p class="font-bold text-white mb-1">Horario de hoy:</p>
+                <p class="text-indigo-300 font-semibold">{{ todayHours }}</p>
+                <button 
+                  @click="showFullSchedule = !showFullSchedule"
+                  class="text-[10px] text-gray-400 hover:text-white underline mt-1 block"
+                >
+                  {{ showFullSchedule ? 'Ocultar horarios' : 'Ver todos los horarios' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla completa de horarios -->
+            <div v-if="showFullSchedule" class="pt-3 border-t border-white/10 animate-in fade-in duration-200">
+              <p class="font-bold text-white mb-2 text-xs">Horarios Semanales:</p>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div 
+                  v-for="d in diasList" 
+                  :key="d.key"
+                  class="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col justify-between"
+                >
+                  <span class="font-semibold text-gray-200 capitalize text-[10px]">{{ d.label }}</span>
+                  <span v-if="negocio.horario_apertura?.[d.key]?.cerrado" class="text-red-400 font-medium">Cerrado</span>
+                  <span v-else class="text-gray-400 font-mono">
+                    {{ negocio.horario_apertura?.[d.key]?.inicio || '09:00' }} - {{ negocio.horario_apertura?.[d.key]?.fin || '18:00' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
 
@@ -54,62 +111,7 @@
     </div>
 
     <!-- Formulario de Reserva -->
-    <div v-else-if="negocio" class="max-w-2xl mx-auto px-4 pb-16">
-
-      <!-- Información de Contacto, Nro Fiscal y Horarios -->
-      <div class="bg-white/5 border border-white/10 rounded-xl p-4 mb-6 space-y-4 text-sm text-gray-300">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p class="font-bold text-white mb-1">Contacto:</p>
-            <ul class="space-y-1 text-xs">
-              <li class="flex items-center gap-1">
-                <span class="text-gray-400">Principal:</span>
-                <a :href="'tel:' + negocio.telefono" class="text-indigo-400 hover:underline font-medium">{{ negocio.telefono }}</a>
-                <span v-if="!negocio.telefonos_adicionales?.length || negocio.verification_phone_index === null || negocio.verification_phone_index === undefined" class="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-[10px]">Verif. SMS</span>
-              </li>
-              <li v-for="(phone, idx) in negocio.telefonos_adicionales" :key="idx" class="flex items-center gap-1">
-                <span class="text-gray-400 capitalize">{{ phone.type === 'mobile' ? 'Móvil' : (phone.type === 'fax' ? 'Fax' : 'Local') }}:</span>
-                <a :href="'tel:' + phone.number" class="text-indigo-400 hover:underline font-medium">{{ phone.number }}</a>
-                <span v-if="negocio.verification_phone_index === idx" class="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-[10px]">Verif. SMS</span>
-              </li>
-            </ul>
-          </div>
-          
-          <div v-if="negocio.numero_fiscal">
-            <p class="font-bold text-white mb-1">Nro Fiscal:</p>
-            <p class="text-xs bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg text-gray-200 font-mono">{{ negocio.numero_fiscal }}</p>
-          </div>
-
-          <div>
-            <p class="font-bold text-white mb-1">Horario de hoy:</p>
-            <p class="text-xs text-indigo-300 font-semibold">{{ todayHours }}</p>
-            <button 
-              @click="showFullSchedule = !showFullSchedule"
-              class="text-[10px] text-gray-400 hover:text-white underline mt-1 block"
-            >
-              {{ showFullSchedule ? 'Ocultar horarios' : 'Ver todos los horarios' }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Tabla completa de horarios -->
-        <div v-if="showFullSchedule" class="pt-3 border-t border-white/10 animate-in fade-in duration-200">
-          <p class="font-bold text-white mb-2 text-xs">Horarios Semanales:</p>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            <div 
-              v-for="d in diasList" 
-              :key="d.key"
-              class="bg-white/5 p-2 rounded-lg border border-white/5 flex flex-col justify-between"
-            >
-              <span class="font-semibold text-gray-200 capitalize text-[10px]">{{ d.label }}</span>
-              <span v-if="negocio.horario_apertura?.[d.key]?.cerrado" class="text-red-400 font-medium">Cerrado</span>
-              <span v-else class="text-gray-400 font-mono">
-                {{ negocio.horario_apertura?.[d.key]?.inicio || '09:00' }} - {{ negocio.horario_apertura?.[d.key]?.fin || '18:00' }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div v-else-if="negocio" class="max-w-2xl mx-auto px-4 py-8 pb-16">
 
       <!-- PASO 1: Confirmar Reserva (éxito) -->
       <div v-if="confirmacion" class="text-center py-12">
