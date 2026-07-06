@@ -252,6 +252,9 @@ class DashboardController extends Controller
 
         $type = $request->input('type') ?? $profesional->type;
 
+        $startDate = today()->toDateString();
+        $endDate   = today()->addDays(7)->toDateString();
+
         $citasQuery = Cita::where('profesional_id', $profesional->id)
             ->whereBetween('fecha', [$startDate, $endDate])
             ->whereIn('estado', ['pendiente', 'confirmada', 'en_curso', 'completada']);
