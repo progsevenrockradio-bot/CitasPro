@@ -35,6 +35,7 @@ class EventServiceProvider extends ServiceProvider
             EnviarConfirmacionCliente::class . '@handleCitaCreada',
             NotificarProfesionalTelegram::class . '@handleCitaCreada',
             SincronizarGoogleCalendar::class . '@handleCitaCreada',
+            \App\Listeners\EnviarEmailsConfirmacion::class . '@handleCitaCreada',
         ],
 
         // ── Cita Actualizada ─────────────────────────────────────────────────

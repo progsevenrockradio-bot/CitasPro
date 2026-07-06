@@ -500,6 +500,9 @@ const cargarSlots = async () => {
 };
 
 const reservar = async () => {
+  const confirmacionUsuario = window.confirm("¿Está de acuerdo en completar la cita y enviar su información?");
+  if (!confirmacionUsuario) return;
+
   submitError.value = null;
   sending.value = true;
 
