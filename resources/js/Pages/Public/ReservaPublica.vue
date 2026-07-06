@@ -7,33 +7,36 @@
 
     <!-- Hero Header del Negocio -->
     <div v-if="negocio" class="relative">
-      <!-- Cover Image / Gradiente -->
+      <!-- Cover Image / Gradiente conteniendo la info para estar en la franja -->
       <div
-        class="h-48 md:h-64 bg-gradient-to-br from-violet-900 via-indigo-900 to-gray-950 relative overflow-hidden"
+        class="h-56 md:h-64 bg-gradient-to-br from-violet-900 via-indigo-900 to-gray-950 relative overflow-hidden flex flex-col justify-end pb-4"
         :style="negocio.cover_imagen ? `background-image: url(${negocio.cover_imagen}); background-size: cover; background-position: center;` : ''"
       >
-        <div class="absolute inset-0 bg-black/50"></div>
-      </div>
-
-      <!-- Info del negocio -->
-      <div class="max-w-2xl mx-auto px-4">
-        <div class="flex items-end gap-4 -mt-12 mb-6 relative z-10">
-          <div class="w-24 h-24 rounded-2xl border-4 border-gray-900 overflow-hidden bg-indigo-900 flex items-center justify-center shadow-2xl flex-shrink-0">
-            <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover" />
-            <span v-else class="text-3xl font-black text-white">{{ negocio.nombre?.charAt(0) }}</span>
-          </div>
-          <div class="pb-1">
-            <h1 class="text-2xl font-black text-white leading-tight">{{ negocio.nombre }}</h1>
-            <p v-if="negocio.categoria" class="text-sm text-indigo-300">{{ negocio.categoria.icono }} {{ negocio.categoria.nombre }}</p>
-            <p v-if="negocio.ciudad" class="text-sm text-gray-400">📍 {{ negocio.ciudad }}</p>
+        <div class="absolute inset-0 bg-black/60"></div>
+        
+        <!-- Info del negocio adentro del banner -->
+        <div class="max-w-2xl w-full mx-auto px-4 relative z-10">
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 md:w-20 md:h-20 rounded-2xl border-2 border-white/10 overflow-hidden bg-indigo-900 flex items-center justify-center shadow-2xl flex-shrink-0">
+              <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover" />
+              <span v-else class="text-2xl font-black text-white">{{ negocio.nombre?.charAt(0) }}</span>
+            </div>
+            <div>
+              <h1 class="text-xl md:text-2xl font-black text-white leading-tight drop-shadow-md">{{ negocio.nombre }}</h1>
+              <p v-if="negocio.categoria" class="text-xs md:text-sm text-indigo-300 font-semibold drop-shadow-sm">{{ negocio.categoria.icono }} {{ negocio.categoria.nombre }}</p>
+              <p v-if="negocio.ciudad" class="text-xs md:text-sm text-gray-300 drop-shadow-sm">📍 {{ negocio.ciudad }}</p>
+            </div>
           </div>
         </div>
+      </div>
 
+      <!-- Detalles del negocio abajo de la franja -->
+      <div class="max-w-2xl mx-auto px-4 mt-4">
         <!-- Mensaje personalizado -->
-        <p v-if="negocio.booking_mensaje" class="text-gray-300 text-sm mb-6 bg-white/5 rounded-xl p-4 border border-white/10">
+        <p v-if="negocio.booking_mensaje" class="text-gray-300 text-sm mb-4 bg-white/5 rounded-xl p-4 border border-white/10">
           {{ negocio.booking_mensaje }}
         </p>
-        <p v-else-if="negocio.descripcion" class="text-gray-400 text-sm mb-6">{{ negocio.descripcion }}</p>
+        <p v-else-if="negocio.descripcion" class="text-gray-400 text-sm mb-4">{{ negocio.descripcion }}</p>
       </div>
     </div>
 
@@ -214,7 +217,7 @@
             </div>
 
             <!-- Slots de Hora -->
-            <div v-if="form.fecha">
+            <div v-if="form.fecha" ref="slotsContainer">
               <label class="block text-sm text-gray-400 mb-2">{{ $t ? $t('reserva.selecciona_hora') : 'Hora disponible' }}</label>
               <div v-if="loadingSlots" class="text-gray-400 text-sm">{{ $t ? $t('reserva.cargando_horarios') : 'Cargando horarios...' }}</div>
               <div v-else-if="slots.length === 0" class="text-gray-500 text-sm italic">{{ $t ? $t('reserva.sin_horarios') : 'No hay horarios disponibles para esta fecha.' }}</div>
@@ -340,6 +343,7 @@ const slug = computed(() => route.params.slug);
 const step2 = ref(null);
 const step3 = ref(null);
 const step4 = ref(null);
+const slotsContainer = ref(null);
 
 const scrollToElement = (el) => {
   if (el) {
@@ -541,6 +545,8 @@ const cargarSlots = async () => {
     });
     if (res.data.success) {
       slots.value = res.data.disponibles;
+      await nextTick();
+      scrollToElement(slotsContainer.value);
     }
   } catch {
     slots.value = [];
