@@ -6,7 +6,7 @@
     </div>
 
     <!-- Hero Header del Negocio -->
-    <div v-if="negocio" class="relative">
+    <div v-if="negocio && !confirmacion" class="relative">
       <!-- Cover Image / Gradiente conteniendo la info para estar en la franja -->
       <div
         class="min-h-[280px] py-12 md:py-16 bg-gradient-to-br from-violet-900 via-indigo-900 to-gray-950 relative overflow-hidden flex flex-col justify-center border-b border-indigo-500/10"
@@ -114,7 +114,17 @@
     <div v-else-if="negocio" class="max-w-2xl mx-auto px-4 py-8 pb-16">
 
       <!-- PASO 1: Confirmar Reserva (éxito) -->
-      <div v-if="confirmacion" class="text-center py-12">
+      <div v-if="confirmacion" class="text-center py-6 md:py-12 animate-in fade-in duration-300">
+        <!-- Logo y Nombre del negocio en el éxito -->
+        <div class="flex flex-col items-center mb-8">
+          <div class="w-16 h-16 rounded-2xl border border-white/10 overflow-hidden bg-indigo-900 flex items-center justify-center shadow-2xl mb-3">
+            <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover" />
+            <span v-else class="text-xl font-black text-white">{{ negocio.nombre?.charAt(0) }}</span>
+          </div>
+          <h1 class="text-xl md:text-2xl font-black text-white leading-tight">{{ negocio.nombre }}</h1>
+          <p v-if="negocio.ciudad" class="text-xs text-gray-400 mt-1">📍 {{ negocio.ciudad }}</p>
+        </div>
+
         <div class="w-20 h-20 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center mx-auto mb-6">
           <span class="text-4xl">✅</span>
         </div>
