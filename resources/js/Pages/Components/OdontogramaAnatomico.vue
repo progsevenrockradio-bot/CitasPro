@@ -10,16 +10,12 @@
       <div class="space-y-3">
         <div>
           <label class="text-xs text-gray-400 block mb-1">Hallazgo Clínico:</label>
-          <select v-model="currentObservation.tipo" class="w-full bg-black/40 border border-white/10 rounded px-2 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500">
-            <option value="">Normal / Sin hallazgos</option>
-            <option value="Endodoncia">Endodoncia</option>
-            <option value="Absceso">Absceso / Infección</option>
-            <option value="Implante">Implante</option>
-            <option value="Corona">Corona</option>
-            <option value="Pérdida Ósea">Pérdida Ósea</option>
-            <option value="Extracción">Extracción</option>
-            <option value="Otro">Otro...</option>
-          </select>
+          <CustomSelect 
+            v-model="currentObservation.tipo" 
+            :options="hallazgoOptions" 
+            placeholder="Seleccione un hallazgo..." 
+            buttonClass="px-2 py-1.5 text-sm bg-black/40 border border-white/10" 
+          />
         </div>
         
         <div v-if="currentObservation.tipo && currentObservation.tipo !== ''">
@@ -233,6 +229,18 @@
 
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue';
+import CustomSelect from './CustomSelect.vue';
+
+const hallazgoOptions = [
+  { value: '', label: 'Normal / Sin hallazgos' },
+  { value: 'Endodoncia', label: 'Endodoncia' },
+  { value: 'Absceso', label: 'Absceso / Infección' },
+  { value: 'Implante', label: 'Implante' },
+  { value: 'Corona', label: 'Corona' },
+  { value: 'Pérdida Ósea', label: 'Pérdida Ósea' },
+  { value: 'Extracción', label: 'Extracción' },
+  { value: 'Otro', label: 'Otro...' }
+];
 
 const props = defineProps({
   modelValue: {
