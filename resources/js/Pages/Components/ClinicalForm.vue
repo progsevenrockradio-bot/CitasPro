@@ -165,6 +165,8 @@ watch(responses, (val) => {
 
 // Observar cambio en prop iniciales
 watch(() => props.modelValue, (newVal) => {
-  responses.value = { ...newVal };
+  if (JSON.stringify(newVal) !== JSON.stringify(responses.value)) {
+    responses.value = { ...newVal };
+  }
 }, { deep: true });
 </script>
