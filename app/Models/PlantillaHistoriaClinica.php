@@ -75,6 +75,9 @@ class PlantillaHistoriaClinica extends Model
                     }
                     break;
                 case 'checkbox':
+                case 'odontograma':
+                case 'odontograma_anatomico':
+                case 'esquema_mamario':
                     $fieldRules[] = 'array';
                     break;
                 default:
