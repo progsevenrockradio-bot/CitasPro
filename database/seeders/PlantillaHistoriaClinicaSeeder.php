@@ -85,7 +85,8 @@ class PlantillaHistoriaClinicaSeeder extends Seeder
             ['section' => 'Patologías',       'key' => 'otras_condiciones',      'label' => 'Otras condiciones médicas',            'type' => 'textarea', 'required' => false],
 
             // ── Sección: Examen Clínico Bucal ──
-            ['section' => 'Examen Clínico Bucal', 'key' => 'estado_odontograma', 'label' => 'Odontograma',                         'type' => 'odontograma','required' => false],
+            ['section' => 'Examen Clínico Bucal', 'key' => 'estado_odontograma', 'label' => 'Odontograma Topológico',          'type' => 'odontograma','required' => false],
+            ['section' => 'Examen Clínico Bucal', 'key' => 'estado_odontograma_anatomico', 'label' => 'Odontograma Anatómico', 'type' => 'odontograma_anatomico','required' => false],
             ['section' => 'Examen Clínico Bucal', 'key' => 'protesis_removible_sup', 'label' => 'Prótesis Removible Superior',     'type' => 'radio',    'required' => false, 'options' => ['Sí', 'No']],
             ['section' => 'Examen Clínico Bucal', 'key' => 'protesis_removible_inf', 'label' => 'Prótesis Removible Inferior',     'type' => 'radio',    'required' => false, 'options' => ['Sí', 'No']],
             ['section' => 'Examen Clínico Bucal', 'key' => 'protesis_fija_sup',      'label' => 'Prótesis Fija Superior',          'type' => 'radio',    'required' => false, 'options' => ['Sí', 'No']],

@@ -355,14 +355,20 @@ const formatValue = (val) => {
     let resumen = [];
     for (const [key, data] of Object.entries(val)) {
       if (typeof data === 'object' && data !== null) {
-        // Formateo para Mamas u Odontograma
-        const subData = Object.entries(data).map(([k, v]) => {
-          if (typeof v === 'object' && v !== null) {
-             return `${k.replace('_', ' ')}: ${v.tipo}` + (v.nota ? ` (${v.nota})` : '');
-          }
-          return `${k}: ${v}`;
-        }).join(', ');
-        if (subData) resumen.push(`Pieza/Zona ${key.toUpperCase()} -> ${subData}`);
+        if (data.tipo !== undefined) {
+           // Es Odontograma Anatómico (estructura plana: { tipo: '...', nota: '...' })
+           const notaStr = data.nota ? ` (${data.nota})` : '';
+           resumen.push(`Pieza/Zona ${key.toUpperCase()} -> ${data.tipo}${notaStr}`);
+        } else {
+           // Es Odontograma Topológico o Mamas (estructura anidada: { oclusal: {tipo: '', nota: ''} })
+           const subData = Object.entries(data).map(([k, v]) => {
+             if (typeof v === 'object' && v !== null) {
+                return `${k.replace('_', ' ')}: ${v.tipo}` + (v.nota ? ` (${v.nota})` : '');
+             }
+             return `${k}: ${v}`;
+           }).join(', ');
+           if (subData) resumen.push(`Pieza/Zona ${key.toUpperCase()} -> ${subData}`);
+        }
       } else {
         resumen.push(`${key}: ${data}`);
       }
