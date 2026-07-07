@@ -472,6 +472,19 @@ watch(() => form.value.hora, async (newVal) => {
 
 watch(requiereHistorial, async (newVal) => {
   if (newVal) {
+    // Pre-llenado inteligente de datos básicos si no están llenos
+    const fullName = `${form.value.cliente_nombre || ''} ${form.value.cliente_apellido || ''}`.trim();
+    if (!form.value.respuestas_clinicas.nombre_completo) {
+      form.value.respuestas_clinicas.nombre_completo = fullName;
+    }
+    if (!form.value.respuestas_clinicas.nombre_apellido) {
+      form.value.respuestas_clinicas.nombre_apellido = fullName;
+    }
+    const fullPhone = `${form.value.pais_prefijo || ''} ${form.value.telefono_numero || ''}`.trim();
+    if (!form.value.respuestas_clinicas.telefono) {
+      form.value.respuestas_clinicas.telefono = fullPhone;
+    }
+
     await nextTick();
     scrollToElement(clinicalFormSection.value);
   }
