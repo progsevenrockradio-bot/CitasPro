@@ -312,7 +312,7 @@
 
         <!-- Botón Reservar -->
         <button
-          v-if="form.hora && form.cliente_nombre && form.telefono_numero"
+          v-if="form.hora"
           @click="reservar"
           :disabled="sending"
           class="w-full py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-black text-lg transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]"
@@ -586,6 +586,11 @@ const cargarSlots = async () => {
 };
 
 const reservar = () => {
+  if (!form.value.cliente_nombre || !form.value.telefono_numero || !form.value.pais_prefijo) {
+    submitError.value = "Por favor, ingresa tu nombre y número de teléfono completo (con prefijo) para continuar.";
+    return;
+  }
+  submitError.value = null;
   showConfirmModal.value = true;
 };
 
