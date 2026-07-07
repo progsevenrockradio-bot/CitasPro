@@ -127,7 +127,14 @@
             Desconectar Calendario
           </button>
 
-          <p class="text-[11px] text-text-muted text-center">
+          <!-- Aviso de advertencia de verificación de Google para el usuario final -->
+          <div v-if="!googleConnected" class="p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/20 text-[11px] text-yellow-400 leading-normal space-y-1">
+            <p class="font-bold flex items-center gap-1">⚠️ Aviso importante durante la vinculación:</p>
+            <p>Es posible que Google muestre una pantalla de advertencia indicando que <i>"Google no ha verificado esta aplicación"</i>.</p>
+            <p>Es totalmente seguro. Para continuar, haz clic abajo a la izquierda en <b>"Configuración Avanzada" (Advanced)</b> y luego selecciona <b>"Ir a citaspro.app (no seguro)"</b>.</p>
+          </div>
+
+          <p class="text-[11px] text-text-muted text-center mt-2">
             Serás redirigido a las páginas de autorización de Google para conceder permisos de acceso a tu agenda.
           </p>
         </div>
