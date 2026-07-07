@@ -314,8 +314,12 @@
         <button
           v-if="form.hora"
           @click="reservar"
-          :disabled="sending"
-          class="w-full py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed font-black text-lg transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]"
+          :disabled="!form.cliente_nombre || !form.telefono_numero || !form.pais_prefijo || sending"
+          class="w-full py-4 rounded-xl font-black text-lg transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]"
+          :class="{
+            'bg-indigo-600 hover:bg-indigo-700': form.cliente_nombre && form.telefono_numero && form.pais_prefijo && !sending,
+            'bg-gray-600 cursor-not-allowed opacity-50': !form.cliente_nombre || !form.telefono_numero || !form.pais_prefijo || sending
+          }"
         >
           {{ sending ? ($t ? $t('reserva.reservando') : 'Reservando...') : ($t ? $t('reserva.confirmar_reserva') : '✅ Confirmar Cita') }}
         </button>
