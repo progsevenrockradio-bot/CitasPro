@@ -297,7 +297,7 @@
           </div>
 
           <!-- Historia Clínica Dinámica -->
-          <div v-if="clinicalTemplate && requiereHistorial" class="mt-4">
+          <div v-if="clinicalTemplate && requiereHistorial" class="mt-4" ref="clinicalFormSection">
             <ClinicalForm 
               :fields="clinicalTemplate"
               v-model="form.respuestas_clinicas"
@@ -353,6 +353,7 @@ const step2 = ref(null);
 const step3 = ref(null);
 const step4 = ref(null);
 const slotsContainer = ref(null);
+const clinicalFormSection = ref(null);
 
 const scrollToElement = (el) => {
   if (el) {
@@ -466,6 +467,13 @@ watch(() => form.value.hora, async (newVal) => {
   if (newVal) {
     await nextTick();
     scrollToElement(step4.value);
+  }
+});
+
+watch(requiereHistorial, async (newVal) => {
+  if (newVal) {
+    await nextTick();
+    scrollToElement(clinicalFormSection.value);
   }
 });
 
