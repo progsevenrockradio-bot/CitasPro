@@ -315,6 +315,7 @@ class ReservaPublicaController extends Controller
                     'moneda'         => $servicio->moneda ?? 'EUR',
                     'canal'          => 'web',
                     'notas_cliente'  => $validated['notas_cliente'] ?? null,
+                    'type'           => $negocio->tipo_clinica ?? 'general',
                 ]);
 
                 // Guardar historia clínica si corresponde

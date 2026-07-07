@@ -66,6 +66,7 @@ class ReservaController extends Controller
             'duracion_min' => $servicio->duracion_min,
             'estado' => 'confirmada', // Como es MVP asumimos que se confirma de una
             'precio_total' => $servicio->precio,
+            'type' => $servicio->negocio?->tipo_clinica ?? 'general',
         ]);
 
         // Disparar evento para notificar al profesional por Telegram y al cliente
