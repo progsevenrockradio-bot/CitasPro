@@ -179,12 +179,26 @@
                 Este paciente no tiene registros de historia clínica guardados en este negocio.
               </div>
               <div v-else class="space-y-6">
-                <div v-for="entry in historialClinico" :key="entry.id" class="bg-black/30 border border-border/50 rounded-2xl p-6 space-y-4">
+                <div 
+                  v-for="entry in historialClinico" 
+                  :key="entry.id" 
+                  :class="[
+                    'bg-black/30 border border-border/50 rounded-2xl p-6 space-y-4',
+                    printingEntryId === entry.id ? 'print-area' : ''
+                  ]"
+                >
                   <div class="flex justify-between items-center border-b border-border/30 pb-3">
                     <div>
                       <h4 class="font-bold text-white text-md">{{ entry.plantilla?.nombre || 'Historia Clínica' }}</h4>
                       <p class="text-xs text-text-muted mt-0.5">Fecha de registro: {{ formatCitaDate(entry.created_at) }}</p>
                     </div>
+                    <button 
+                      @click="imprimirRegistro(entry.id)"
+                      class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-border text-xs font-semibold text-text-muted hover:text-white hover:bg-white/10 transition-colors no-print"
+                    >
+                      <Printer class="w-3.5 h-3.5 text-primary" />
+                      Imprimir / PDF
+                    </button>
                   </div>
                   
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -205,9 +219,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, Loader2, Phone, Mail, Activity, AlertTriangle, FileText, Save, CheckCircle2, Calendar } from 'lucide-vue-next';
+import { ArrowLeft, Loader2, Phone, Mail, Activity, AlertTriangle, FileText, Save, CheckCircle2, Calendar, Printer } from 'lucide-vue-next';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -228,6 +242,16 @@ const activeTab = ref('clinica');
 
 const savingFicha = ref(false);
 const successMsg = ref('');
+const printingEntryId = ref(null);
+
+const imprimirRegistro = (id) => {
+  printingEntryId.value = id;
+  nextTick(() => {
+    window.print();
+    printingEntryId.value = null;
+  });
+};
+
 const ficha = ref({
   condiciones_medicas: '',
   notas_privadas: ''
@@ -334,3 +358,51 @@ onMounted(() => {
   cargarDatos();
 });
 </script>
+
+<style>
+@media print {
+  /* Habilitar fondos y colores exactos en la impresión */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Ocultar absolutamente todo */
+  body, #app, #app * {
+    visibility: hidden !important;
+  }
+
+  /* Hacer visible la ficha a imprimir y sus hijos */
+  .print-area, .print-area * {
+    visibility: visible !important;
+  }
+
+  /* Posicionar el área de impresión para que ocupe toda la página */
+  .print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background-color: white !important;
+    color: black !important;
+    padding: 20px !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Forzar que los textos dentro de la ficha sean oscuros sobre fondo claro */
+  .print-area span,
+  .print-area p,
+  .print-area h4,
+  .print-area h3,
+  .print-area div {
+    color: #111827 !important; /* text-gray-900 */
+  }
+
+  /* Ocultar botones de impresión al imprimir */
+  .print-area .no-print,
+  .print-area button {
+    display: none !important;
+  }
+}
+</style>
