@@ -120,7 +120,18 @@
       </div>
     </div>
     
-    <!-- Modal -->
+    <!-- Modal Confirmación Cancelación -->
+    <ConfirmModal 
+      v-model:show="showCancelModal"
+      :title="$t('agenda.cancelar_cita')"
+      :message="$t('agenda.confirmar_cancelar')"
+      type="danger"
+      :confirm-text="$t('acciones.si_eliminar')"
+      :cancel-text="$t('acciones.cancelar')"
+      @confirm="executeCancelarCita"
+    />
+
+    <!-- Modal Nueva Cita -->
     <NuevaCitaModal 
       :show="showNuevaCita" 
       :type="type"
@@ -135,6 +146,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { Calendar as CalendarIcon, Loader2, X, Check, CheckCircle, Plus } from 'lucide-vue-next';
 import axios from 'axios';
 import NuevaCitaModal from '../Dashboard/Modals/NuevaCitaModal.vue';
+import ConfirmModal from '../Components/ConfirmModal.vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -181,6 +193,8 @@ const agenda = ref([]);
 const loadingMetrics = ref(true);
 const loadingAgenda = ref(true);
 const showNuevaCita = ref(false);
+const showCancelModal = ref(false);
+const citaToCancel = ref(null);
 
 const cambiarEstado = async (id, estado) => {
   try {
@@ -223,15 +237,23 @@ const fetchAgenda = async () => {
   }
 };
 
-const cancelarCita = async (id) => {
-  if (!confirm(t('agenda.confirmar_cancelar'))) return;
+const cancelarCita = (id) => {
+  citaToCancel.value = id;
+  showCancelModal.value = true;
+};
+
+const executeCancelarCita = async () => {
+  if (!citaToCancel.value) return;
+  const id = citaToCancel.value;
   
   try {
     await axios.delete(`/api/citas/${props.type}/${id}`);
     fetchAgenda();
     fetchMetrics();
+    citaToCancel.value = null;
   } catch (error) {
     console.error("Error al cancelar cita", error);
+    // TODO: Considerar usar un componente de Toast o Notificación en lugar de alert
     alert(t('agenda.error_cancelar'));
   }
 };

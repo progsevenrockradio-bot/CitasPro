@@ -32,6 +32,9 @@
         <router-link to="/panel/clientes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
           <Users class="w-5 h-5" /> {{ areaSeleccionada === 'pro' ? $t('sidebar.clientes') : 'Pacientes' }}
         </router-link>
+        <router-link to="/panel/pagos" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+          <CreditCard class="w-5 h-5" /> Historial de Pagos
+        </router-link>
         
         <div class="pt-6 pb-2 px-4">
           <p class="text-xs font-bold text-text-muted tracking-wider mb-3 px-4">CONFIGURACIÓN</p>
@@ -48,6 +51,9 @@
         </router-link>
         <router-link to="/panel/configuracion/whatsapp" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
           <MessageCircle class="w-5 h-5" /> WhatsApp QR
+        </router-link>
+        <router-link to="/panel/configuracion/horarios" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+          <Clock class="w-5 h-5" /> Mi Horario y Calendario
         </router-link>
       </nav>
 
@@ -114,7 +120,7 @@
 </template>
 
 <script setup>
-import { Calendar, Users, MessageCircle, LogOut, Settings, Scissors, Briefcase } from 'lucide-vue-next';
+import { Calendar, Users, MessageCircle, LogOut, Settings, Scissors, Briefcase, Clock, CreditCard } from 'lucide-vue-next';
 import { useRouter, useRoute } from 'vue-router';
 import { ref, onMounted, computed, watch } from 'vue';
 import axios from 'axios';

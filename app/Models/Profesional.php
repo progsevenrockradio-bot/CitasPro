@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 use Laravel\Sanctum\HasApiTokens;
 
 class Profesional extends Authenticatable
@@ -38,6 +39,8 @@ class Profesional extends Authenticatable
         'notificaciones_telegram',
         'notificaciones_whatsapp',
         'type',
+        'google_calendar_token',
+        'google_calendar_id',
     ];
 
     protected $hidden = [
@@ -87,27 +90,27 @@ class Profesional extends Authenticatable
 
     // ─── Scopes ────────────────────────────────────────────────
 
-    public function scopeGeneral($query)
+    public function scopeGeneral(Builder $query)
     {
         return $query->where('type', 'general');
     }
 
-    public function scopeMedical($query)
+    public function scopeMedical(Builder $query)
     {
         return $query->where('type', 'medical');
     }
 
-    public function scopeDental($query)
+    public function scopeDental(Builder $query)
     {
         return $query->where('type', 'dental');
     }
 
-    public function scopeActivo($query)
+    public function scopeActivo(Builder $query)
     {
         return $query->where('activo', true);
     }
 
-    public function scopeAceptaOnline($query)
+    public function scopeAceptaOnline(Builder $query)
     {
         return $query->where('aceptar_online', true);
     }

@@ -36,6 +36,11 @@ const routes = [
         component: () => import('../Pages/Dashboard/Clientes/FichaCliente.vue')
       },
       {
+        path: 'pagos',
+        name: 'HistorialPagos',
+        component: () => import('../Pages/Dashboard/Pagos/ListadoPagos.vue')
+      },
+      {
         path: 'configuracion/negocio',
         name: 'ConfiguracionNegocio',
         component: () => import('../Pages/Dashboard/Configuracion/NegocioConfig.vue')
@@ -54,6 +59,11 @@ const routes = [
         path: 'configuracion/whatsapp',
         name: 'WhatsAppQR',
         component: () => import('../Pages/Dashboard/Configuracion/WhatsAppQR.vue')
+      },
+      {
+        path: 'configuracion/horarios',
+        name: 'ConfiguracionHorarios',
+        component: () => import('../Pages/Dashboard/Configuracion/HorariosConfig.vue')
       }
     ]
   },

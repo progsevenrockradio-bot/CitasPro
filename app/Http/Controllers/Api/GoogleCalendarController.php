@@ -49,8 +49,8 @@ class GoogleCalendarController extends Controller
         $code = $request->input('code');
         $state = $request->input('state');
 
-        // URL del dashboard frontend
-        $frontendUrl = config('app.url') . '/dashboard';
+        // URL del panel de configuración de negocio en la SPA
+        $frontendUrl = config('app.url') . '/panel/configuracion/negocio';
 
         if (!$code || !$state) {
             Log::warning("GoogleCalendarController: Callback sin código o estado.");
@@ -69,6 +69,35 @@ class GoogleCalendarController extends Controller
         } catch (\Exception $e) {
             Log::error("GoogleCalendarController: Error en callback de Google: " . $e->getMessage());
             return redirect($frontendUrl . '?google_error=' . urlencode($e->getMessage()));
+        }
+    }
+
+    /**
+     * Desconecta Google Calendar eliminando los tokens guardados.
+     */
+    public function disconnect(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user instanceof Profesional) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
+        try {
+            $user->update([
+                'google_calendar_token' => null,
+                'google_calendar_id' => 'primary'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Google Calendar desconectado con éxito.'
+            ]);
+        } catch (\Exception $e) {
+            Log::error("GoogleCalendarController: Error al desconectar: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo desconectar el calendario.'
+            ], 500);
         }
     }
 }

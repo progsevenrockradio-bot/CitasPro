@@ -318,6 +318,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/resenas', [ResenaController::class, 'store'])->name('resenas.store');
 
         // ── Pagos
+        Route::get('/pagos', [PagoController::class, 'index'])->name('pagos.index');
         Route::post('/pagos/procesar', [PagoController::class, 'procesar'])->name('pagos.procesar');
 
         // ── Gestión de Citas del Profesional (General)
@@ -383,6 +384,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
             // Google Calendar OAuth
             Route::get('/google/redirect', [GoogleCalendarController::class, 'redirect'])->name('google.redirect');
+            Route::delete('/google/disconnect', [GoogleCalendarController::class, 'disconnect'])->name('google.disconnect');
         });
 
     });

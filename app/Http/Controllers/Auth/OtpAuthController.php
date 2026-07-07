@@ -109,8 +109,8 @@ class OtpAuthController extends Controller
             // Si el login fue con teléfono pero el canal es email, intentamos buscar su email
             if (empty($destinatario) && $request->telefono) {
                 $tel = $this->normalizarTelefono($request->telefono);
-                $destinatario = \App\Models\Profesional::where('telefono', $tel)->value('email')
-                             ?? \App\Models\Cliente::where('telefono', $tel)->value('email');
+                $destinatario = Profesional::where('telefono', $tel)->value('email')
+                             ?? Cliente::where('telefono', $tel)->value('email');
             }
             // Fallback en caso extremo
             if (empty($destinatario)) {
@@ -600,6 +600,7 @@ class OtpAuthController extends Controller
                     'type'              => $user->type,
                     'telegram_chat_id'  => $user->telegram_chat_id,
                     'telegram_bot_username' => config('services.telegram.bot_username', 'CitasProAlertsBot'),
+                    'google_calendar_connected' => !empty($user->google_calendar_token),
                     'created_at'        => $user->created_at->toIso8601String(),
                 ],
             ], 200);

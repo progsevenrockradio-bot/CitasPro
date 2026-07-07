@@ -17,3 +17,4 @@
 
 ## Diseño UI / Frontend
 - **Desplegables (Selects):** NUNCA usar etiquetas `<select>` nativas de HTML en el proyecto Vue. Se debe usar SIEMPRE el componente `CustomSelect.vue` (ubicado en `resources/js/Pages/Components/CustomSelect.vue`) para mantener la coherencia del diseño en modo oscuro. Si un formulario requiere un select, hay que importar e implementar este componente en su lugar.
+- **Ventanas Emergentes (Modals):** NUNCA usar funciones nativas del navegador como `window.confirm()` o `window.alert()` para notificaciones o confirmaciones (por ejemplo, al eliminar una cita). Se debe usar SIEMPRE el componente `ConfirmModal.vue` (ubicado en `resources/js/Pages/Components/ConfirmModal.vue`) o componentes equivalentes de Vue para mantener la coherencia del diseño oscuro y evitar que las ventanas desentonen.

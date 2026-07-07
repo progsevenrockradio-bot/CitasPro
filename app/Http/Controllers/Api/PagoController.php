@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Cita;
 use App\Models\Pago;
+use App\Models\Profesional;
 use App\Services\StripeService;
 use App\Services\MercadoPagoService;
 use App\Services\RedsysService;
@@ -14,6 +15,24 @@ use Illuminate\Support\Facades\Log;
 
 class PagoController extends Controller
 {
+    public function index(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user instanceof Profesional) {
+            return response()->json(['message' => 'Solo profesionales pueden ver el historial de pagos.'], 403);
+        }
+
+        $pagos = Pago::with(['cliente:id,nombre,apellido,telefono', 'cita:id,servicio_id,fecha,hora_inicio', 'cita.servicio:id,nombre'])
+            ->where('negocio_id', $user->negocio_id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        return response()->json([
+            'success' => true,
+            'pagos' => $pagos
+        ]);
+    }
+
     /**
      * Procesa la intención de pago para una cita.
      * Permite pagar con "efectivo", "stripe", "mercadopago", "redsys", "bizum".

@@ -1,313 +1,371 @@
 {
-  "_BaseAgenda-h7vZhviL.js": {
-    "file": "assets/BaseAgenda-h7vZhviL.js",
+  "_BaseAgenda-KXVXoCN9.js": {
+    "file": "assets/BaseAgenda-KXVXoCN9.js",
     "name": "BaseAgenda",
     "imports": [
       "resources/js/app.js",
-      "_CustomSelect-BmVECjO1.js",
-      "_x-DVaHS_sn.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_calendar-DIi2uc1c.js",
-      "_createLucideIcon-cx0fuFLr.js",
-      "_circle-check-big-BsCNFtru.js"
+      "_CustomSelect-p0OdzsTT.js",
+      "_x-B6kdJSS8.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_ConfirmModal-Cn4_s364.js",
+      "_calendar-CFQ395H8.js",
+      "_createLucideIcon-BmQcQw9_.js",
+      "_circle-check-big-DFc7B4xC.js"
     ]
   },
-  "_CustomSelect-BmVECjO1.js": {
-    "file": "assets/CustomSelect-BmVECjO1.js",
+  "_ConfirmModal-!~{00u}~.js": {
+    "file": "assets/ConfirmModal-DUh_8V27.css",
+    "src": "_ConfirmModal-!~{00u}~.js"
+  },
+  "_ConfirmModal-Cn4_s364.js": {
+    "file": "assets/ConfirmModal-Cn4_s364.js",
+    "name": "ConfirmModal",
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/ConfirmModal-DUh_8V27.css"
+    ]
+  },
+  "_CustomSelect-p0OdzsTT.js": {
+    "file": "assets/CustomSelect-p0OdzsTT.js",
     "name": "CustomSelect",
     "imports": [
       "resources/js/app.js",
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
-  "_LanguageSwitcher-Byekk5dV.js": {
-    "file": "assets/LanguageSwitcher-Byekk5dV.js",
+  "_LanguageSwitcher-Clsq65Hz.js": {
+    "file": "assets/LanguageSwitcher-Clsq65Hz.js",
     "name": "LanguageSwitcher",
     "imports": [
       "resources/js/app.js"
     ]
   },
-  "_calendar-DIi2uc1c.js": {
-    "file": "assets/calendar-DIi2uc1c.js",
+  "_calendar-CFQ395H8.js": {
+    "file": "assets/calendar-CFQ395H8.js",
     "name": "calendar",
     "imports": [
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
-  "_circle-check-big-BsCNFtru.js": {
-    "file": "assets/circle-check-big-BsCNFtru.js",
+  "_circle-alert-DDND5z6T.js": {
+    "file": "assets/circle-alert-DDND5z6T.js",
+    "name": "circle-alert",
+    "imports": [
+      "_createLucideIcon-BmQcQw9_.js"
+    ]
+  },
+  "_circle-check-big-DFc7B4xC.js": {
+    "file": "assets/circle-check-big-DFc7B4xC.js",
     "name": "circle-check-big",
     "imports": [
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
-  "_createLucideIcon-cx0fuFLr.js": {
-    "file": "assets/createLucideIcon-cx0fuFLr.js",
+  "_createLucideIcon-BmQcQw9_.js": {
+    "file": "assets/createLucideIcon-BmQcQw9_.js",
     "name": "createLucideIcon",
     "imports": [
       "resources/js/app.js"
     ]
   },
-  "_loader-circle-l_FS1bIL.js": {
-    "file": "assets/loader-circle-l_FS1bIL.js",
+  "_es-8Z2T4-O1.js": {
+    "file": "assets/es-8Z2T4-O1.js",
+    "name": "es"
+  },
+  "_loader-circle-sNWcbJTG.js": {
+    "file": "assets/loader-circle-sNWcbJTG.js",
     "name": "loader-circle",
     "imports": [
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
-  "_message-circle-DjVkMU5C.js": {
-    "file": "assets/message-circle-DjVkMU5C.js",
+  "_message-circle-BIrSM30O.js": {
+    "file": "assets/message-circle-BIrSM30O.js",
     "name": "message-circle",
     "imports": [
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
-  "_pen-lNjaJeeZ.js": {
-    "file": "assets/pen-lNjaJeeZ.js",
+  "_pen-DvZlxB9a.js": {
+    "file": "assets/pen-DvZlxB9a.js",
     "name": "pen",
     "imports": [
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
-  "_phone-nVcy8b65.js": {
-    "file": "assets/phone-nVcy8b65.js",
+  "_phone-KILOmz2I.js": {
+    "file": "assets/phone-KILOmz2I.js",
     "name": "phone",
     "imports": [
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
-  "_save-CXR_084s.js": {
-    "file": "assets/save-CXR_084s.js",
+  "_save-BKdMvriJ.js": {
+    "file": "assets/save-BKdMvriJ.js",
     "name": "save",
     "imports": [
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
-  "_scissors-Xoc_t7Jk.js": {
-    "file": "assets/scissors-Xoc_t7Jk.js",
+  "_scissors-BsB0XSji.js": {
+    "file": "assets/scissors-BsB0XSji.js",
     "name": "scissors",
     "imports": [
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
-  "_trash-2-DEW3k1Ks.js": {
-    "file": "assets/trash-2-DEW3k1Ks.js",
+  "_trash-2-BRd7GU8E.js": {
+    "file": "assets/trash-2-BRd7GU8E.js",
     "name": "trash-2",
     "imports": [
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
-  "_users-CF_6_KrI.js": {
-    "file": "assets/users-CF_6_KrI.js",
+  "_users-DxKZYcN9.js": {
+    "file": "assets/users-DxKZYcN9.js",
     "name": "users",
     "imports": [
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
-  "_x-DVaHS_sn.js": {
-    "file": "assets/x-DVaHS_sn.js",
+  "_x-B6kdJSS8.js": {
+    "file": "assets/x-B6kdJSS8.js",
     "name": "x",
     "imports": [
-      "_createLucideIcon-cx0fuFLr.js"
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-B33ZAZ7k.css",
+    "file": "assets/app-D6U2QRq9.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/Pages/Appointments/Dental/AgendaDental.vue": {
-    "file": "assets/AgendaDental-BrKqCyx6.js",
+    "file": "assets/AgendaDental-KyBl9P2L.js",
     "name": "AgendaDental",
     "src": "resources/js/Pages/Appointments/Dental/AgendaDental.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_BaseAgenda-h7vZhviL.js",
-      "_CustomSelect-BmVECjO1.js",
-      "_createLucideIcon-cx0fuFLr.js",
-      "_x-DVaHS_sn.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_calendar-DIi2uc1c.js",
-      "_circle-check-big-BsCNFtru.js"
+      "_BaseAgenda-KXVXoCN9.js",
+      "_CustomSelect-p0OdzsTT.js",
+      "_createLucideIcon-BmQcQw9_.js",
+      "_x-B6kdJSS8.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_ConfirmModal-Cn4_s364.js",
+      "_calendar-CFQ395H8.js",
+      "_circle-check-big-DFc7B4xC.js"
     ]
   },
   "resources/js/Pages/Appointments/Medical/AgendaMedical.vue": {
-    "file": "assets/AgendaMedical-DREGniZh.js",
+    "file": "assets/AgendaMedical-Cms-5W6q.js",
     "name": "AgendaMedical",
     "src": "resources/js/Pages/Appointments/Medical/AgendaMedical.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_BaseAgenda-h7vZhviL.js",
-      "_CustomSelect-BmVECjO1.js",
-      "_createLucideIcon-cx0fuFLr.js",
-      "_x-DVaHS_sn.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_calendar-DIi2uc1c.js",
-      "_circle-check-big-BsCNFtru.js"
+      "_BaseAgenda-KXVXoCN9.js",
+      "_CustomSelect-p0OdzsTT.js",
+      "_createLucideIcon-BmQcQw9_.js",
+      "_x-B6kdJSS8.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_ConfirmModal-Cn4_s364.js",
+      "_calendar-CFQ395H8.js",
+      "_circle-check-big-DFc7B4xC.js"
     ]
   },
   "resources/js/Pages/Appointments/Pro/AgendaPro.vue": {
-    "file": "assets/AgendaPro-Dqs3zVs2.js",
+    "file": "assets/AgendaPro-BnSyNT3h.js",
     "name": "AgendaPro",
     "src": "resources/js/Pages/Appointments/Pro/AgendaPro.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_BaseAgenda-h7vZhviL.js",
-      "_CustomSelect-BmVECjO1.js",
-      "_createLucideIcon-cx0fuFLr.js",
-      "_x-DVaHS_sn.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_calendar-DIi2uc1c.js",
-      "_circle-check-big-BsCNFtru.js"
+      "_BaseAgenda-KXVXoCN9.js",
+      "_CustomSelect-p0OdzsTT.js",
+      "_createLucideIcon-BmQcQw9_.js",
+      "_x-B6kdJSS8.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_ConfirmModal-Cn4_s364.js",
+      "_calendar-CFQ395H8.js",
+      "_circle-check-big-DFc7B4xC.js"
     ]
   },
   "resources/js/Pages/Auth/Login.vue": {
-    "file": "assets/Login-C0_XY59n.js",
+    "file": "assets/Login-C1TpBHvJ.js",
     "name": "Login",
     "src": "resources/js/Pages/Auth/Login.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_LanguageSwitcher-Byekk5dV.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_createLucideIcon-cx0fuFLr.js"
+      "_LanguageSwitcher-Clsq65Hz.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
   "resources/js/Pages/Auth/Registro.vue": {
-    "file": "assets/Registro-3h9b9ovu.js",
+    "file": "assets/Registro-DCp4Djg1.js",
     "name": "Registro",
     "src": "resources/js/Pages/Auth/Registro.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_CustomSelect-BmVECjO1.js",
-      "_LanguageSwitcher-Byekk5dV.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_createLucideIcon-cx0fuFLr.js"
+      "_CustomSelect-p0OdzsTT.js",
+      "_LanguageSwitcher-Clsq65Hz.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
   "resources/js/Pages/Dashboard/Agenda.vue": {
-    "file": "assets/Agenda-DGvVvU-e.js",
+    "file": "assets/Agenda-DP5amQU9.js",
     "name": "Agenda",
     "src": "resources/js/Pages/Dashboard/Agenda.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_BaseAgenda-h7vZhviL.js",
-      "_CustomSelect-BmVECjO1.js",
-      "_createLucideIcon-cx0fuFLr.js",
-      "_x-DVaHS_sn.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_calendar-DIi2uc1c.js",
-      "_circle-check-big-BsCNFtru.js"
+      "_BaseAgenda-KXVXoCN9.js",
+      "_CustomSelect-p0OdzsTT.js",
+      "_createLucideIcon-BmQcQw9_.js",
+      "_x-B6kdJSS8.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_ConfirmModal-Cn4_s364.js",
+      "_calendar-CFQ395H8.js",
+      "_circle-check-big-DFc7B4xC.js"
     ]
   },
   "resources/js/Pages/Dashboard/Clientes/DirectorioClientes.vue": {
-    "file": "assets/DirectorioClientes-DGnaSRKH.js",
+    "file": "assets/DirectorioClientes-w8419khP.js",
     "name": "DirectorioClientes",
     "src": "resources/js/Pages/Dashboard/Clientes/DirectorioClientes.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_createLucideIcon-cx0fuFLr.js",
-      "_users-CF_6_KrI.js"
+      "_loader-circle-sNWcbJTG.js",
+      "_createLucideIcon-BmQcQw9_.js",
+      "_users-DxKZYcN9.js"
     ]
   },
   "resources/js/Pages/Dashboard/Clientes/FichaCliente.vue": {
-    "file": "assets/FichaCliente-Bb5MbTu_.js",
+    "file": "assets/FichaCliente-Bc5oPPiT.js",
     "name": "FichaCliente",
     "src": "resources/js/Pages/Dashboard/Clientes/FichaCliente.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_createLucideIcon-cx0fuFLr.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_phone-nVcy8b65.js",
-      "_save-CXR_084s.js",
-      "_calendar-DIi2uc1c.js"
+      "_createLucideIcon-BmQcQw9_.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_phone-KILOmz2I.js",
+      "_save-BKdMvriJ.js",
+      "_es-8Z2T4-O1.js",
+      "_calendar-CFQ395H8.js"
+    ]
+  },
+  "resources/js/Pages/Dashboard/Configuracion/HorariosConfig.vue": {
+    "file": "assets/HorariosConfig-jDf4jGN-.js",
+    "name": "HorariosConfig",
+    "src": "resources/js/Pages/Dashboard/Configuracion/HorariosConfig.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_save-BKdMvriJ.js",
+      "_circle-check-big-DFc7B4xC.js",
+      "_circle-alert-DDND5z6T.js",
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
   "resources/js/Pages/Dashboard/Configuracion/NegocioConfig.vue": {
-    "file": "assets/NegocioConfig-mu32-Lv-.js",
+    "file": "assets/NegocioConfig-CBN8m6M6.js",
     "name": "NegocioConfig",
     "src": "resources/js/Pages/Dashboard/Configuracion/NegocioConfig.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_CustomSelect-BmVECjO1.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_save-CXR_084s.js",
-      "_circle-check-big-BsCNFtru.js",
-      "_createLucideIcon-cx0fuFLr.js",
-      "_x-DVaHS_sn.js",
-      "_trash-2-DEW3k1Ks.js"
+      "_CustomSelect-p0OdzsTT.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_save-BKdMvriJ.js",
+      "_circle-check-big-DFc7B4xC.js",
+      "_circle-alert-DDND5z6T.js",
+      "_createLucideIcon-BmQcQw9_.js",
+      "_x-B6kdJSS8.js",
+      "_trash-2-BRd7GU8E.js"
     ]
   },
   "resources/js/Pages/Dashboard/Configuracion/ProfesionalesConfig.vue": {
-    "file": "assets/ProfesionalesConfig-8KMpHGN1.js",
+    "file": "assets/ProfesionalesConfig-Cfhn57JH.js",
     "name": "ProfesionalesConfig",
     "src": "resources/js/Pages/Dashboard/Configuracion/ProfesionalesConfig.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_x-DVaHS_sn.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_users-CF_6_KrI.js",
-      "_trash-2-DEW3k1Ks.js",
-      "_pen-lNjaJeeZ.js",
-      "_phone-nVcy8b65.js",
-      "_createLucideIcon-cx0fuFLr.js"
+      "_x-B6kdJSS8.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_users-DxKZYcN9.js",
+      "_trash-2-BRd7GU8E.js",
+      "_pen-DvZlxB9a.js",
+      "_phone-KILOmz2I.js",
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
   "resources/js/Pages/Dashboard/Configuracion/ServiciosConfig.vue": {
-    "file": "assets/ServiciosConfig-CMUkORa9.js",
+    "file": "assets/ServiciosConfig-DiJXMLFV.js",
     "name": "ServiciosConfig",
     "src": "resources/js/Pages/Dashboard/Configuracion/ServiciosConfig.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_x-DVaHS_sn.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_scissors-Xoc_t7Jk.js",
-      "_trash-2-DEW3k1Ks.js",
-      "_pen-lNjaJeeZ.js",
-      "_createLucideIcon-cx0fuFLr.js"
+      "_x-B6kdJSS8.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_scissors-BsB0XSji.js",
+      "_trash-2-BRd7GU8E.js",
+      "_pen-DvZlxB9a.js",
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
   "resources/js/Pages/Dashboard/Configuracion/WhatsAppQR.vue": {
-    "file": "assets/WhatsAppQR-OTzSehN9.js",
+    "file": "assets/WhatsAppQR-C928Us2z.js",
     "name": "WhatsAppQR",
     "src": "resources/js/Pages/Dashboard/Configuracion/WhatsAppQR.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_loader-circle-l_FS1bIL.js",
-      "_message-circle-DjVkMU5C.js",
-      "_createLucideIcon-cx0fuFLr.js"
+      "_loader-circle-sNWcbJTG.js",
+      "_message-circle-BIrSM30O.js",
+      "_createLucideIcon-BmQcQw9_.js"
+    ]
+  },
+  "resources/js/Pages/Dashboard/Pagos/ListadoPagos.vue": {
+    "file": "assets/ListadoPagos-DjPHR4FN.js",
+    "name": "ListadoPagos",
+    "src": "resources/js/Pages/Dashboard/Pagos/ListadoPagos.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_loader-circle-sNWcbJTG.js",
+      "_es-8Z2T4-O1.js",
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
   "resources/js/Pages/Layouts/DashboardLayout.vue": {
-    "file": "assets/DashboardLayout-CvF6fsle.js",
+    "file": "assets/DashboardLayout-Cs7-_jE8.js",
     "name": "DashboardLayout",
     "src": "resources/js/Pages/Layouts/DashboardLayout.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_LanguageSwitcher-Byekk5dV.js",
-      "_CustomSelect-BmVECjO1.js",
-      "_createLucideIcon-cx0fuFLr.js",
-      "_calendar-DIi2uc1c.js",
-      "_users-CF_6_KrI.js",
-      "_scissors-Xoc_t7Jk.js",
-      "_message-circle-DjVkMU5C.js"
+      "_LanguageSwitcher-Clsq65Hz.js",
+      "_CustomSelect-p0OdzsTT.js",
+      "_createLucideIcon-BmQcQw9_.js",
+      "_calendar-CFQ395H8.js",
+      "_users-DxKZYcN9.js",
+      "_scissors-BsB0XSji.js",
+      "_message-circle-BIrSM30O.js"
     ]
   },
   "resources/js/Pages/Public/Directorio.vue": {
-    "file": "assets/Directorio-NwKZiWp5.js",
+    "file": "assets/Directorio-BTW7SOfl.js",
     "name": "Directorio",
     "src": "resources/js/Pages/Public/Directorio.vue",
     "isDynamicEntry": true,
@@ -316,22 +374,20 @@
     ]
   },
   "resources/js/Pages/Public/ReservaPublica.vue": {
-    "file": "assets/ReservaPublica-DfIyz0jV.js",
+    "file": "assets/ReservaPublica-Yk4VI8wQ.js",
     "name": "ReservaPublica",
     "src": "resources/js/Pages/Public/ReservaPublica.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_LanguageSwitcher-Byekk5dV.js",
-      "_CustomSelect-BmVECjO1.js",
-      "_createLucideIcon-cx0fuFLr.js"
-    ],
-    "css": [
-      "assets/ReservaPublica-DUh_8V27.css"
+      "_LanguageSwitcher-Clsq65Hz.js",
+      "_CustomSelect-p0OdzsTT.js",
+      "_ConfirmModal-Cn4_s364.js",
+      "_createLucideIcon-BmQcQw9_.js"
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-Dk5N9L-y.js",
+    "file": "assets/app-Bp_i5NxM.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -343,10 +399,12 @@
       "resources/js/Pages/Appointments/Dental/AgendaDental.vue",
       "resources/js/Pages/Dashboard/Clientes/DirectorioClientes.vue",
       "resources/js/Pages/Dashboard/Clientes/FichaCliente.vue",
+      "resources/js/Pages/Dashboard/Pagos/ListadoPagos.vue",
       "resources/js/Pages/Dashboard/Configuracion/NegocioConfig.vue",
       "resources/js/Pages/Dashboard/Configuracion/ServiciosConfig.vue",
       "resources/js/Pages/Dashboard/Configuracion/ProfesionalesConfig.vue",
       "resources/js/Pages/Dashboard/Configuracion/WhatsAppQR.vue",
+      "resources/js/Pages/Dashboard/Configuracion/HorariosConfig.vue",
       "resources/js/Pages/Auth/Login.vue",
       "resources/js/Pages/Auth/Registro.vue",
       "resources/js/Pages/Public/Directorio.vue",
