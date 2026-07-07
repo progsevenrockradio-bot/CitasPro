@@ -278,6 +278,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/agenda', [DashboardController::class, 'agenda'])->name('agenda');
             Route::get('/resumen-rapido', [DashboardController::class, 'resumenRapido'])->name('resumen.rapido');
             Route::patch('/citas/{id}/estado', [DashboardController::class, 'actualizarEstadoCita'])->name('citas.estado.actualizar');
+            
+            // Exportación y envío de listados
+            Route::get('/citas/export-pdf', [\App\Http\Controllers\Api\ExportController::class, 'exportarCitasPdf'])->name('citas.export.pdf');
+            Route::post('/citas/send-email', [\App\Http\Controllers\Api\ExportController::class, 'enviarCitasEmail'])->name('citas.send.email');
         });
 
         // ── Gestión de Portafolio

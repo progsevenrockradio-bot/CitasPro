@@ -35,6 +35,7 @@ class PlantillaHistoriaClinicaSeeder extends Seeder
             // ── Sección: Examen Físico ──
             ['section' => 'Examen Físico', 'key' => 'examen_cabeza',          'label' => 'Cabeza',          'type' => 'textarea', 'required' => false],
             ['section' => 'Examen Físico', 'key' => 'examen_torax',           'label' => 'Tórax',           'type' => 'textarea', 'required' => false],
+            ['section' => 'Examen Físico', 'key' => 'examen_mamas',           'label' => 'Examen de Glándulas Mamarias', 'type' => 'esquema_mamario', 'required' => false],
             ['section' => 'Examen Físico', 'key' => 'examen_abdomen',         'label' => 'Abdomen',         'type' => 'textarea', 'required' => false],
             ['section' => 'Examen Físico', 'key' => 'examen_extremidades',    'label' => 'Extremidades',    'type' => 'textarea', 'required' => false],
             ['section' => 'Examen Físico', 'key' => 'signos_vitales',         'label' => 'Signos Vitales',  'type' => 'text',     'required' => false, 'placeholder' => 'TA: PA: FC: FR:'],
@@ -84,6 +85,7 @@ class PlantillaHistoriaClinicaSeeder extends Seeder
             ['section' => 'Patologías',       'key' => 'otras_condiciones',      'label' => 'Otras condiciones médicas',            'type' => 'textarea', 'required' => false],
 
             // ── Sección: Examen Clínico Bucal ──
+            ['section' => 'Examen Clínico Bucal', 'key' => 'estado_odontograma', 'label' => 'Odontograma',                         'type' => 'odontograma','required' => false],
             ['section' => 'Examen Clínico Bucal', 'key' => 'protesis_removible_sup', 'label' => 'Prótesis Removible Superior',     'type' => 'radio',    'required' => false, 'options' => ['Sí', 'No']],
             ['section' => 'Examen Clínico Bucal', 'key' => 'protesis_removible_inf', 'label' => 'Prótesis Removible Inferior',     'type' => 'radio',    'required' => false, 'options' => ['Sí', 'No']],
             ['section' => 'Examen Clínico Bucal', 'key' => 'protesis_fija_sup',      'label' => 'Prótesis Fija Superior',          'type' => 'radio',    'required' => false, 'options' => ['Sí', 'No']],

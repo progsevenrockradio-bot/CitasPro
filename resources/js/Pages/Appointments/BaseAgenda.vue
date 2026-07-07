@@ -40,7 +40,14 @@
 
     <!-- Calendar Area -->
     <div class="bg-bg-card border border-border rounded-2xl p-6 min-h-[500px]">
-      <h3 class="text-xl font-bold mb-6">{{ $t('agenda.proximos_7_dias') }}</h3>
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h3 class="text-xl font-bold">{{ $t('agenda.proximos_7_dias') }}</h3>
+        <ActionBar 
+          @print="imprimirAgenda"
+          @pdf="exportarPdf"
+          @email="showEmailModal = true"
+        />
+      </div>
       
       <div v-if="loadingAgenda" class="flex flex-col items-center justify-center h-64">
         <Loader2 :class="['w-12 h-12 animate-spin mb-4', theme.text]" />
@@ -107,6 +114,18 @@
                   <CheckCircle class="w-4 h-4" />
                 </button>
                 <button 
+                  @click="verHistoria(cita)"
+                  class="bg-purple-500 hover:bg-purple-600 text-white p-1.5 rounded-lg shadow"
+                  :title="$t('agenda.ver_historia') || 'Ver Historia Clínica'">
+                  <FileText class="w-4 h-4" />
+                </button>
+                <button 
+                  @click="editarCita(cita)"
+                  class="bg-orange-500 hover:bg-orange-600 text-white p-1.5 rounded-lg shadow"
+                  :title="$t('acciones.editar') || 'Editar Cita'">
+                  <Edit class="w-4 h-4" />
+                </button>
+                <button 
                   v-if="cita.estado !== 'cancelada' && cita.estado !== 'completada'"
                   @click="cancelarCita(cita.id)"
                   class="bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg shadow"
@@ -138,18 +157,39 @@
       @close="showNuevaCita = false" 
       @saved="onCitaSaved"
     />
+
+    <!-- Modal Editar Cita -->
+    <EditarCitaModal 
+      :show="showEditarCita" 
+      :type="type"
+      :cita="citaToEdit"
+      @close="showEditarCita = false" 
+      @saved="onCitaSaved"
+    />
+
+    <!-- Modal Correo Listado -->
+    <EmailListModal 
+      :show="showEmailModal" 
+      :type="type"
+      @close="showEmailModal = false" 
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
-import { Calendar as CalendarIcon, Loader2, X, Check, CheckCircle, Plus } from 'lucide-vue-next';
+import { Calendar as CalendarIcon, Loader2, X, Check, CheckCircle, Plus, Edit, FileText } from 'lucide-vue-next';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 import NuevaCitaModal from '../Dashboard/Modals/NuevaCitaModal.vue';
+import EditarCitaModal from '../Dashboard/Modals/EditarCitaModal.vue';
+import EmailListModal from '../Dashboard/Modals/EmailListModal.vue';
 import ConfirmModal from '../Components/ConfirmModal.vue';
+import ActionBar from '../Components/ActionBar.vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const router = useRouter();
 
 const props = defineProps({
   type: {
@@ -194,7 +234,29 @@ const loadingMetrics = ref(true);
 const loadingAgenda = ref(true);
 const showNuevaCita = ref(false);
 const showCancelModal = ref(false);
+const showEditarCita = ref(false);
+const showEmailModal = ref(false);
 const citaToCancel = ref(null);
+const citaToEdit = ref(null);
+
+const imprimirAgenda = () => {
+  window.print();
+};
+
+const exportarPdf = () => {
+  window.open(`/api/dashboard/citas/export-pdf?type=${props.type}`, '_blank');
+};
+
+const editarCita = (cita) => {
+  citaToEdit.value = cita;
+  showEditarCita.value = true;
+};
+
+const verHistoria = (cita) => {
+  if (cita.cliente?.id) {
+    router.push(`/panel/clientes/${cita.cliente.id}?tab=historia_clinica`);
+  }
+};
 
 const cambiarEstado = async (id, estado) => {
   try {
@@ -286,3 +348,20 @@ watch(() => props.type, () => {
   fetchAgenda();
 });
 </script>
+
+<style>
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body, #app {
+    background-color: white !important;
+    color: black !important;
+  }
+  .bg-bg-card {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+</style>

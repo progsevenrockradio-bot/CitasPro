@@ -204,7 +204,7 @@
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div v-for="(val, key) in entry.respuestas" :key="key" class="space-y-1">
                       <span class="text-xs text-text-muted font-semibold block capitalize">{{ formatLabel(key, entry.plantilla?.campos) }}</span>
-                      <span class="text-white">{{ formatValue(val) }}</span>
+                      <span class="text-white whitespace-pre-wrap text-sm block mt-1">{{ formatValue(val) }}</span>
                     </div>
                   </div>
                 </div>
@@ -351,11 +351,32 @@ const formatValue = (val) => {
   }
   if (val === true || val === 'true') return 'Sí';
   if (val === false || val === 'false') return 'No';
+  if (typeof val === 'object' && val !== null) {
+    let resumen = [];
+    for (const [key, data] of Object.entries(val)) {
+      if (typeof data === 'object' && data !== null) {
+        // Formateo para Mamas u Odontograma
+        const subData = Object.entries(data).map(([k, v]) => {
+          if (typeof v === 'object' && v !== null) {
+             return `${k.replace('_', ' ')}: ${v.tipo}` + (v.nota ? ` (${v.nota})` : '');
+          }
+          return `${k}: ${v}`;
+        }).join(', ');
+        if (subData) resumen.push(`Pieza/Zona ${key.toUpperCase()} -> ${subData}`);
+      } else {
+        resumen.push(`${key}: ${data}`);
+      }
+    }
+    return resumen.length > 0 ? resumen.join('\n') : 'Sin hallazgos';
+  }
   return val || 'No especificado';
 };
 
 onMounted(() => {
   cargarDatos();
+  if (route.query.tab) {
+    activeTab.value = route.query.tab;
+  }
 });
 </script>
 

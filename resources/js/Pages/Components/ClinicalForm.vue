@@ -19,7 +19,7 @@
           :key="field.key" 
           v-show="shouldShowField(field)"
           class="space-y-1.5"
-          :class="{ 'md:col-span-2': field.type === 'textarea' || field.type === 'checkbox' || field.key === 'motivo_consulta' }"
+          :class="{ 'md:col-span-2': field.type === 'textarea' || field.type === 'checkbox' || field.type === 'odontograma' || field.type === 'esquema_mamario' || field.key === 'motivo_consulta' }"
         >
           <label class="block text-xs font-semibold text-gray-300">
             {{ field.label }}
@@ -97,6 +97,16 @@
             </div>
           </div>
 
+          <!-- Odontograma -->
+          <div v-else-if="field.type === 'odontograma'" class="w-full">
+            <Odontograma v-model="responses[field.key]" />
+          </div>
+
+          <!-- Esquema Mamario -->
+          <div v-else-if="field.type === 'esquema_mamario'" class="w-full">
+            <EsquemaMamario v-model="responses[field.key]" />
+          </div>
+
         </div>
       </div>
     </div>
@@ -105,6 +115,8 @@
 
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
+import Odontograma from './Odontograma.vue';
+import EsquemaMamario from './EsquemaMamario.vue';
 
 const props = defineProps({
   fields: {
