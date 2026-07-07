@@ -30,7 +30,7 @@
         </router-link>
         
         <router-link to="/panel/clientes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Users class="w-5 h-5" /> {{ areaSeleccionada === 'pro' ? $t('sidebar.clientes') : 'Pacientes' }}
+          <Users class="w-5 h-5" /> {{ ['medical', 'dental'].includes(areaSeleccionada) ? 'Pacientes' : $t('sidebar.clientes') }}
         </router-link>
         <router-link to="/panel/pagos" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
           <CreditCard class="w-5 h-5" /> Historial de Pagos
@@ -47,7 +47,7 @@
           <Scissors class="w-5 h-5" /> {{ $t('sidebar.servicios') }}
         </router-link>
         <router-link :to="{ path: '/panel/configuracion/profesionales', query: { type: areaSeleccionada } }" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Briefcase class="w-5 h-5" /> {{ areaSeleccionada === 'pro' ? $t('sidebar.profesionales') : 'Médicos / Staff' }}
+          <Briefcase class="w-5 h-5" /> {{ ['medical', 'dental'].includes(areaSeleccionada) ? 'Médicos / Staff' : $t('sidebar.profesionales') }}
         </router-link>
         <router-link to="/panel/configuracion/whatsapp" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
           <MessageCircle class="w-5 h-5" /> WhatsApp QR
@@ -177,12 +177,15 @@ const loadProfile = async () => {
       userProfile.value = res.data.user;
       esAdminODueno.value = ['dueño', 'admin'].includes(res.data.user.rol);
       
+      let uType = res.data.user.type || 'pro';
+      if (uType === 'general') uType = 'pro';
+
       // Si no es admin/dueño, forzamos su área específica
       if (!esAdminODueno.value) {
-        areaSeleccionada.value = res.data.user.type || 'pro';
+        areaSeleccionada.value = uType;
       } else {
         // Si es admin/dueño, iniciamos en su tipo o por defecto 'pro'
-        areaSeleccionada.value = res.data.user.type || 'pro';
+        areaSeleccionada.value = uType;
       }
       
       // Ejecutar redirección inicial si está en el root del panel
