@@ -351,64 +351,53 @@
                 </svg>
               </div>
 
-              <!-- Cabecera de la Tarjeta -->
-              <div class="flex items-start justify-between gap-4 relative z-10">
+              <!-- Cabecera de la Tarjeta (Compacta y Minimalista) -->
+              <div class="flex items-center justify-between gap-3 relative z-10 mb-4">
                 <div class="flex items-center gap-3">
                   <!-- Logo Negocio -->
-                  <div class="w-12 h-12 rounded-2xl border border-border overflow-hidden bg-gray-900 flex items-center justify-center shadow-lg shrink-0">
+                  <div class="w-10 h-10 rounded-xl border border-border overflow-hidden bg-gray-900 flex items-center justify-center shadow-lg shrink-0">
                     <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover" />
-                    <span v-else class="text-lg font-black text-white">{{ negocio.nombre[0] }}</span>
+                    <span v-else class="text-sm font-black text-white">{{ negocio.nombre[0] }}</span>
                   </div>
                   
                   <div>
-                    <span class="inline-block px-2.5 py-0.5 rounded-md bg-white/5 border border-border text-[9px] font-black uppercase tracking-wider text-primary">
+                    <span class="block text-[8px] font-black uppercase tracking-widest text-primary mb-0.5">
                       {{ negocio.categoria?.nombre }}
                     </span>
-                    <h3 class="font-black text-white text-base leading-tight mt-1 line-clamp-1 group-hover:text-primary transition-colors">
+                    <h3 class="font-bold text-white text-sm leading-tight line-clamp-1 group-hover:text-primary transition-colors">
                       {{ negocio.nombre }}
                     </h3>
                   </div>
                 </div>
 
                 <!-- Badge Verificado -->
-                <span v-if="negocio.verificado" class="w-5 h-5 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs text-primary shadow" title="Negocio Verificado">
+                <span v-if="negocio.verificado" class="w-4 h-4 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-[9px] text-primary shadow" title="Negocio Verificado">
                   ✓
                 </span>
               </div>
 
-              <!-- Imagen de Portada (solo para cards grandes/medianas) -->
-              <div 
-                v-if="negocio.layout_size !== 'small'" 
-                class="my-4 h-24 sm:h-28 rounded-2xl overflow-hidden bg-gray-950/60 relative z-10 border border-border flex-shrink-0"
-              >
-                <img 
-                  v-if="negocio.cover_imagen" 
-                  :src="negocio.cover_imagen" 
-                  :alt="negocio.nombre" 
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                />
-                <!-- Placeholder degradado premium si no hay portada -->
-                <div 
-                  v-else 
-                  class="w-full h-full bg-gradient-to-br opacity-20"
-                  :style="{ backgroundImage: `linear-gradient(135deg, ${negocio.categoria?.color_hex || '#3b82f6'}, #0f1224)` }"
-                ></div>
-                
-                <!-- Badge de Rating flotando en la foto -->
-                <div class="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-border flex items-center gap-1 text-[10px] font-bold text-yellow-400 shadow">
-                  <Star class="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  <span>{{ negocio.rating_avg || '4.8' }}</span>
-                  <span class="text-text-secondary font-light">({{ negocio.rating_count || 12 }})</span>
-                </div>
+              <!-- Separador Decorativo Abstracto (Sutil) -->
+              <div class="flex-grow flex items-center opacity-30 pointer-events-none relative z-10 overflow-hidden my-2">
+                <svg class="w-full h-4 text-border" viewBox="0 0 100 10" preserveAspectRatio="none">
+                  <path d="M0,5 Q25,0 50,5 T100,5" fill="none" stroke="currentColor" stroke-width="0.3" />
+                  <circle cx="50" cy="5" r="1.5" fill="currentColor" />
+                </svg>
               </div>
 
-              <!-- Pie de Tarjeta / Contenido de Reserva -->
-              <div class="flex items-center justify-end mt-auto pt-3 border-t border-border-sutil relative z-10">
-                <!-- Botón Pedir Cita Premium -->
+              <!-- Pie de Tarjeta / Contenido de Reserva (Rating y Botón Paralelos) -->
+              <div class="flex items-center justify-between mt-auto pt-3 border-t border-border-sutil relative z-10">
+                <!-- Badge de Rating -->
+                <div class="flex items-center gap-1.5 text-[10px] font-bold text-yellow-400">
+                  <Star class="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                  <span class="text-white">{{ negocio.rating_avg || '4.8' }}</span>
+                  <span class="text-text-secondary font-medium text-[9px]">({{ negocio.rating_count || 12 }})</span>
+                </div>
+
+                <!-- Botón Pedir Cita -->
                 <a
                   :href="`/${negocio.slug}/book`"
                   @click="trackClick(negocio.id)"
-                  class="px-5 py-3 bg-accent hover:bg-accent-hover text-white rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all duration-300 text-center shadow-cta-glow active:scale-95 flex items-center gap-2 hover:-translate-y-0.5"
+                  class="px-4 py-2.5 bg-accent hover:bg-accent-hover text-white rounded-xl font-black uppercase tracking-widest text-[9px] transition-all duration-300 text-center shadow-cta-glow active:scale-95 flex items-center gap-1.5 hover:-translate-y-0.5"
                 >
                   <span>Pedir Cita</span>
                   <span class="group-hover:translate-x-0.5 transition-transform">→</span>
