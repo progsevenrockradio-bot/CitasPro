@@ -246,6 +246,10 @@ class DirectorioController extends Controller
             $negocio->next_available_month = $nextAvailable->translatedFormat('F'); // Ej: Julio, Agosto...
             $negocio->next_available_weekday = $nextAvailable->translatedFormat('l'); // Ej: sábado, jueves...
             
+            // Asignar tamaños asimétricos alternados para el mosaico orgánico
+            $sizes = ['medium', 'large', 'vertical', 'medium', 'large'];
+            $negocio->layout_size = $sizes[$negocio->id % count($sizes)];
+            
             return $negocio;
         });
 

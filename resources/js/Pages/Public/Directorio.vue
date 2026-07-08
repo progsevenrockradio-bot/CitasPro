@@ -385,17 +385,21 @@
 
               <!-- Pie de Tarjeta / Contenido de Reserva -->
               <div class="flex items-end justify-between mt-auto pt-3 border-t border-border-sutil relative z-10">
-                <!-- Bloque de Fecha Disponible (GRANDE - Estilo Vertical Banner) -->
-                <div class="flex flex-col select-none text-left min-w-[70px]">
-                  <span class="capitalize text-[10px] font-bold text-text-muted tracking-wide leading-tight">
-                    {{ negocio.next_available_weekday }}
-                  </span>
-                  <span class="text-4xl font-black tracking-tighter text-white my-0.5 leading-none tabular-nums">
+                <!-- Bloque de Fecha Disponible (Banner Style: Número a la izquierda, Día y Mes a la derecha) -->
+                <div class="flex items-center gap-2.5 select-none text-left">
+                  <!-- Número Gigante -->
+                  <span class="text-4xl font-black tracking-tighter text-white leading-none tabular-nums">
                     {{ negocio.next_available_day }}
                   </span>
-                  <span class="capitalize text-xs font-black text-accent tracking-wider leading-tight">
-                    {{ negocio.next_available_month }}
-                  </span>
+                  <!-- Día y Mes Apilados -->
+                  <div class="flex flex-col justify-center leading-none">
+                    <span class="capitalize text-[9px] font-bold text-text-muted tracking-wider uppercase">
+                      {{ negocio.next_available_weekday }}
+                    </span>
+                    <span class="capitalize text-xs font-black text-accent tracking-wider mt-1">
+                      {{ negocio.next_available_month }}
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Botón Pedir Cita Premium -->
