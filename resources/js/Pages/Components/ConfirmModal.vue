@@ -8,7 +8,7 @@
       <Transition name="zoom">
         <div 
           v-if="show"
-          class="bg-gray-900 border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden"
+          class="bg-bg-card border border-border-sutil rounded-2xl max-w-md w-full p-6 shadow-2xl relative overflow-hidden"
         >
           <!-- Decoración superior según el tipo -->
           <div class="absolute top-0 left-0 w-full h-1" :class="typeClass"></div>
@@ -16,7 +16,11 @@
           <!-- Cabecera con Icono -->
           <div class="flex items-start gap-4 mb-4">
             <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" :class="iconBgClass">
-              <span class="text-2xl">{{ typeIcon }}</span>
+              <CheckCircle2 v-if="type === 'success'" class="w-6 h-6 text-green-400" />
+              <AlertTriangle v-else-if="type === 'warning'" class="w-6 h-6 text-yellow-400" />
+              <XCircle v-else-if="type === 'danger'" class="w-6 h-6 text-red-400" />
+              <Info v-else-if="type === 'info'" class="w-6 h-6 text-primary" />
+              <HelpCircle v-else class="w-6 h-6 text-primary" />
             </div>
             <div class="flex-1 min-w-0">
               <h3 class="text-lg font-bold text-white leading-snug">{{ title }}</h3>
@@ -35,7 +39,7 @@
               v-if="cancelText"
               type="button"
               @click="cancel" 
-              class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white py-3 rounded-xl transition-all text-sm font-semibold cursor-pointer active:scale-95"
+              class="flex-1 bg-white/5 hover:bg-white/10 border border-border text-white py-3 rounded-xl transition-all text-sm font-semibold cursor-pointer active:scale-95"
             >
               {{ cancelText }}
             </button>
@@ -56,6 +60,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { CheckCircle2, AlertTriangle, XCircle, Info, HelpCircle } from 'lucide-vue-next';
 
 const props = defineProps({
   show: {
@@ -86,23 +91,13 @@ const props = defineProps({
 
 const emit = defineEmits(['update:show', 'confirm', 'cancel']);
 
-const typeIcon = computed(() => {
-  switch (props.type) {
-    case 'warning': return '⚠️';
-    case 'danger': return '🚨';
-    case 'success': return '✅';
-    case 'info': return 'ℹ️';
-    default: return '❓';
-  }
-});
-
 const typeClass = computed(() => {
   switch (props.type) {
     case 'warning': return 'bg-yellow-500';
     case 'danger': return 'bg-red-500';
     case 'success': return 'bg-green-500';
-    case 'info': return 'bg-blue-500';
-    default: return 'bg-indigo-500';
+    case 'info': return 'bg-primary';
+    default: return 'bg-primary';
   }
 });
 
@@ -111,16 +106,16 @@ const iconBgClass = computed(() => {
     case 'warning': return 'bg-yellow-500/10 border border-yellow-500/20';
     case 'danger': return 'bg-red-500/10 border border-red-500/20';
     case 'success': return 'bg-green-500/10 border border-green-500/20';
-    case 'info': return 'bg-blue-500/10 border border-blue-500/20';
-    default: return 'bg-indigo-500/10 border border-indigo-500/20';
+    case 'info': return 'bg-primary/10 border border-primary/20';
+    default: return 'bg-primary/10 border border-primary/20';
   }
 });
 
 const confirmBtnClass = computed(() => {
   switch (props.type) {
     case 'danger': return 'bg-red-600 hover:bg-red-700 shadow-[0_0_15px_rgba(239,68,68,0.2)]';
-    case 'success': return 'bg-green-600 hover:bg-green-700 shadow-[0_0_15px_rgba(34,197,94,0.2)]';
-    default: return 'bg-indigo-600 hover:bg-indigo-700';
+    case 'success': return 'bg-primary hover:bg-primary-hover shadow-[0_0_15px_rgba(59,130,246,0.2)]';
+    default: return 'bg-primary hover:bg-primary-hover';
   }
 });
 

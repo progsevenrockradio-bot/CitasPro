@@ -18,7 +18,7 @@
         <button 
           @click="loadProfesionales(1)"
           :disabled="loading"
-          class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2"
+          class="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2"
         >
           <Loader2 v-if="loading" class="w-5 h-5 animate-spin" />
           <Search v-else class="w-5 h-5" /> 
@@ -51,7 +51,7 @@
             <tr v-for="profesional in profesionales" :key="profesional.id" class="hover:bg-white/5 transition-colors">
               <td class="py-4 p-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-indigo-600/20 flex items-center justify-center text-indigo-400 font-bold">
+                  <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
                     {{ profesional.nombre.charAt(0) }}{{ profesional.apellido?.charAt(0) }}
                   </div>
                   <div>
@@ -80,7 +80,7 @@
               <td class="py-4 p-4 text-right">
                 <button 
                   @click="confirmToggleEstado(profesional)" 
-                  class="text-indigo-400 hover:text-indigo-300 font-medium underline text-sm transition-all"
+                  class="text-primary hover:text-primary-hover font-medium underline text-sm transition-all"
                 >
                   {{ profesional.activo ? 'Suspender' : 'Activar' }}
                 </button>

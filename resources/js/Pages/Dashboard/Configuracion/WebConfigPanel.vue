@@ -17,28 +17,28 @@
           v-for="tab in tabs" 
           :key="tab.id"
           @click="activeTab = tab.id"
-          :class="['px-4 py-2 rounded-lg font-bold text-sm transition-all whitespace-nowrap', activeTab === tab.id ? 'bg-indigo-600 text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10']"
+          :class="['px-4 py-2 rounded-lg font-bold text-sm transition-all whitespace-nowrap', activeTab === tab.id ? 'bg-primary text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10']"
         >
           {{ tab.label }}
         </button>
       </div>
 
       <!-- Formulario -->
-      <form @submit.prevent="guardar" class="bg-[#1a1f35] border border-white/5 rounded-2xl p-6">
+      <form @submit.prevent="guardar" class="bg-bg-card border border-border-sutil rounded-2xl p-6">
         
         <!-- Pestaña 1: Tipografía -->
         <div v-if="activeTab === 'tipografia'" class="space-y-6">
           <div>
             <label class="block text-sm font-bold text-gray-400 mb-2">Fuente Principal (Cuerpo)</label>
-            <input v-model="configs.font_primary" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-indigo-500 outline-none" placeholder="Ej. Inter, Roboto, Outfit..." />
+            <input v-model="configs.font_primary" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none" placeholder="Ej. Inter, Roboto, Outfit..." />
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-400 mb-2">Fuente para Títulos H1</label>
-            <input v-model="configs.font_h1" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-indigo-500 outline-none" placeholder="Ej. Outfit" />
+            <input v-model="configs.font_h1" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none" placeholder="Ej. Outfit" />
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-400 mb-2">Fuente para Títulos H2</label>
-            <input v-model="configs.font_h2" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-indigo-500 outline-none" placeholder="Ej. Outfit" />
+            <input v-model="configs.font_h2" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none" placeholder="Ej. Outfit" />
           </div>
         </div>
 
@@ -46,15 +46,15 @@
         <div v-if="activeTab === 'textos'" class="space-y-6">
           <div>
             <label class="block text-sm font-bold text-gray-400 mb-2">Etiqueta Superior (Badge)</label>
-            <input v-model="configs.hero_badge" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-indigo-500 outline-none" />
+            <input v-model="configs.hero_badge" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none" />
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-400 mb-2">Título Principal (H1)</label>
-            <input v-model="configs.hero_title" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-indigo-500 outline-none" />
+            <input v-model="configs.hero_title" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none" />
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-400 mb-2">Subtítulo</label>
-            <textarea v-model="configs.hero_subtitle" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-indigo-500 outline-none"></textarea>
+            <textarea v-model="configs.hero_subtitle" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none"></textarea>
           </div>
         </div>
 
@@ -66,7 +66,7 @@
               <div v-if="logoPreview" class="w-20 h-20 bg-gray-900 rounded-xl p-2 flex items-center justify-center border border-white/10">
                 <img :src="logoPreview" class="max-w-full max-h-full object-contain" />
               </div>
-              <input type="file" @change="e => files.logo_url = e.target.files[0]" accept="image/*" class="text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700" />
+              <input type="file" @change="e => files.logo_url = e.target.files[0]" accept="image/*" class="text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover" />
             </div>
           </div>
           <div>
@@ -75,7 +75,7 @@
               <div v-if="heroBgPreview" class="w-32 h-20 bg-gray-900 rounded-xl p-0 overflow-hidden flex items-center justify-center border border-white/10">
                 <img :src="heroBgPreview" class="w-full h-full object-cover" />
               </div>
-              <input type="file" @change="e => files.hero_bg_url = e.target.files[0]" accept="image/*" class="text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700" />
+              <input type="file" @change="e => files.hero_bg_url = e.target.files[0]" accept="image/*" class="text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover" />
             </div>
           </div>
         </div>
@@ -89,7 +89,7 @@
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" v-model="configs.pricing_show_free" true-value="true" false-value="false" class="sr-only peer">
-              <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
             </label>
           </div>
           <div class="flex items-center justify-between bg-white/5 p-4 rounded-xl">
@@ -99,18 +99,18 @@
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" v-model="configs.pricing_pro_highlight" true-value="true" false-value="false" class="sr-only peer">
-              <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
             </label>
           </div>
           <div>
             <label class="block text-sm font-bold text-gray-400 mb-2">Enlace botón Enterprise</label>
-            <input v-model="configs.pricing_enterprise_contact" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-indigo-500 outline-none" placeholder="Ej. /contacto o https://wa.me/..." />
+            <input v-model="configs.pricing_enterprise_contact" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none" placeholder="Ej. /contacto o https://wa.me/..." />
           </div>
         </div>
 
         <!-- Submit -->
         <div class="mt-8 pt-6 border-t border-white/10 flex justify-end">
-          <button type="submit" :disabled="saving" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-2">
+          <button type="submit" :disabled="saving" class="px-6 py-3 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-2">
             <span v-if="saving">Guardando...</span>
             <span v-else>Guardar Cambios</span>
           </button>
