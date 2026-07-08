@@ -45,27 +45,27 @@
         </div>
 
         <!-- Categorías Estilo "Iconos Redondos" (Basado en Imagen 16) -->
-        <div class="flex flex-wrap justify-center gap-6 md:gap-10 mt-4 max-w-4xl mx-auto">
+        <div class="flex flex-wrap justify-center gap-4 md:gap-6 mt-4 max-w-4xl mx-auto">
           <button
             @click="filtroCategoria = null; buscar()"
-            class="group flex flex-col items-center gap-3 transition-transform hover:scale-105"
+            class="group flex flex-col items-center gap-2 transition-transform hover:scale-115 duration-300"
           >
-            <div :class="['w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-2xl md:text-3xl transition-all shadow-lg', !filtroCategoria ? 'bg-indigo-600 text-white shadow-indigo-500/40 border-2 border-indigo-400' : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10']">
+            <div :class="['w-11 h-11 md:w-14 md:h-14 rounded-full flex items-center justify-center text-lg md:text-2xl transition-all duration-300 shadow-lg', !filtroCategoria ? 'bg-indigo-600 text-white shadow-indigo-500/40 border-2 border-indigo-400' : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10']">
               ✦
             </div>
-            <span :class="['text-xs md:text-sm font-bold tracking-wide uppercase', !filtroCategoria ? 'text-indigo-400' : 'text-gray-400']">Todos</span>
+            <span :class="['text-[10px] md:text-xs font-bold tracking-wide uppercase', !filtroCategoria ? 'text-indigo-400' : 'text-gray-400']">Todos</span>
           </button>
           
           <button
             v-for="cat in categorias"
             :key="cat.id"
             @click="filtroCategoria = cat.id; buscar()"
-            class="group flex flex-col items-center gap-3 transition-transform hover:scale-105"
+            class="group flex flex-col items-center gap-2 transition-transform hover:scale-115 duration-300"
           >
-            <div :class="['w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-2xl md:text-3xl transition-all shadow-lg', filtroCategoria === cat.id ? 'bg-indigo-600 text-white shadow-indigo-500/40 border-2 border-indigo-400' : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10']">
+            <div :class="['w-11 h-11 md:w-14 md:h-14 rounded-full flex items-center justify-center text-lg md:text-2xl transition-all duration-300 shadow-lg', filtroCategoria === cat.id ? 'bg-indigo-600 text-white shadow-indigo-500/40 border-2 border-indigo-400' : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10']">
               {{ cat.icono }}
             </div>
-            <span :class="['text-xs md:text-sm font-bold tracking-wide uppercase', filtroCategoria === cat.id ? 'text-indigo-400' : 'text-gray-400']">{{ cat.nombre }}</span>
+            <span :class="['text-[10px] md:text-xs font-bold tracking-wide uppercase', filtroCategoria === cat.id ? 'text-indigo-400' : 'text-gray-400']">{{ cat.nombre }}</span>
           </button>
         </div>
 
@@ -99,7 +99,8 @@
           <!-- ESTILO 3: Tarjeta Horizontal (ancho 2 columnas, index % 4 === 2) -->
           <div
             v-if="index % 4 === 2"
-            class="group bg-[#161a2e] border border-indigo-500/20 rounded-xl overflow-hidden hover:border-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-all duration-300 col-span-1 sm:col-span-2 flex flex-col sm:flex-row justify-between p-6 gap-6 relative"
+            class="collage-card group bg-[#161a2e] border border-indigo-500/20 rounded-xl overflow-hidden hover:border-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-all duration-300 col-span-1 sm:col-span-2 flex flex-col sm:flex-row justify-between p-6 gap-6 relative"
+            :style="{'--rand-rotation': getCardRotation(index)}"
           >
             <!-- Decoración diagonal -->
             <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
@@ -143,7 +144,8 @@
           <!-- ESTILO 2: Tarjeta Minimalista Sin Banner (index % 4 === 1) -->
           <div
             v-else-if="index % 4 === 1"
-            class="group bg-gradient-to-br from-[#1c223c] to-[#121629] border border-indigo-500/20 rounded-xl overflow-hidden hover:border-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-all duration-300 flex flex-col justify-between p-6 relative"
+            class="collage-card group bg-gradient-to-br from-[#1c223c] to-[#121629] border border-indigo-500/20 rounded-xl overflow-hidden hover:border-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-all duration-300 flex flex-col justify-between p-6 relative"
+            :style="{'--rand-rotation': getCardRotation(index)}"
           >
             <!-- Decoración círculos/red de puntos -->
             <div class="absolute inset-0 pointer-events-none opacity-[0.02] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
@@ -183,7 +185,8 @@
           <!-- ESTILO 1: Tarjeta Vertical Clásica Rediseñada (index % 4 === 0 o 3) -->
           <div
             v-else
-            class="group bg-[#13172b] border border-indigo-500/20 rounded-xl overflow-hidden hover:border-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-all duration-300 flex flex-col relative"
+            class="collage-card group bg-[#13172b] border border-indigo-500/20 rounded-xl overflow-hidden hover:border-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-all duration-300 flex flex-col relative"
+            :style="{'--rand-rotation': getCardRotation(index)}"
           >
             <!-- Banner superior -->
             <div
@@ -318,4 +321,20 @@ const buscarDebounced = () => {
 };
 
 const cargarPagina = (page) => buscar(page);
+
+const getCardRotation = (index) => {
+  const rotaciones = [-1.5, -0.8, 0.8, 1.5, -1.2, 0.6, -0.6, 1.2];
+  return rotaciones[index % rotaciones.length];
+};
 </script>
+
+<style scoped>
+.collage-card {
+  transform: rotate(var(--rand-rotation, 0deg));
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s, box-shadow 0.3s;
+}
+.collage-card:hover {
+  transform: rotate(0deg) scale(1.04) !important;
+  z-index: 10;
+}
+</style>
