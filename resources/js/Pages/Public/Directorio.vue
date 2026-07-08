@@ -310,9 +310,28 @@
 
           <!-- Grid Masonry -->
           <div v-else class="directory-grid">
+            <template v-for="(negocio, index) in negocios" :key="negocio.id">
+              
+              <!-- FECHA GIGANTE DEL DÍA EN EL CENTRO DEL MOSAICO (Estilo Imagen Ref 13/3) -->
+              <div 
+                v-if="index === Math.floor(negocios.length / 2) || (negocios.length === 1 && index === 0)" 
+                class="flex flex-col items-center justify-center select-none"
+                style="grid-row: span 3; grid-column: span 2;"
+              >
+                <span class="text-[160px] font-black text-white/5 leading-none tracking-tighter tabular-nums drop-shadow-2xl">
+                  {{ new Date().getDate().toString().padStart(2, '0') }}
+                </span>
+                <div class="flex items-center justify-center gap-3 mt-2">
+                  <span class="text-xl font-bold uppercase tracking-widest text-text-secondary">
+                    {{ new Intl.DateTimeFormat('es-ES', { weekday: 'long' }).format(new Date()) }}
+                  </span>
+                  <span class="text-xl font-black uppercase tracking-wider text-accent">
+                    {{ new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date()) }}
+                  </span>
+                </div>
+              </div>
+
             <div
-              v-for="(negocio, index) in negocios"
-              :key="negocio.id"
               :class="[
                 'directory-card group relative rounded-3xl overflow-hidden bg-bg-card border border-border transition-all duration-300 flex flex-col justify-between p-6',
                 `card-${negocio.layout_size || 'medium'}`
@@ -384,24 +403,7 @@
               </div>
 
               <!-- Pie de Tarjeta / Contenido de Reserva -->
-              <div class="flex items-end justify-between mt-auto pt-3 border-t border-border-sutil relative z-10">
-                <!-- Bloque de Fecha Disponible (Banner Style: Número a la izquierda, Día y Mes a la derecha) -->
-                <div class="flex items-center gap-2.5 select-none text-left">
-                  <!-- Número Gigante -->
-                  <span class="text-4xl font-black tracking-tighter text-white leading-none tabular-nums">
-                    {{ negocio.next_available_day }}
-                  </span>
-                  <!-- Día y Mes Apilados -->
-                  <div class="flex flex-col justify-center leading-none">
-                    <span class="capitalize text-[9px] font-bold text-text-muted tracking-wider uppercase">
-                      {{ negocio.next_available_weekday }}
-                    </span>
-                    <span class="capitalize text-xs font-black text-accent tracking-wider mt-1">
-                      {{ negocio.next_available_month }}
-                    </span>
-                  </div>
-                </div>
-
+              <div class="flex items-center justify-end mt-auto pt-3 border-t border-border-sutil relative z-10">
                 <!-- Botón Pedir Cita Premium -->
                 <a
                   :href="`/${negocio.slug}/book`"
@@ -413,6 +415,7 @@
                 </a>
               </div>
             </div>
+            </template>
           </div>
 
           <!-- Paginación -->
