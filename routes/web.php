@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('app');
 });
 
 // Ruta pública para el perfil del profesional y reservas de clientes
@@ -38,10 +38,7 @@ Route::get('/registro', function () {
 })->name('registro');
 
 // ── Páginas Públicas de Reserva (SPA, sin autenticación) ────────────────────
-// Directorio de negocios de CitasPro
-Route::get('/directorio', function () {
-    return view('app');
-})->name('directorio');
+
 
 // Página de reserva pública de un negocio: /{slug}/book
 // El profesional comparte este link con sus clientes

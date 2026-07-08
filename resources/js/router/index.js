@@ -64,6 +64,11 @@ const routes = [
         path: 'configuracion/horarios',
         name: 'ConfiguracionHorarios',
         component: () => import('../Pages/Dashboard/Configuracion/HorariosConfig.vue')
+      },
+      {
+        path: 'superadmin/web-config',
+        name: 'SuperAdminWebConfig',
+        component: () => import('../Pages/Dashboard/Configuracion/WebConfigPanel.vue')
       }
     ]
   },
@@ -82,10 +87,14 @@ const routes = [
   },
   // ── Páginas Públicas (sin autenticación) ───────────────────────
   {
-    path: '/directorio',
-    name: 'Directorio',
-    component: () => import('../Pages/Public/Directorio.vue'),
+    path: '/',
+    name: 'Home',
+    component: () => import('../Pages/Public/Home.vue'),
     meta: { public: true }
+  },
+  {
+    path: '/directorio',
+    redirect: '/'
   },
   {
     // Página de reserva pública: el profesional comparte /{slug}/book

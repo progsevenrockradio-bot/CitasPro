@@ -55,6 +55,14 @@
         <router-link to="/panel/configuracion/horarios" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
           <Clock class="w-5 h-5" /> Mi Horario y Calendario
         </router-link>
+        
+        <!-- Sección SuperAdmin -->
+        <div v-if="userProfile?.rol === 'superadmin'" class="pt-6 pb-2 px-4">
+          <p class="text-xs font-bold text-red-500 tracking-wider mb-3 px-4">SUPER ADMIN</p>
+        </div>
+        <router-link v-if="userProfile?.rol === 'superadmin'" to="/panel/superadmin/web-config" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-red-500/10 text-red-400 font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+          <Settings class="w-5 h-5" /> Configuración Web
+        </router-link>
       </nav>
 
       <!-- Enlace de Reserva Pública -->

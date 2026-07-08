@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\FichaClinicaController;
 use App\Http\Controllers\Api\FormularioIngresoController;
 use App\Http\Controllers\Api\GoogleCalendarController;
 use App\Http\Controllers\Api\WhatsAppQrController;
+use App\Http\Controllers\Api\SuperAdmin\WebConfigController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
@@ -421,3 +422,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
+// ── WebConfig Público
+Route::get('/web-config', [WebConfigController::class, 'index']);
+
+// ── WebConfig Admin
+Route::middleware(['auth:sanctum', 'is_superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::post('/web-config', [WebConfigController::class, 'update']);
+});
