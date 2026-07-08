@@ -665,6 +665,7 @@
                             <li>1 Profesional</li>
                             <li>Hasta 15 citas al mes</li>
                             <li>Portafolio visual</li>
+                            <li>Notificaciones por correo</li>
                             <li class="feature-missing">Sin recordatorios automáticos</li>
                             <li class="feature-missing">Sin pasarela de pagos</li>
                         </ul>
@@ -680,7 +681,8 @@
                         <ul class="plan-features">
                             <li>1 Profesional (Single Pro)</li>
                             <li>Hasta 60 citas al mes</li>
-                            <li>WhatsApp / SMS de respaldo</li>
+                            <li>Recordatorios por WhatsApp / SMS</li>
+                            <li>Comprobantes por correo</li>
                             <li class="feature-missing">Sin pasarela de pagos</li>
                             <li class="feature-missing">Sin personal extra</li>
                         </ul>
@@ -696,8 +698,9 @@
                         <ul class="plan-features">
                             <li>Hasta 5 Profesionales</li>
                             <li>Citas ilimitadas</li>
-                            <li>Pasarela Stripe Integrada</li>
+                            <li>Pasarela de cobro integrada</li>
                             <li>Recordatorios prioritarios</li>
+                            <li>Envío de comprobantes en PDF</li>
                             <li class="feature-missing">Soporte estándar</li>
                         </ul>
                     </div>
@@ -712,9 +715,10 @@
                         <ul class="plan-features">
                             <li>Profesionales ilimitados</li>
                             <li>Citas ilimitadas</li>
-                            <li>Soporte 24/7 dedicado</li>
+                            <li>Soporte VIP 24/7</li>
+                            <li>Múltiples pasarelas de pago</li>
                             <li>Integración de API a medida</li>
-                            <li>Servidor optimizado</li>
+                            <li>Servidor en la nube dedicado</li>
                         </ul>
                     </div>
                     <a href="/registro" class="btn-pricing btn-pricing-secondary">Contactar Ventas</a>
