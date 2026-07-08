@@ -44,7 +44,13 @@ class DemoNegociosSeeder extends Seeder
         // Obtener País de España
         $pais = Pais::where('codigo_iso2', 'ES')->first() ?? Pais::firstOrCreate(
             ['codigo_iso2' => 'ES'],
-            ['nombre' => 'España', 'codigo_iso3' => 'ESP', 'prefijo_telefonico' => '+34', 'activo' => true]
+            [
+                'nombre' => 'España',
+                'nombre_en' => 'Spain',
+                'codigo_iso3' => 'ESP',
+                'prefijo' => '34',
+                'activo' => true
+            ]
         );
 
         // Crear Estados y Ciudades mock si no existen

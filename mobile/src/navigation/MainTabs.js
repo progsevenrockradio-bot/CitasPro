@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import DashboardScreen from '../screens/DashboardScreen';
 import AgendaScreen from '../screens/AgendaScreen';
+import TestimoniosScreen from '../screens/TestimoniosScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
@@ -20,6 +21,8 @@ export default function MainTabs() {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Agenda') {
             iconName = focused ? 'calendar' : 'calendar-outline';
+          } else if (route.name === 'Testimonios') {
+            iconName = focused ? 'star' : 'star-outline';
           } else if (route.name === 'Ajustes') {
             iconName = focused ? 'settings' : 'settings-outline';
           }
@@ -38,6 +41,7 @@ export default function MainTabs() {
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Agenda" component={AgendaScreen} />
+      <Tab.Screen name="Testimonios" component={TestimoniosScreen} />
       <Tab.Screen name="Ajustes" component={SettingsScreen} />
     </Tab.Navigator>
   );
