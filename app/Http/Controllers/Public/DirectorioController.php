@@ -233,7 +233,7 @@ class DirectorioController extends Controller
         // Paginación estable
         $negocios = $query->paginate(24);
 
-        $negocios->getCollection()->transform(function ($negocio) {
+        $negocios->getCollection()->transform(function ($negocio) use ($seed) {
             $negocio->logo = $negocio->logo ? asset('storage/' . $negocio->logo) : null;
             $negocio->cover_imagen = $negocio->cover_imagen ? asset('storage/' . $negocio->cover_imagen) : null;
             
@@ -241,14 +241,38 @@ class DirectorioController extends Controller
             $negocio->rating_avg = $negocio->resenas_avg_calificacion ? round($negocio->resenas_avg_calificacion, 1) : 0;
             $negocio->rating_count = $negocio->resenas_count ?? 0;
             
-            $nextAvailable = now()->addDays(mt_rand(0, 5));
+            // Generar una fecha aleatoria consistente para la "próxima cita disponible"
+            $hashDate = crc32($negocio->id . date('Ymd'));
+            $daysToAdd = $hashDate % 7; // Entre 0 y 6 días a partir de hoy
+            $nextAvailable = now()->addDays($daysToAdd);
             $negocio->next_available_day = $nextAvailable->format('d');
             $negocio->next_available_month = $nextAvailable->translatedFormat('F'); // Ej: Julio, Agosto...
             $negocio->next_available_weekday = $nextAvailable->translatedFormat('l'); // Ej: sábado, jueves...
             
-            // Asignar tamaños asimétricos alternados para el mosaico orgánico
-            $sizes = ['medium', 'large', 'vertical', 'medium', 'large'];
-            $negocio->layout_size = $sizes[$negocio->id % count($sizes)];
+            // Sistema Inteligente de Huellas (Footprints) para Masonry Editorial
+            // Utiliza la semilla de sesión para que el layout varíe en cada visita, pero se mantenga en la paginación
+            $hashLayout = crc32($negocio->id . '-' . $seed);
+            $rand = $hashLayout % 100;
+            
+            // Distribución probabilística:
+            // 35% small (1x1), 30% horizontal (2x1), 20% vertical (1x2), 15% large (2x2)
+            if ($rand < 35) {
+                $negocio->layout_size = 'small';
+            } elseif ($rand < 65) {
+                $negocio->layout_size = 'horizontal';
+            } elseif ($rand < 85) {
+                $negocio->layout_size = 'vertical';
+            } else {
+                $negocio->layout_size = 'large';
+            }
+            
+            // Generar desplazamientos ligeros en el eje Y (marginTop random) para romper la cuadrícula
+            // Solo para small y vertical
+            $negocio->offset_y = 0;
+            if (in_array($negocio->layout_size, ['small', 'vertical'])) {
+                $offsetRand = ($hashLayout % 5) * 4; // 0, 4, 8, 12, 16 px
+                $negocio->offset_y = $offsetRand;
+            }
             
             return $negocio;
         });

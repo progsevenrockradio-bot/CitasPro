@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-bg text-text font-sans selection:bg-primary selection:text-white overflow-x-hidden">
+  <div class="min-h-screen text-white font-sans selection:bg-[#3B82F6] selection:text-white overflow-x-hidden" style="background-color: #0B1020;">
     <!-- Header CitasPro -->
     <header class="bg-bg/80 backdrop-blur-xl border-b border-border sticky top-0 z-40 transition-all duration-300">
       <div class="max-w-[95%] mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
@@ -308,86 +308,86 @@
             <p class="text-gray-500 text-xs mt-2 max-w-xs mx-auto">Hemos ampliado la búsqueda al máximo pero no hay resultados. Prueba cambiando los filtros o la ubicación.</p>
           </div>
 
-          <!-- Grid Masonry -->
+          <!-- Grid Masonry Editorial -->
           <div v-else class="directory-grid">
             <template v-for="(negocio, index) in negocios" :key="negocio.id">
               
-              <!-- FECHA GIGANTE DEL DÍA EN EL CENTRO DEL MOSAICO (Estilo Imagen Ref 13/3) -->
-              <div 
-                v-if="index === Math.floor(negocios.length / 2) || (negocios.length === 1 && index === 0)" 
-                class="flex flex-col items-center justify-center select-none"
-                style="grid-row: span 3; grid-column: span 2;"
+              <!-- Tarjeta de Negocio (Huella Dinámica) -->
+              <div
+                :class="[
+                  'directory-card group relative rounded-xl overflow-hidden border transition-all duration-300 p-5 flex flex-col justify-between',
+                  `card-${negocio.layout_size || 'small'}`
+                ]"
+                :style="{ 
+                  marginTop: negocio.offset_y ? `${negocio.offset_y}px` : '0px',
+                  backgroundColor: '#151C33',
+                  borderColor: 'rgba(255,255,255,0.05)'
+                }"
+                @mouseover="$event.currentTarget.style.backgroundColor = '#1E2A4D'"
+                @mouseleave="$event.currentTarget.style.backgroundColor = '#151C33'"
               >
-                <span class="text-[160px] font-black text-white/5 leading-none tracking-tighter tabular-nums drop-shadow-2xl">
-                  {{ new Date().getDate().toString().padStart(2, '0') }}
-                </span>
-                <div class="flex items-center justify-center gap-3 mt-2">
-                  <span class="text-xl font-bold uppercase tracking-widest text-text-secondary">
-                    {{ new Intl.DateTimeFormat('es-ES', { weekday: 'long' }).format(new Date()) }}
-                  </span>
-                  <span class="text-xl font-black uppercase tracking-wider text-accent">
-                    {{ new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date()) }}
-                  </span>
-                </div>
-              </div>
+                <!-- Borde Decorativo Superior Animado (Turquesa -> Azul) -->
+                <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#06B6D4] via-[#3B82F6] to-[#1E3A8A] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-            <div
-              :class="[
-                'directory-card group relative rounded-2xl overflow-hidden bg-bg-card border border-border transition-all duration-300 p-4',
-              ]"
-              :style="{ 
-                borderLeft: '4px solid ' + getCategoryColor(negocio.categoria?.nombre)
-              }"
-            >
-              <!-- Glowing sutil en hover -->
-              <div class="absolute inset-0 bg-primary/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-
-              <!-- Decoración Diagonal Asimétrica -->
-              <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl opacity-20">
-                <svg class="absolute w-[200%] h-[200%] top-[-50%] left-[-50%] text-white/5" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" stroke-width="0.3" />
-                </svg>
-              </div>
-
-              <!-- Contenido Compacto Horizontal de la Tarjeta -->
-              <div class="flex items-center justify-between gap-4 relative z-10 w-full">
-                <!-- Izquierda: Imagen de Portada o Logo -->
-                <div class="flex items-center gap-3 overflow-hidden">
-                  <div class="w-14 h-14 rounded-xl border border-border overflow-hidden bg-gray-900 flex items-center justify-center shadow-md shrink-0">
-                    <img v-if="negocio.cover_imagen" :src="negocio.cover_imagen" :alt="negocio.nombre" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    <img v-else-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    <span v-else class="text-xl font-black text-white">{{ negocio.nombre[0] }}</span>
-                  </div>
-                  
-                  <!-- Centro: Info del Negocio (Categoría, Nombre, Estrellas) -->
-                  <div class="flex flex-col justify-center min-w-0">
-                    <span class="block text-[8px] font-black uppercase tracking-widest text-primary mb-0.5 truncate">
-                      {{ negocio.categoria?.nombre }}
-                    </span>
-                    <div class="flex items-center gap-2">
-                      <h3 class="font-bold text-white text-sm leading-tight truncate group-hover:text-primary transition-colors">
+                <!-- Cabecera de Tarjeta (Info Principal) -->
+                <div class="flex flex-col gap-4 relative z-10 w-full h-full">
+                  <div class="flex gap-4 items-start">
+                    <!-- Imagen de Portada o Logo -->
+                    <div class="w-16 h-16 rounded-xl border border-white/10 overflow-hidden bg-[#0B1020] flex items-center justify-center shadow-lg shrink-0">
+                      <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-300" />
+                      <span v-else class="text-2xl font-black text-white/50">{{ negocio.nombre[0] }}</span>
+                    </div>
+                    
+                    <!-- Textos: Categoría, Nombre, Estrellas -->
+                    <div class="flex flex-col justify-start min-w-0">
+                      <span class="block text-[9px] font-black uppercase tracking-[0.2em] text-[#3B82F6] mb-1 truncate">
+                        {{ negocio.categoria?.nombre }}
+                      </span>
+                      <h3 class="font-bold text-white text-base leading-tight truncate group-hover:text-[#06B6D4] transition-colors">
                         {{ negocio.nombre }}
                       </h3>
-                      <span v-if="negocio.verificado" class="w-3.5 h-3.5 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-[8px] text-primary shrink-0" title="Verificado">✓</span>
-                    </div>
-                    <div class="flex items-center gap-1 mt-1 text-[10px] font-bold text-yellow-400">
-                      <Star class="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      <span class="text-white">{{ negocio.rating_avg || '4.8' }}</span>
-                      <span class="text-text-secondary font-medium text-[9px]">({{ negocio.rating_count || 12 }})</span>
+                      <div class="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-yellow-400">
+                        <Star class="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                        <span class="text-white">{{ negocio.rating_avg || '4.8' }}</span>
+                        <span class="text-white/40 font-medium text-[9px]">({{ negocio.rating_count || 12 }})</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <!-- Derecha: Botón Pedir Cita -->
-                <a
-                  :href="`/${negocio.slug}/book`"
-                  @click="trackClick(negocio.id)"
-                  class="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-xl font-black uppercase tracking-widest text-[9px] transition-all duration-300 text-center shadow-cta-glow active:scale-95 shrink-0 hover:-translate-y-0.5"
-                >
-                  Pedir Cita
-                </a>
+                  <!-- Bloque Central/Inferior (Fecha y Botón) -->
+                  <div :class="['flex items-end justify-between mt-auto pt-4', negocio.layout_size === 'small' ? 'flex-col items-start gap-4' : '']">
+                    
+                    <!-- Fecha Dinámica Integrada (Inspiración Banners Pack) -->
+                    <div class="flex items-center gap-3 select-none">
+                      <span class="text-4xl font-black text-white leading-none tracking-tighter">
+                        {{ negocio.next_available_day }}
+                      </span>
+                      <div class="flex flex-col">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-white/50 leading-tight">
+                          {{ negocio.next_available_weekday }}
+                        </span>
+                        <span class="text-xs font-black uppercase tracking-wider text-[#FF5A5F] leading-tight">
+                          {{ negocio.next_available_month }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Botón Pedir Cita (Moderno con Gradiente y Glow) -->
+                    <a
+                      :href="`/${negocio.slug}/book`"
+                      @click="trackClick(negocio.id)"
+                      :class="[
+                        'px-5 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 text-center text-white shrink-0 shadow-lg active:scale-95 flex items-center justify-center gap-1.5',
+                        'bg-gradient-to-r from-[#3B82F6] to-[#06B6D4] hover:shadow-[0_0_15px_rgba(6,182,212,0.4)]',
+                        negocio.layout_size === 'small' ? 'w-full mt-2' : ''
+                      ]"
+                    >
+                      Pedir Cita
+                    </a>
+                  </div>
+
+                </div>
               </div>
-            </div>
             </template>
           </div>
 
@@ -876,9 +876,9 @@ const getCategoryColor = (nombre) => {
 .directory-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  grid-auto-rows: minmax(180px, auto);
+  grid-auto-rows: 140px; /* Altura base para las filas */
   grid-auto-flow: dense;
-  gap: 28px;
+  gap: 24px;
 }
 
 /* Clases de tamaños de tarjetas Masonry en Grid */
@@ -886,39 +886,29 @@ const getCategoryColor = (nombre) => {
   grid-row: span 1;
   grid-column: span 1;
 }
-.card-medium {
-  grid-row: span 2;
-  grid-column: span 1;
-}
-.card-large {
-  grid-row: span 3;
-  grid-column: span 2;
-}
 .card-horizontal {
   grid-row: span 1;
   grid-column: span 2;
 }
 .card-vertical {
-  grid-row: span 3;
+  grid-row: span 2;
   grid-column: span 1;
 }
-.card-featured {
-  grid-row: span 3;
+.card-large {
+  grid-row: span 2;
   grid-column: span 2;
-  box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
 .directory-card {
-  transition: transform 0.3s ease, border-color 0.3s, box-shadow 0.3s;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s, background-color 0.3s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
-/* Hover de tarjeta premium con glow y escala sutil */
+/* Hover de tarjeta: subir 6px, iluminar borde indirectamente y dar glow */
 .directory-card:hover {
-  transform: rotate(0deg) scale(1.025) translateY(-8px) !important;
+  transform: translateY(-6px);
   z-index: 20;
-  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.35) !important;
-  border-color: rgba(59, 130, 246, 0.4) !important;
+  box-shadow: 0 15px 35px rgba(6, 182, 212, 0.15), 0 5px 15px rgba(59, 130, 246, 0.1);
 }
 
 @keyframes fadeIn {
@@ -941,11 +931,11 @@ const getCategoryColor = (nombre) => {
     grid-template-columns: repeat(2, 1fr) !important;
     grid-auto-rows: auto !important;
   }
-  .card-large, .card-featured, .card-horizontal {
+  .card-large, .card-horizontal {
     grid-column: span 2 !important;
-    grid-row: span 1 !important;
+    grid-row: span 1 !important; /* En tablet reducimos altura de grandes */
   }
-  .card-small, .card-medium, .card-vertical {
+  .card-small, .card-vertical {
     grid-column: span 1 !important;
     grid-row: span 1 !important;
   }
