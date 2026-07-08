@@ -8,8 +8,9 @@
 
     <div class="w-full max-w-lg bg-bg-card backdrop-blur-xl border border-border rounded-2xl p-8 shadow-2xl relative z-10">
       <div class="text-center mb-8">
-        <div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.3)] mx-auto mb-4">
-          <span class="text-white font-bold text-xl">C</span>
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.3)] mx-auto mb-4 overflow-hidden" :class="configs.logo_url ? 'bg-transparent' : 'bg-primary'">
+          <img v-if="configs.logo_url" :src="configs.logo_url" alt="Logo" class="max-w-full max-h-full object-contain" />
+          <span v-else class="text-white font-bold text-xl">C</span>
         </div>
         <h1 class="text-2xl font-bold text-white mb-2">{{ $t('auth.registro_titulo') }}</h1>
         <p class="text-text-muted">{{ $t('auth.registro_subtitulo') }}</p>
@@ -140,6 +141,7 @@ const loading = ref(false);
 const errorMsg = ref('');
 const categorias = ref([]);
 const paises = ref([]);
+const configs = ref({});
 
 const canalEnvio = ref('email'); // Canal por defecto: email
 const paisSeleccionado = ref('34'); // Por defecto España (+34)
@@ -175,12 +177,16 @@ const paisOptions = computed(() => {
 
 onMounted(async () => {
   try {
-    const [resCats, resPaises] = await Promise.all([
+    const [resCats, resPaises, resConfig] = await Promise.all([
       axios.get('/api/categorias'),
-      axios.get('/api/paises')
+      axios.get('/api/paises'),
+      axios.get('/api/web-config')
     ]);
     categorias.value = resCats.data;
     paises.value = resPaises.data;
+    if (resConfig.data.success) {
+      configs.value = resConfig.data.data;
+    }
   } catch (e) {
     console.error("No se pudieron cargar los datos iniciales");
   }

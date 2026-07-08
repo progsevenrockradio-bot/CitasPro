@@ -10,8 +10,9 @@
 
     <div class="w-full max-w-md bg-bg-card backdrop-blur-xl border border-border rounded-2xl p-8 shadow-2xl relative z-10">
       <div class="text-center mb-8">
-        <div class="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.3)] mx-auto mb-4">
-          <span class="text-white font-bold text-xl">C</span>
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.3)] mx-auto mb-4 overflow-hidden" :class="configs.logo_url ? 'bg-transparent' : 'bg-primary'">
+          <img v-if="configs.logo_url" :src="configs.logo_url" alt="Logo" class="max-w-full max-h-full object-contain" />
+          <span v-else class="text-white font-bold text-xl">C</span>
         </div>
         <h1 class="text-2xl font-bold text-white mb-2">{{ $t('auth.bienvenido') }}</h1>
         <p class="text-text-muted">{{ $t('auth.ingresa_panel') }}</p>
@@ -104,7 +105,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { Loader2 } from 'lucide-vue-next';
@@ -114,6 +115,18 @@ const router = useRouter();
 const form = ref({ email: '', password: '' });
 const loading = ref(false);
 const errorMsg = ref('');
+const configs = ref({});
+
+onMounted(async () => {
+  try {
+    const res = await axios.get('/api/web-config');
+    if (res.data.success) {
+      configs.value = res.data.data;
+    }
+  } catch (error) {
+    console.error("Error cargando configuración web", error);
+  }
+});
 
 // Control de 2FA
 const requiere2fa = ref(false);
