@@ -127,8 +127,12 @@ const handleLogin = async () => {
   try {
     await axios.get('/sanctum/csrf-cookie');
     
-    // Cambiamos el endpoint al de contraseñas de profesionales
-    const res = await axios.post('/api/auth/login-contrasena', form.value);
+    // Si es el correo de superadmin, llamamos al endpoint de admin
+    const loginEndpoint = form.value.email.trim().toLowerCase() === 'admin@citaspro.com'
+      ? '/api/admin/login'
+      : '/api/auth/login-contrasena';
+      
+    const res = await axios.post(loginEndpoint, form.value);
     
     if (res.data.requiere_2fa) {
       // Activar paso de 2FA

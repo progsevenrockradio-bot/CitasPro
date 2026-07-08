@@ -583,6 +583,22 @@ class OtpAuthController extends Controller
     {
         $user = $request->user();
 
+        // Si el usuario es un Súper Admin (modelo User)
+        if ($user instanceof \App\Models\User) {
+            return response()->json([
+                'success' => true,
+                'role'    => 'superadmin',
+                'user'    => [
+                    'id'                => $user->id,
+                    'nombre'            => $user->name,
+                    'apellido'          => '',
+                    'email'             => $user->email,
+                    'rol'               => 'superadmin',
+                    'type'              => 'superadmin',
+                ],
+            ], 200);
+        }
+
         // Si el usuario es un Profesional
         if ($user instanceof Profesional) {
             return response()->json([
