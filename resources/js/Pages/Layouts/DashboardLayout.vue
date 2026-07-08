@@ -13,7 +13,7 @@
       </div>
 
       <!-- Selector de Área (para Administradores o Dueños) -->
-      <div v-if="esAdminODueno" class="px-6 pb-4">
+      <div v-if="esAdminODueno && userProfile?.rol !== 'superadmin'" class="px-6 pb-4">
         <label class="block text-xs font-bold text-text-muted tracking-wider mb-2">ÁREA ACTUAL</label>
         <CustomSelect 
           :modelValue="areaSeleccionada"
@@ -25,40 +25,42 @@
 
       <nav class="flex-1 px-4 space-y-2 mt-2">
         <!-- Enlaces dinámicos según el área activa -->
-        <router-link :to="'/panel/' + areaSeleccionada" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Calendar class="w-5 h-5" /> {{ $t('sidebar.agenda') }} {{ theme.name }}
-        </router-link>
-        
-        <router-link to="/panel/clientes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Users class="w-5 h-5" /> {{ ['medical', 'dental'].includes(areaSeleccionada) ? 'Pacientes' : $t('sidebar.clientes') }}
-        </router-link>
-        <router-link to="/panel/pagos" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <CreditCard class="w-5 h-5" /> Historial de Pagos
-        </router-link>
-        
-        <router-link to="/panel/testimonios" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Star class="w-5 h-5" /> Testimonios / Reseñas
-        </router-link>
-        
-        <div class="pt-6 pb-2 px-4">
-          <p class="text-xs font-bold text-text-muted tracking-wider mb-3 px-4">CONFIGURACIÓN</p>
-        </div>
-        
-        <router-link to="/panel/configuracion/negocio" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Settings class="w-5 h-5" /> {{ $t('sidebar.negocio') }}
-        </router-link>
-        <router-link :to="{ path: '/panel/configuracion/servicios', query: { type: areaSeleccionada } }" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Scissors class="w-5 h-5" /> {{ $t('sidebar.servicios') }}
-        </router-link>
-        <router-link :to="{ path: '/panel/configuracion/profesionales', query: { type: areaSeleccionada } }" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Briefcase class="w-5 h-5" /> {{ ['medical', 'dental'].includes(areaSeleccionada) ? 'Médicos / Staff' : $t('sidebar.profesionales') }}
-        </router-link>
-        <router-link to="/panel/configuracion/whatsapp" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <MessageCircle class="w-5 h-5" /> WhatsApp QR
-        </router-link>
-        <router-link to="/panel/configuracion/horarios" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Clock class="w-5 h-5" /> Mi Horario y Calendario
-        </router-link>
+        <template v-if="userProfile?.rol !== 'superadmin'">
+          <router-link :to="'/panel/' + areaSeleccionada" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <Calendar class="w-5 h-5" /> {{ $t('sidebar.agenda') }} {{ theme.name }}
+          </router-link>
+          
+          <router-link to="/panel/clientes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <Users class="w-5 h-5" /> {{ ['medical', 'dental'].includes(areaSeleccionada) ? 'Pacientes' : $t('sidebar.clientes') }}
+          </router-link>
+          <router-link to="/panel/pagos" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <CreditCard class="w-5 h-5" /> Historial de Pagos
+          </router-link>
+          
+          <router-link to="/panel/testimonios" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <Star class="w-5 h-5" /> Testimonios / Reseñas
+          </router-link>
+          
+          <div class="pt-6 pb-2 px-4">
+            <p class="text-xs font-bold text-text-muted tracking-wider mb-3 px-4">CONFIGURACIÓN</p>
+          </div>
+          
+          <router-link to="/panel/configuracion/negocio" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <Settings class="w-5 h-5" /> {{ $t('sidebar.negocio') }}
+          </router-link>
+          <router-link :to="{ path: '/panel/configuracion/servicios', query: { type: areaSeleccionada } }" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <Scissors class="w-5 h-5" /> {{ $t('sidebar.servicios') }}
+          </router-link>
+          <router-link :to="{ path: '/panel/configuracion/profesionales', query: { type: areaSeleccionada } }" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <Briefcase class="w-5 h-5" /> {{ ['medical', 'dental'].includes(areaSeleccionada) ? 'Médicos / Staff' : $t('sidebar.profesionales') }}
+          </router-link>
+          <router-link to="/panel/configuracion/whatsapp" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <MessageCircle class="w-5 h-5" /> WhatsApp QR
+          </router-link>
+          <router-link to="/panel/configuracion/horarios" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <Clock class="w-5 h-5" /> Mi Horario y Calendario
+          </router-link>
+        </template>
         
         <!-- Sección SuperAdmin -->
         <div v-if="userProfile?.rol === 'superadmin'" class="pt-6 pb-2 px-4">
@@ -70,7 +72,7 @@
       </nav>
 
       <!-- Enlace de Reserva Pública -->
-      <div v-if="bookingUrl" class="px-4 pb-4">
+      <div v-if="bookingUrl && userProfile?.rol !== 'superadmin'" class="px-4 pb-4">
         <div class="rounded-xl border border-border bg-black/30 p-3">
           <p class="text-xs font-bold text-text-muted tracking-wider mb-2">🔗 {{ $t('sidebar.enlace_reserva') }}</p>
           <p class="text-xs text-white/70 truncate mb-2 font-mono">{{ bookingUrl }}</p>
@@ -210,7 +212,11 @@ const loadProfile = async () => {
 
 const redireccionarRaiz = () => {
   if (route.path === '/panel' || route.path === '/panel/') {
-    router.push('/panel/' + areaSeleccionada.value);
+    if (userProfile.value?.rol === 'superadmin') {
+      router.push('/panel/superadmin/web-config');
+    } else {
+      router.push('/panel/' + areaSeleccionada.value);
+    }
   }
 };
 
