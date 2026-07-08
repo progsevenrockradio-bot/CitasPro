@@ -32,6 +32,7 @@
           <!-- Botones de Acción -->
           <div class="flex gap-3 mt-6">
             <button 
+              v-if="cancelText"
               type="button"
               @click="cancel" 
               class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white py-3 rounded-xl transition-all text-sm font-semibold cursor-pointer active:scale-95"

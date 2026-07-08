@@ -118,16 +118,35 @@
 
       </form>
     </div>
+
+    <!-- Modal de confirmación/aviso personalizado -->
+    <ConfirmModal 
+      v-model:show="showConfirmModal"
+      :title="confirmTitle"
+      :message="confirmMessage"
+      :type="confirmType"
+      :confirm-text="confirmText"
+      :cancel-text="cancelText"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import ConfirmModal from '../../Components/ConfirmModal.vue';
 
 const loading = ref(true);
 const saving = ref(false);
 const activeTab = ref('tipografia');
+
+// Refs para el modal de confirmación personalizado
+const showConfirmModal = ref(false);
+const confirmTitle = ref('');
+const confirmMessage = ref('');
+const confirmType = ref('success');
+const confirmText = ref('Aceptar');
+const cancelText = ref('');
 
 const tabs = [
   { id: 'tipografia', label: 'Tipografía' },
@@ -162,6 +181,10 @@ const guardar = async () => {
     
     // Adjuntar strings y booleanos
     Object.keys(configs.value).forEach(key => {
+      // Si hay un archivo nuevo cargado para logo o fondo, no enviamos la URL string vieja
+      if (key === 'logo_url' && files.value.logo_url) return;
+      if (key === 'hero_bg_url' && files.value.hero_bg_url) return;
+      
       formData.append(key, configs.value[key]);
     });
     
@@ -180,10 +203,23 @@ const guardar = async () => {
     if (res.data.success) {
       configs.value = res.data.data;
       files.value = { logo_url: null, hero_bg_url: null };
-      alert('Configuración guardada correctamente.');
+      
+      // Mostrar modal de éxito
+      confirmTitle.value = 'Éxito';
+      confirmMessage.value = 'Configuración guardada correctamente.';
+      confirmType.value = 'success';
+      confirmText.value = 'Aceptar';
+      cancelText.value = '';
+      showConfirmModal.value = true;
     }
   } catch (error) {
-    alert('Error al guardar la configuración.');
+    // Mostrar modal de error
+    confirmTitle.value = 'Error';
+    confirmMessage.value = 'Error al guardar la configuración.';
+    confirmType.value = 'danger';
+    confirmText.value = 'Aceptar';
+    cancelText.value = '';
+    showConfirmModal.value = true;
     console.error(error);
   } finally {
     saving.value = false;
