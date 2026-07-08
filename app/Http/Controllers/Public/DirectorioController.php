@@ -241,11 +241,10 @@ class DirectorioController extends Controller
             $negocio->rating_avg = $negocio->resenas_avg_calificacion ? round($negocio->resenas_avg_calificacion, 1) : 0;
             $negocio->rating_count = $negocio->resenas_count ?? 0;
             
-            // Simular fecha próxima disponible (basada en el número grande del banner)
-            // Genera una fecha realista
             $nextAvailable = now()->addDays(mt_rand(0, 5));
             $negocio->next_available_day = $nextAvailable->format('d');
             $negocio->next_available_month = $nextAvailable->translatedFormat('F'); // Ej: Julio, Agosto...
+            $negocio->next_available_weekday = $nextAvailable->translatedFormat('l'); // Ej: sábado, jueves...
             
             return $negocio;
         });

@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-bg text-text font-sans selection:bg-primary selection:text-white overflow-x-hidden">
     <!-- Header CitasPro -->
     <header class="bg-bg/80 backdrop-blur-xl border-b border-border sticky top-0 z-40 transition-all duration-300">
-      <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <div class="max-w-[95%] mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <!-- Logo Real -->
           <img src="/images/logo.png" alt="CitasPro Logo" class="h-9 object-contain" @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display='flex';" />
@@ -29,7 +29,7 @@
     </header>
 
     <!-- Contenido Principal -->
-    <main class="max-w-7xl mx-auto px-6 py-10 relative">
+    <main class="max-w-[95%] mx-auto px-4 md:px-8 py-10 relative">
       <!-- Decoraciones de Fondo Sutiles -->
       <div class="absolute top-1/4 left-1/3 w-96 h-96 bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none"></div>
       <div class="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[160px] pointer-events-none"></div>
@@ -385,13 +385,17 @@
 
               <!-- Pie de Tarjeta / Contenido de Reserva -->
               <div class="flex items-end justify-between mt-auto pt-3 border-t border-border-sutil relative z-10">
-                <!-- Bloque de Fecha Disponible (GRANDE) -->
-                <div class="flex flex-col select-none">
-                  <span class="text-[9px] uppercase font-bold tracking-wider text-text-secondary">Próxima</span>
-                  <div class="flex items-baseline gap-1 mt-0.5 leading-none">
-                    <span class="text-3xl font-black tracking-tighter text-white tabular-nums">{{ negocio.next_available_day }}</span>
-                    <span class="text-[10px] font-black uppercase text-accent tracking-wider">{{ negocio.next_available_month.substring(0, 3) }}</span>
-                  </div>
+                <!-- Bloque de Fecha Disponible (GRANDE - Estilo Vertical Banner) -->
+                <div class="flex flex-col select-none text-left min-w-[70px]">
+                  <span class="capitalize text-[10px] font-bold text-text-muted tracking-wide leading-tight">
+                    {{ negocio.next_available_weekday }}
+                  </span>
+                  <span class="text-4xl font-black tracking-tighter text-white my-0.5 leading-none tabular-nums">
+                    {{ negocio.next_available_day }}
+                  </span>
+                  <span class="capitalize text-xs font-black text-accent tracking-wider leading-tight">
+                    {{ negocio.next_available_month }}
+                  </span>
                 </div>
 
                 <!-- Botón Pedir Cita Premium -->
