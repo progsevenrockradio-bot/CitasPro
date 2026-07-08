@@ -26,6 +26,7 @@
             <thead>
               <tr class="border-b border-border bg-black/10 text-xs font-bold text-text-muted uppercase tracking-wider">
                 <th class="p-4">Ref / ID</th>
+                <th v-if="esSuperAdmin" class="p-4">Negocio</th>
                 <th class="p-4">Cliente</th>
                 <th class="p-4">Servicio</th>
                 <th class="p-4">Fecha Cita</th>
@@ -44,6 +45,13 @@
                 <!-- Referencia -->
                 <td class="p-4 font-mono text-xs text-white">
                   #{{ pago.id }}
+                </td>
+                
+                <!-- Negocio (solo para SuperAdmin) -->
+                <td v-if="esSuperAdmin" class="p-4">
+                  <div class="font-semibold text-white">
+                    {{ pago.negocio?.nombre || 'General' }}
+                  </div>
                 </td>
                 
                 <!-- Cliente -->
@@ -138,7 +146,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { Loader2 } from 'lucide-vue-next';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
@@ -146,6 +154,9 @@ import { es } from 'date-fns/locale';
 
 const loading = ref(true);
 const pagos = ref([]);
+
+// Detección de súper administrador
+const esSuperAdmin = computed(() => pagos.value.some(p => p.negocio));
 
 // Paginación
 const currentPage = ref(1);

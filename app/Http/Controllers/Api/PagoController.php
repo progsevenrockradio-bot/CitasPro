@@ -18,6 +18,19 @@ class PagoController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+
+        // Si el usuario es Súper Administrador (modelo User)
+        if ($user instanceof \App\Models\User) {
+            $pagos = Pago::with(['cliente:id,nombre,apellido,telefono', 'cita:id,servicio_id,fecha,hora_inicio', 'cita.servicio:id,nombre', 'negocio:id,nombre'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(15);
+
+            return response()->json([
+                'success' => true,
+                'pagos' => $pagos
+            ]);
+        }
+
         if (!$user instanceof Profesional) {
             return response()->json(['message' => 'Solo profesionales pueden ver el historial de pagos.'], 403);
         }

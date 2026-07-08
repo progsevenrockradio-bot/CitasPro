@@ -74,6 +74,16 @@ const routes = [
         path: 'superadmin/web-config',
         name: 'SuperAdminWebConfig',
         component: () => import('../Pages/Dashboard/Configuracion/WebConfigPanel.vue')
+      },
+      {
+        path: 'superadmin/clientes',
+        name: 'SuperAdminClientes',
+        component: () => import('../Pages/Dashboard/Configuracion/SuperAdminClientes.vue')
+      },
+      {
+        path: 'superadmin/pagos',
+        name: 'SuperAdminPagos',
+        component: () => import('../Pages/Dashboard/Pagos/ListadoPagos.vue')
       }
     ]
   },

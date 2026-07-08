@@ -63,12 +63,20 @@
         </template>
         
         <!-- Sección SuperAdmin -->
-        <div v-if="userProfile?.rol === 'superadmin'" class="pt-6 pb-2 px-4">
-          <p class="text-xs font-bold text-red-500 tracking-wider mb-3 px-4">SUPER ADMIN</p>
-        </div>
-        <router-link v-if="userProfile?.rol === 'superadmin'" to="/panel/superadmin/web-config" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-red-500/10 text-red-400 font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
-          <Settings class="w-5 h-5" /> Configuración Web
-        </router-link>
+        <template v-if="userProfile?.rol === 'superadmin'">
+          <div class="pt-6 pb-2 px-4">
+            <p class="text-xs font-bold text-red-500 tracking-wider mb-3 px-4">SUPER ADMIN</p>
+          </div>
+          <router-link to="/panel/superadmin/clientes" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <Users class="w-5 h-5" /> Mis Clientes (Profesionales)
+          </router-link>
+          <router-link to="/panel/superadmin/pagos" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <CreditCard class="w-5 h-5" /> Historial de Pagos
+          </router-link>
+          <router-link to="/panel/superadmin/web-config" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+            <Settings class="w-5 h-5" /> Configuración Web
+          </router-link>
+        </template>
       </nav>
 
       <!-- Enlace de Reserva Pública -->

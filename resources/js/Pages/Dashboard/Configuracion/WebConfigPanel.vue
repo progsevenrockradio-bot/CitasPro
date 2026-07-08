@@ -63,8 +63,8 @@
           <div>
             <label class="block text-sm font-bold text-gray-400 mb-2">Logo Principal</label>
             <div class="flex items-center gap-4">
-              <div v-if="configs.logo_url" class="w-20 h-20 bg-gray-900 rounded-xl p-2 flex items-center justify-center border border-white/10">
-                <img :src="configs.logo_url" class="max-w-full max-h-full object-contain" />
+              <div v-if="logoPreview" class="w-20 h-20 bg-gray-900 rounded-xl p-2 flex items-center justify-center border border-white/10">
+                <img :src="logoPreview" class="max-w-full max-h-full object-contain" />
               </div>
               <input type="file" @change="e => files.logo_url = e.target.files[0]" accept="image/*" class="text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700" />
             </div>
@@ -72,8 +72,8 @@
           <div>
             <label class="block text-sm font-bold text-gray-400 mb-2">Fondo del Hero (Directorio)</label>
             <div class="flex items-center gap-4">
-              <div v-if="configs.hero_bg_url" class="w-32 h-20 bg-gray-900 rounded-xl p-0 overflow-hidden flex items-center justify-center border border-white/10">
-                <img :src="configs.hero_bg_url" class="w-full h-full object-cover" />
+              <div v-if="heroBgPreview" class="w-32 h-20 bg-gray-900 rounded-xl p-0 overflow-hidden flex items-center justify-center border border-white/10">
+                <img :src="heroBgPreview" class="w-full h-full object-cover" />
               </div>
               <input type="file" @change="e => files.hero_bg_url = e.target.files[0]" accept="image/*" class="text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700" />
             </div>
@@ -132,7 +132,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import ConfirmModal from '../../Components/ConfirmModal.vue';
 
@@ -159,6 +159,21 @@ const configs = ref({});
 const files = ref({
   logo_url: null,
   hero_bg_url: null
+});
+
+// Vistas previas en tiempo real
+const logoPreview = computed(() => {
+  if (files.value.logo_url) {
+    return URL.createObjectURL(files.value.logo_url);
+  }
+  return configs.value.logo_url;
+});
+
+const heroBgPreview = computed(() => {
+  if (files.value.hero_bg_url) {
+    return URL.createObjectURL(files.value.hero_bg_url);
+  }
+  return configs.value.hero_bg_url;
 });
 
 onMounted(async () => {

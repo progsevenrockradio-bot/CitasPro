@@ -38,7 +38,15 @@ class WebConfigController extends Controller
             $config = WebConfig::where('key', $key)->first();
             
             if (!$config) {
-                continue;
+                $config = new WebConfig();
+                $config->key = $key;
+                if ($request->hasFile($key)) {
+                    $config->type = 'image';
+                } elseif ($value === 'true' || $value === 'false') {
+                    $config->type = 'boolean';
+                } else {
+                    $config->type = 'string';
+                }
             }
 
             // Manejo de subida de imágenes
