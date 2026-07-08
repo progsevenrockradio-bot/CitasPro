@@ -321,6 +321,12 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('/{id}', [\App\Http\Controllers\Api\ProfesionalController::class, 'destroy'])->name('destroy')->where('id', '[0-9]+');
         });
 
+        // ── Gestión de Reseñas / Testimonios (Dashboard)
+        Route::prefix('dashboard/resenas')->name('dashboard.resenas.')->group(function () {
+            Route::get('/', [ResenaController::class, 'dashboardIndex'])->name('index');
+            Route::patch('/{id}/toggle-activo', [ResenaController::class, 'toggleActivo'])->name('toggle-activo');
+        });
+
         // ── Reseñas (Creación)
         Route::post('/resenas', [ResenaController::class, 'store'])->name('resenas.store');
 

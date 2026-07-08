@@ -36,6 +36,10 @@
           <CreditCard class="w-5 h-5" /> Historial de Pagos
         </router-link>
         
+        <router-link to="/panel/testimonios" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
+          <Star class="w-5 h-5" /> Testimonios / Reseñas
+        </router-link>
+        
         <div class="pt-6 pb-2 px-4">
           <p class="text-xs font-bold text-text-muted tracking-wider mb-3 px-4">CONFIGURACIÓN</p>
         </div>
@@ -128,7 +132,7 @@
 </template>
 
 <script setup>
-import { Calendar, Users, MessageCircle, LogOut, Settings, Scissors, Briefcase, Clock, CreditCard } from 'lucide-vue-next';
+import { Calendar, Users, MessageCircle, LogOut, Settings, Scissors, Briefcase, Clock, CreditCard, Star } from 'lucide-vue-next';
 import { useRouter, useRoute } from 'vue-router';
 import { ref, onMounted, computed, watch } from 'vue';
 import axios from 'axios';

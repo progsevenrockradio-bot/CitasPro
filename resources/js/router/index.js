@@ -41,6 +41,11 @@ const routes = [
         component: () => import('../Pages/Dashboard/Pagos/ListadoPagos.vue')
       },
       {
+        path: 'testimonios',
+        name: 'Testimonios',
+        component: () => import('../Pages/Dashboard/Opiniones/Testimonios.vue')
+      },
+      {
         path: 'configuracion/negocio',
         name: 'ConfiguracionNegocio',
         component: () => import('../Pages/Dashboard/Configuracion/NegocioConfig.vue')

@@ -128,4 +128,101 @@ class ResenaController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Obtener todas las reseñas del negocio para el dueño/profesional autenticado.
+     */
+    public function dashboardIndex(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 401);
+        }
+
+        $negocioId = $user->negocio_id;
+        if (!$negocioId) {
+            return response()->json(['success' => false, 'message' => 'Negocio no encontrado.'], 404);
+        }
+
+        $resenas = Resena::with([
+            'cliente:id,nombre,apellido,foto',
+            'profesional:id,nombre,apellido',
+            'cita.servicio:id,nombre'
+        ])
+        ->where('negocio_id', $negocioId)
+        ->latest()
+        ->paginate(15);
+
+        // Calcular estadísticas rápidas
+        $promedio = Resena::where('negocio_id', $negocioId)->activo()->avg('calificacion') ?? 0;
+        $total = Resena::where('negocio_id', $negocioId)->count();
+        $ocultas = Resena::where('negocio_id', $negocioId)->where('activo', false)->count();
+
+        return response()->json([
+            'success' => true,
+            'data' => $resenas,
+            'stats' => [
+                'promedio' => round($promedio, 1),
+                'total' => $total,
+                'ocultas' => $ocultas
+            ]
+        ]);
+    }
+
+    /**
+     * Activar o desactivar (ocultar) una reseña del negocio.
+     */
+    public function toggleActivo(Request $request, $id): JsonResponse
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 401);
+        }
+
+        $resena = Resena::findOrFail($id);
+        
+        // Verificar propiedad
+        if ($resena->negocio_id !== $user->negocio_id) {
+            return response()->json(['success' => false, 'message' => 'Acción no permitida.'], 403);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $resena->activo = !$resena->activo;
+            $resena->save();
+
+            // Recalcular estadísticas del profesional
+            if ($resena->profesional_id) {
+                $estadisticas = Resena::where('profesional_id', $resena->profesional_id)
+                    ->activo()
+                    ->selectRaw('count(*) as total, avg(calificacion) as promedio')
+                    ->first();
+
+                $profesional = Profesional::find($resena->profesional_id);
+                if ($profesional) {
+                    $profesional->update([
+                        'total_resenas' => $estadisticas->total ?? 0,
+                        'calificacion_promedio' => $estadisticas->promedio ?? 0,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $resena->activo ? 'Reseña aprobada y visible públicamente.' : 'Reseña oculta correctamente.',
+                'activo' => $resena->activo
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar el estado de la reseña.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
