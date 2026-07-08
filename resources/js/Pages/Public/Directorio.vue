@@ -376,8 +376,19 @@
                 </span>
               </div>
 
-              <!-- Separador Decorativo Abstracto (Sutil) -->
-              <div class="flex-grow flex items-center opacity-30 pointer-events-none relative z-10 overflow-hidden my-2">
+              <!-- Imagen de Portada (Compacta/Panorámica) -->
+              <div 
+                v-if="negocio.cover_imagen && negocio.layout_size !== 'small'" 
+                class="my-2 h-14 w-full rounded-xl overflow-hidden bg-gray-950/60 relative z-10 border border-border flex-shrink-0 shadow-inner"
+              >
+                <img 
+                  :src="negocio.cover_imagen" 
+                  :alt="negocio.nombre" 
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100" 
+                />
+              </div>
+              <!-- Separador Decorativo Abstracto (Sutil) si no hay imagen -->
+              <div v-else class="flex-grow flex items-center opacity-30 pointer-events-none relative z-10 overflow-hidden my-2">
                 <svg class="w-full h-4 text-border" viewBox="0 0 100 10" preserveAspectRatio="none">
                   <path d="M0,5 Q25,0 50,5 T100,5" fill="none" stroke="currentColor" stroke-width="0.3" />
                   <circle cx="50" cy="5" r="1.5" fill="currentColor" />
