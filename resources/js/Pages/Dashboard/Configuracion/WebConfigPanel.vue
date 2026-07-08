@@ -108,6 +108,47 @@
           </div>
         </div>
 
+        <!-- Pestaña 5: Colores de Marca -->
+        <div v-if="activeTab === 'colores'" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-bold text-gray-400 mb-2">Fondo Principal</label>
+              <div class="flex gap-3">
+                <input v-model="configs.color_bg" type="color" class="w-12 h-12 rounded-xl bg-transparent border border-white/10 p-1 cursor-pointer" />
+                <input v-model="configs.color_bg" type="text" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none font-mono text-sm" placeholder="#0B1021" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-gray-400 mb-2">Fondo de Tarjetas (Superficies)</label>
+              <div class="flex gap-3">
+                <input v-model="configs.color_bg_card" type="color" class="w-12 h-12 rounded-xl bg-transparent border border-white/10 p-1 cursor-pointer" />
+                <input v-model="configs.color_bg_card" type="text" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none font-mono text-sm" placeholder="#171C36" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-gray-400 mb-2">Color Principal (Botones, Iconos, Destacados)</label>
+              <div class="flex gap-3">
+                <input v-model="configs.color_primary" type="color" class="w-12 h-12 rounded-xl bg-transparent border border-white/10 p-1 cursor-pointer" />
+                <input v-model="configs.color_primary" type="text" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none font-mono text-sm" placeholder="#3B82F6" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-gray-400 mb-2">Color de Acción (Coral / CTA Críticas)</label>
+              <div class="flex gap-3">
+                <input v-model="configs.color_accent" type="color" class="w-12 h-12 rounded-xl bg-transparent border border-white/10 p-1 cursor-pointer" />
+                <input v-model="configs.color_accent" type="text" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none font-mono text-sm" placeholder="#FF5A5F" />
+              </div>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold text-gray-400 mb-2">Color de Bordes Sutiles</label>
+              <div class="flex gap-3 max-w-md">
+                <input v-model="configs.color_border" type="color" class="w-12 h-12 rounded-xl bg-transparent border border-white/10 p-1 cursor-pointer" />
+                <input v-model="configs.color_border" type="text" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none font-mono text-sm" placeholder="#1E293B" />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Submit -->
         <div class="mt-8 pt-6 border-t border-white/10 flex justify-end">
           <button type="submit" :disabled="saving" class="px-6 py-3 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all disabled:opacity-50 flex items-center gap-2">
@@ -153,6 +194,7 @@ const tabs = [
   { id: 'textos', label: 'Textos y Banner' },
   { id: 'imagenes', label: 'Imágenes y Logos' },
   { id: 'pricing', label: 'Tarjetas Pricing' },
+  { id: 'colores', label: 'Colores de Marca' },
 ];
 
 const configs = ref({});
@@ -218,6 +260,29 @@ const guardar = async () => {
     if (res.data.success) {
       configs.value = res.data.data;
       files.value = { logo_url: null, hero_bg_url: null };
+      
+      // Aplicar colores inmediatamente en caliente en la pantalla actual
+      const root = document.documentElement;
+      if (configs.value.color_bg) {
+        root.style.setProperty('--color-bg', configs.value.color_bg);
+        root.style.setProperty('--color-dark', configs.value.color_bg);
+      }
+      if (configs.value.color_bg_card) {
+        root.style.setProperty('--color-bg-card', configs.value.color_bg_card);
+        root.style.setProperty('--color-dark-card', configs.value.color_bg_card);
+      }
+      if (configs.value.color_primary) {
+        root.style.setProperty('--color-primary', configs.value.color_primary);
+        root.style.setProperty('--color-primary-hover', configs.value.color_primary);
+      }
+      if (configs.value.color_accent) {
+        root.style.setProperty('--color-accent', configs.value.color_accent);
+        root.style.setProperty('--color-accent-hover', configs.value.color_accent);
+      }
+      if (configs.value.color_border) {
+        root.style.setProperty('--color-border', configs.value.color_border);
+        root.style.setProperty('--color-border-sutil', configs.value.color_border);
+      }
       
       // Mostrar modal de éxito
       confirmTitle.value = 'Éxito';

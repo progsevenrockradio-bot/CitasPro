@@ -27,6 +27,13 @@ class WebConfigSeeder extends Seeder
             ['key' => 'logo_url', 'value' => '/images/logo.png', 'type' => 'image'],
             ['key' => 'hero_bg_url', 'value' => '/images/bg-directorio.png', 'type' => 'image'],
             
+            // Colores de la Paleta
+            ['key' => 'color_bg', 'value' => '#0B1021', 'type' => 'color'],
+            ['key' => 'color_bg_card', 'value' => '#171C36', 'type' => 'color'],
+            ['key' => 'color_primary', 'value' => '#3B82F6', 'type' => 'color'],
+            ['key' => 'color_accent', 'value' => '#FF5A5F', 'type' => 'color'],
+            ['key' => 'color_border', 'value' => '#1E293B', 'type' => 'color'],
+            
             // Comportamiento Tarjetas Pricing
             ['key' => 'pricing_show_free', 'value' => 'true', 'type' => 'boolean'],
             ['key' => 'pricing_pro_highlight', 'value' => 'true', 'type' => 'boolean'],
