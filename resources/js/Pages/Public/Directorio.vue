@@ -333,11 +333,9 @@
 
             <div
               :class="[
-                'directory-card group relative rounded-3xl overflow-hidden bg-bg-card border border-border transition-all duration-300 flex flex-col justify-between p-6',
-                `card-${negocio.layout_size || 'medium'}`
+                'directory-card group relative rounded-2xl overflow-hidden bg-bg-card border border-border transition-all duration-300 p-4',
               ]"
               :style="{ 
-                transform: getCardTransform(index, negocio.layout_size),
                 borderLeft: '4px solid ' + getCategoryColor(negocio.categoria?.nombre)
               }"
             >
@@ -351,67 +349,42 @@
                 </svg>
               </div>
 
-              <!-- Cabecera de la Tarjeta (Compacta y Minimalista) -->
-              <div class="flex items-center justify-between gap-3 relative z-10 mb-4">
-                <div class="flex items-center gap-3">
-                  <!-- Logo Negocio -->
-                  <div class="w-10 h-10 rounded-xl border border-border overflow-hidden bg-gray-900 flex items-center justify-center shadow-lg shrink-0">
-                    <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover" />
-                    <span v-else class="text-sm font-black text-white">{{ negocio.nombre[0] }}</span>
+              <!-- Contenido Compacto Horizontal de la Tarjeta -->
+              <div class="flex items-center justify-between gap-4 relative z-10 w-full">
+                <!-- Izquierda: Imagen de Portada o Logo -->
+                <div class="flex items-center gap-3 overflow-hidden">
+                  <div class="w-14 h-14 rounded-xl border border-border overflow-hidden bg-gray-900 flex items-center justify-center shadow-md shrink-0">
+                    <img v-if="negocio.cover_imagen" :src="negocio.cover_imagen" :alt="negocio.nombre" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <img v-else-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <span v-else class="text-xl font-black text-white">{{ negocio.nombre[0] }}</span>
                   </div>
                   
-                  <div>
-                    <span class="block text-[8px] font-black uppercase tracking-widest text-primary mb-0.5">
+                  <!-- Centro: Info del Negocio (Categoría, Nombre, Estrellas) -->
+                  <div class="flex flex-col justify-center min-w-0">
+                    <span class="block text-[8px] font-black uppercase tracking-widest text-primary mb-0.5 truncate">
                       {{ negocio.categoria?.nombre }}
                     </span>
-                    <h3 class="font-bold text-white text-sm leading-tight line-clamp-1 group-hover:text-primary transition-colors">
-                      {{ negocio.nombre }}
-                    </h3>
+                    <div class="flex items-center gap-2">
+                      <h3 class="font-bold text-white text-sm leading-tight truncate group-hover:text-primary transition-colors">
+                        {{ negocio.nombre }}
+                      </h3>
+                      <span v-if="negocio.verificado" class="w-3.5 h-3.5 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-[8px] text-primary shrink-0" title="Verificado">✓</span>
+                    </div>
+                    <div class="flex items-center gap-1 mt-1 text-[10px] font-bold text-yellow-400">
+                      <Star class="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      <span class="text-white">{{ negocio.rating_avg || '4.8' }}</span>
+                      <span class="text-text-secondary font-medium text-[9px]">({{ negocio.rating_count || 12 }})</span>
+                    </div>
                   </div>
                 </div>
 
-                <!-- Badge Verificado -->
-                <span v-if="negocio.verificado" class="w-4 h-4 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-[9px] text-primary shadow" title="Negocio Verificado">
-                  ✓
-                </span>
-              </div>
-
-              <!-- Imagen de Portada (Compacta/Panorámica) -->
-              <div 
-                v-if="negocio.cover_imagen && negocio.layout_size !== 'small'" 
-                class="my-2 h-14 w-full rounded-xl overflow-hidden bg-gray-950/60 relative z-10 border border-border flex-shrink-0 shadow-inner"
-              >
-                <img 
-                  :src="negocio.cover_imagen" 
-                  :alt="negocio.nombre" 
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100" 
-                />
-              </div>
-              <!-- Separador Decorativo Abstracto (Sutil) si no hay imagen -->
-              <div v-else class="flex-grow flex items-center opacity-30 pointer-events-none relative z-10 overflow-hidden my-2">
-                <svg class="w-full h-4 text-border" viewBox="0 0 100 10" preserveAspectRatio="none">
-                  <path d="M0,5 Q25,0 50,5 T100,5" fill="none" stroke="currentColor" stroke-width="0.3" />
-                  <circle cx="50" cy="5" r="1.5" fill="currentColor" />
-                </svg>
-              </div>
-
-              <!-- Pie de Tarjeta / Contenido de Reserva (Rating y Botón Paralelos) -->
-              <div class="flex items-center justify-between mt-auto pt-3 border-t border-border-sutil relative z-10">
-                <!-- Badge de Rating -->
-                <div class="flex items-center gap-1.5 text-[10px] font-bold text-yellow-400">
-                  <Star class="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                  <span class="text-white">{{ negocio.rating_avg || '4.8' }}</span>
-                  <span class="text-text-secondary font-medium text-[9px]">({{ negocio.rating_count || 12 }})</span>
-                </div>
-
-                <!-- Botón Pedir Cita -->
+                <!-- Derecha: Botón Pedir Cita -->
                 <a
                   :href="`/${negocio.slug}/book`"
                   @click="trackClick(negocio.id)"
-                  class="px-4 py-2.5 bg-accent hover:bg-accent-hover text-white rounded-xl font-black uppercase tracking-widest text-[9px] transition-all duration-300 text-center shadow-cta-glow active:scale-95 flex items-center gap-1.5 hover:-translate-y-0.5"
+                  class="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-xl font-black uppercase tracking-widest text-[9px] transition-all duration-300 text-center shadow-cta-glow active:scale-95 shrink-0 hover:-translate-y-0.5"
                 >
-                  <span>Pedir Cita</span>
-                  <span class="group-hover:translate-x-0.5 transition-transform">→</span>
+                  Pedir Cita
                 </a>
               </div>
             </div>
