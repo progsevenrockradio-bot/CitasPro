@@ -45,7 +45,7 @@ class AdminSeeder extends Seeder
                 'negocio_id' => $negocio->id,
                 'nombre' => 'Administrador',
                 'apellido' => 'Maestro',
-                'telefono' => '+34600111222',
+                'telefono' => '+34600111333',
                 'password' => Hash::make('admin123'),
                 'rol' => 'dueño',
                 'activo' => true
