@@ -204,25 +204,25 @@ const theme = computed(() => {
       title: 'Mi Agenda - Citas Pro',
       subtitle: 'Gestiona tus citas generales y reservas abiertas.',
       text: 'text-primary',
-      bg: 'bg-primary hover:bg-primary-hover',
+      bg: 'bg-accent hover:bg-accent-hover active:scale-95',
       hoverBorder: 'hover:border-primary/50',
-      shadow: 'shadow-[0_0_15px_rgba(99,102,241,0.25)]'
+      shadow: 'shadow-cta-glow'
     },
     medical: {
       title: 'Clínica Médica',
       subtitle: 'Agenda clínica con especialidad e historia médica.',
-      text: 'text-teal-400',
-      bg: 'bg-teal-600 hover:bg-teal-700',
-      hoverBorder: 'hover:border-teal-500/50',
-      shadow: 'shadow-[0_0_15px_rgba(20,184,166,0.25)]'
+      text: 'text-primary',
+      bg: 'bg-accent hover:bg-accent-hover active:scale-95',
+      hoverBorder: 'hover:border-primary/50',
+      shadow: 'shadow-cta-glow'
     },
     dental: {
       title: 'Clínica Dental',
       subtitle: 'Agenda odontológica con tratamientos específicos.',
-      text: 'text-sky-400',
-      bg: 'bg-sky-600 hover:bg-sky-700',
-      hoverBorder: 'hover:border-sky-500/50',
-      shadow: 'shadow-[0_0_15px_rgba(14,165,233,0.25)]'
+      text: 'text-primary',
+      bg: 'bg-accent hover:bg-accent-hover active:scale-95',
+      hoverBorder: 'hover:border-primary/50',
+      shadow: 'shadow-cta-glow'
     }
   };
   return themes[props.type] || themes.general;

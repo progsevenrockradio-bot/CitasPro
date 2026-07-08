@@ -1,27 +1,27 @@
 <template>
-  <div class="min-h-screen bg-gray-950 text-white font-sans selection:bg-indigo-500 selection:text-white overflow-x-hidden">
+  <div class="min-h-screen bg-bg text-text font-sans selection:bg-primary selection:text-white overflow-x-hidden">
     <!-- Header CitasPro -->
-    <header class="bg-gray-950/80 backdrop-blur-xl border-b border-white/5 sticky top-0 z-40 transition-all duration-300">
+    <header class="bg-bg/80 backdrop-blur-xl border-b border-border sticky top-0 z-40 transition-all duration-300">
       <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <!-- Logo Real -->
           <img src="/images/logo.png" alt="CitasPro Logo" class="h-9 object-contain" @error="$event.target.style.display='none'; $event.target.nextElementSibling.style.display='flex';" />
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-black text-white shadow-lg shadow-indigo-500/20">C</div>
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center font-black text-white shadow-lg shadow-primary/20">C</div>
           <span class="font-black text-xl tracking-tight bg-gradient-to-r from-white via-gray-100 to-gray-400 bg-clip-text text-transparent">CitasPro</span>
-          <span class="text-gray-600 text-sm hidden sm:inline ml-2 border-l border-white/10 pl-3">Directorio Editorial</span>
+          <span class="text-text-secondary text-sm hidden sm:inline ml-2 border-l border-border pl-3">Directorio Editorial</span>
         </div>
         
         <div class="flex items-center gap-4">
           <!-- Botón de Ubicación Rápido -->
           <button 
             @click="toggleLocationPanel" 
-            class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-gray-300 hover:text-white transition-all cursor-pointer"
+            class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-border text-xs font-semibold text-text-secondary hover:text-white transition-all cursor-pointer"
           >
-            <MapPin class="w-3.5 h-3.5 text-indigo-400" />
+            <MapPin class="w-3.5 h-3.5 text-primary" />
             <span>{{ locationText }}</span>
           </button>
 
-          <a href="/login" class="text-xs font-bold text-indigo-400 hover:text-white transition-all bg-indigo-500/10 hover:bg-indigo-500 px-5 py-2.5 rounded-full border border-indigo-500/20 shadow-lg hover:shadow-indigo-500/20">
+          <a href="/login" class="text-xs font-bold text-primary hover:text-white transition-all bg-primary/10 hover:bg-primary px-5 py-2.5 rounded-full border border-primary/20 shadow-lg hover:shadow-primary/20">
             ¿Eres un negocio?
           </a>
         </div>
@@ -41,65 +41,65 @@
           <div>
             <h1 class="text-3xl sm:text-4xl font-black tracking-tight leading-none text-white uppercase">
               Directorio de <br/>
-              <span class="bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">Negocios</span>
+              <span class="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">Negocios</span>
             </h1>
-            <p class="text-gray-400 text-sm mt-3 font-light leading-relaxed max-w-sm">
+            <p class="text-text-secondary text-sm mt-3 font-light leading-relaxed max-w-sm">
               Una cuidada selección editorial de los mejores profesionales y centros. Reserva de forma inmediata.
             </p>
           </div>
 
           <!-- Selector de Ubicación Expandible -->
-          <div v-if="showLocationPanel" class="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 animate-fade-in">
-            <div class="flex items-center justify-between border-b border-white/5 pb-2">
-              <span class="text-xs font-bold uppercase text-gray-400 tracking-wider">Configurar Ubicación</span>
-              <button @click="showLocationPanel = false" class="text-gray-500 hover:text-white transition-colors">
+          <div v-if="showLocationPanel" class="bg-bg-card border border-border rounded-2xl p-5 space-y-4 animate-fade-in">
+            <div class="flex items-center justify-between border-b border-border-sutil pb-2">
+              <span class="text-xs font-bold uppercase text-text-secondary tracking-wider">Configurar Ubicación</span>
+              <button @click="showLocationPanel = false" class="text-text-secondary hover:text-white transition-colors">
                 <X class="w-4 h-4" />
               </button>
             </div>
 
             <!-- Selección de País -->
             <div class="space-y-1">
-              <label class="text-[10px] uppercase font-bold text-gray-500 tracking-wide">País</label>
+              <label class="text-[10px] uppercase font-bold text-text-secondary tracking-wide">País</label>
               <CustomSelect 
                 v-model="manualPais"
                 :options="paisesOptions"
                 placeholder="Seleccionar País"
-                buttonClass="px-4 py-2.5 bg-black/40 border border-white/5 rounded-xl text-sm"
+                buttonClass="px-4 py-2.5 bg-black/40 border border-border rounded-xl text-sm"
               />
             </div>
 
             <!-- Selección de Estado/Provincia -->
             <div v-if="manualPais" class="space-y-1">
-              <label class="text-[10px] uppercase font-bold text-gray-500 tracking-wide">Estado / Provincia</label>
+              <label class="text-[10px] uppercase font-bold text-text-secondary tracking-wide">Estado / Provincia</label>
               <CustomSelect 
                 v-model="manualEstado"
                 :options="estadosOptions"
                 placeholder="Seleccionar Estado"
-                buttonClass="px-4 py-2.5 bg-black/40 border border-white/5 rounded-xl text-sm"
+                buttonClass="px-4 py-2.5 bg-black/40 border border-border rounded-xl text-sm"
               />
             </div>
 
             <!-- Selección de Ciudad -->
             <div v-if="manualEstado" class="space-y-1">
-              <label class="text-[10px] uppercase font-bold text-gray-500 tracking-wide">Ciudad</label>
+              <label class="text-[10px] uppercase font-bold text-text-secondary tracking-wide">Ciudad</label>
               <CustomSelect 
                 v-model="manualCiudad"
                 :options="ciudadesOptions"
                 placeholder="Seleccionar Ciudad"
-                buttonClass="px-4 py-2.5 bg-black/40 border border-white/5 rounded-xl text-sm"
+                buttonClass="px-4 py-2.5 bg-black/40 border border-border rounded-xl text-sm"
               />
             </div>
 
             <div class="flex gap-2 pt-2">
               <button 
                 @click="aplicarUbicacionManual" 
-                class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-indigo-600/10"
+                class="flex-1 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-lg shadow-primary/10"
               >
                 Aplicar
               </button>
               <button 
                 @click="resetearUbicacion" 
-                class="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                class="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
               >
                 Auto (GPS/IP)
               </button>
@@ -108,7 +108,7 @@
 
           <!-- Listado de Categorías Circulares -->
           <div class="space-y-3">
-            <span class="text-xs font-bold uppercase text-gray-500 tracking-widest block">Categorías</span>
+            <span class="text-xs font-bold uppercase text-text-secondary tracking-widest block">Categorías</span>
             
             <div class="flex flex-wrap lg:grid lg:grid-cols-4 gap-4">
               <!-- Todos -->
@@ -120,14 +120,14 @@
                   :class="[
                     'w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all duration-300 relative',
                     !filtroCategoria 
-                      ? 'bg-gradient-to-tr from-indigo-600 to-violet-500 text-white shadow-xl shadow-indigo-500/30 scale-110 border-2 border-indigo-400' 
-                      : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
+                      ? 'bg-gradient-to-tr from-primary to-secondary text-white shadow-xl shadow-primary/30 scale-110 border-2 border-primary' 
+                      : 'bg-white/5 text-text-secondary hover:bg-white/10 hover:text-white border border-border-sutil'
                   ]"
                 >
                   <Sparkles class="w-5 h-5" />
-                  <span v-if="!filtroCategoria" class="absolute -bottom-1 w-2 h-2 bg-indigo-400 rounded-full"></span>
+                  <span v-if="!filtroCategoria" class="absolute -bottom-1 w-2 h-2 bg-primary rounded-full"></span>
                 </div>
-                <span :class="['text-[10px] font-black uppercase tracking-wide transition-colors text-center max-w-[70px] truncate', !filtroCategoria ? 'text-indigo-400' : 'text-gray-500 group-hover:text-gray-300']">Todos</span>
+                <span :class="['text-[10px] font-black uppercase tracking-wide transition-colors text-center max-w-[70px] truncate', !filtroCategoria ? 'text-primary' : 'text-text-secondary group-hover:text-gray-300']">Todos</span>
               </button>
               
               <!-- Dinámicas -->
@@ -141,14 +141,14 @@
                   :class="[
                     'w-14 h-14 rounded-full flex items-center justify-center text-xl transition-all duration-300 relative group-hover:scale-105',
                     filtroCategoria === cat.id 
-                      ? 'bg-gradient-to-tr from-indigo-600 to-violet-500 text-white shadow-xl shadow-indigo-500/30 scale-110 border-2 border-indigo-400' 
-                      : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
+                      ? 'bg-gradient-to-tr from-primary to-secondary text-white shadow-xl shadow-primary/30 scale-110 border-2 border-primary' 
+                      : 'bg-white/5 text-text-secondary hover:bg-white/10 hover:text-white border border-border-sutil'
                   ]"
                 >
                   <span>{{ cat.icono }}</span>
-                  <span v-if="filtroCategoria === cat.id" class="absolute -bottom-1 w-2 h-2 bg-indigo-400 rounded-full"></span>
+                  <span v-if="filtroCategoria === cat.id" class="absolute -bottom-1 w-2 h-2 bg-primary rounded-full"></span>
                 </div>
-                <span :class="['text-[10px] font-black uppercase tracking-wide transition-colors text-center max-w-[70px] truncate', filtroCategoria === cat.id ? 'text-indigo-400' : 'text-gray-500 group-hover:text-gray-300']">
+                <span :class="['text-[10px] font-black uppercase tracking-wide transition-colors text-center max-w-[70px] truncate', filtroCategoria === cat.id ? 'text-primary' : 'text-text-secondary group-hover:text-gray-300']">
                   {{ cat.nombre }}
                 </span>
               </button>
@@ -157,7 +157,7 @@
 
           <!-- Buscador debajo de Categorías -->
           <div class="space-y-2 relative" ref="searchContainerRef">
-            <span class="text-xs font-bold uppercase text-gray-500 tracking-widest block">¿Qué estás buscando?</span>
+            <span class="text-xs font-bold uppercase text-text-secondary tracking-widest block">¿Qué estás buscando?</span>
             <div class="relative flex items-center">
               <input
                 v-model="busqueda"
@@ -165,13 +165,13 @@
                 @keydown.enter="buscarConQuery(busqueda)"
                 type="text"
                 placeholder="Peluquerías, dentistas, spa..."
-                class="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-10 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-indigo-500 focus:bg-white/10 transition-all text-sm font-medium"
+                class="w-full bg-white/5 border border-border rounded-2xl pl-12 pr-10 py-4 text-white placeholder-gray-600 focus:outline-none focus:border-primary focus:bg-white/10 transition-all text-sm font-medium"
               />
-              <Search class="w-5 h-5 text-gray-500 absolute left-4" />
+              <Search class="w-5 h-5 text-text-secondary absolute left-4" />
               <button 
                 v-if="busqueda" 
                 @click="clearSearch"
-                class="absolute right-4 text-gray-500 hover:text-white transition-colors"
+                class="absolute right-4 text-text-secondary hover:text-white transition-colors"
               >
                 <X class="w-4 h-4" />
               </button>
@@ -188,19 +188,19 @@
             >
               <div 
                 v-if="showSuggestions && sugerencias.length > 0" 
-                class="absolute z-50 w-full mt-2 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden divide-y divide-white/5"
+                class="absolute z-50 w-full mt-2 bg-bg-card/95 backdrop-blur-xl border border-border rounded-2xl shadow-2xl overflow-hidden divide-y divide-border-sutil"
               >
                 <div 
                   v-for="(sug, index) in sugerencias" 
                   :key="index"
                   @click="selectSuggestion(sug)"
-                  class="px-4 py-3 hover:bg-indigo-600/20 hover:text-white text-gray-300 text-xs font-medium cursor-pointer transition-all flex items-center justify-between"
+                  class="px-4 py-3 hover:bg-primary/20 hover:text-white text-text-secondary text-xs font-medium cursor-pointer transition-all flex items-center justify-between"
                 >
                   <div class="flex items-center gap-2">
                     <span class="text-sm">{{ sug.icono }}</span>
                     <span class="text-white">{{ sug.texto }}</span>
                   </div>
-                  <span class="text-[9px] uppercase tracking-widest text-gray-500 font-bold bg-white/5 px-2 py-0.5 rounded border border-white/5">{{ sug.tipo }}</span>
+                  <span class="text-[9px] uppercase tracking-widest text-text-secondary font-bold bg-white/5 px-2 py-0.5 rounded border border-border-sutil">{{ sug.tipo }}</span>
                 </div>
               </div>
             </transition>
@@ -208,35 +208,35 @@
 
           <!-- Filtros Premium -->
           <div class="space-y-3">
-            <span class="text-xs font-bold uppercase text-gray-500 tracking-widest block">Filtros</span>
+            <span class="text-xs font-bold uppercase text-text-secondary tracking-widest block">Filtros</span>
             <div class="flex flex-wrap gap-2">
               <button 
                 @click="toggleFilter('verificado')"
-                :class="['px-4 py-2 rounded-full text-xs font-black tracking-wide uppercase transition-all border cursor-pointer active:scale-95', filters.verificado ? 'bg-indigo-500/10 border-indigo-400 text-indigo-300 shadow-md shadow-indigo-500/5' : 'bg-white/5 border-white/5 text-gray-400 hover:text-white']"
+                :class="['px-4 py-2 rounded-full text-xs font-black tracking-wide uppercase transition-all border cursor-pointer active:scale-95', filters.verificado ? 'bg-primary/10 border-primary text-primary shadow-md shadow-primary/5' : 'bg-white/5 border-border text-text-secondary hover:text-white']"
               >
                 ✓ Verificados
               </button>
               <button 
                 @click="toggleFilter('reserva_inmediata')"
-                :class="['px-4 py-2 rounded-full text-xs font-black tracking-wide uppercase transition-all border cursor-pointer active:scale-95', filters.reserva_inmediata ? 'bg-indigo-500/10 border-indigo-400 text-indigo-300 shadow-md shadow-indigo-500/5' : 'bg-white/5 border-white/5 text-gray-400 hover:text-white']"
+                :class="['px-4 py-2 rounded-full text-xs font-black tracking-wide uppercase transition-all border cursor-pointer active:scale-95', filters.reserva_inmediata ? 'bg-primary/10 border-primary text-primary shadow-md shadow-primary/5' : 'bg-white/5 border-border text-text-secondary hover:text-white']"
               >
                 ⚡ Reserva Inmediata
               </button>
               <button 
                 @click="toggleFilter('recomendado')"
-                :class="['px-4 py-2 rounded-full text-xs font-black tracking-wide uppercase transition-all border cursor-pointer active:scale-95', filters.recomendado ? 'bg-indigo-500/10 border-indigo-400 text-indigo-300 shadow-md shadow-indigo-500/5' : 'bg-white/5 border-white/5 text-gray-400 hover:text-white']"
+                :class="['px-4 py-2 rounded-full text-xs font-black tracking-wide uppercase transition-all border cursor-pointer active:scale-95', filters.recomendado ? 'bg-primary/10 border-primary text-primary shadow-md shadow-primary/5' : 'bg-white/5 border-border text-text-secondary hover:text-white']"
               >
                 ⭐ Recomendados
               </button>
               <button 
                 @click="toggleFilter('mas_cercano')"
-                :class="['px-4 py-2 rounded-full text-xs font-black tracking-wide uppercase transition-all border cursor-pointer active:scale-95', filters.mas_cercano ? 'bg-indigo-500/10 border-indigo-400 text-indigo-300 shadow-md shadow-indigo-500/5' : 'bg-white/5 border-white/5 text-gray-400 hover:text-white']"
+                :class="['px-4 py-2 rounded-full text-xs font-black tracking-wide uppercase transition-all border cursor-pointer active:scale-95', filters.mas_cercano ? 'bg-primary/10 border-primary text-primary shadow-md shadow-primary/5' : 'bg-white/5 border-border text-text-secondary hover:text-white']"
               >
                 📍 Más Cercanos
               </button>
               <button 
                 @click="toggleFilter('mejor_valorado')"
-                :class="['px-4 py-2 rounded-full text-xs font-black tracking-wide uppercase transition-all border cursor-pointer active:scale-95', filters.mejor_valorado ? 'bg-indigo-500/10 border-indigo-400 text-indigo-300 shadow-md shadow-indigo-500/5' : 'bg-white/5 border-white/5 text-gray-400 hover:text-white']"
+                :class="['px-4 py-2 rounded-full text-xs font-black tracking-wide uppercase transition-all border cursor-pointer active:scale-95', filters.mejor_valorado ? 'bg-primary/10 border-primary text-primary shadow-md shadow-primary/5' : 'bg-white/5 border-border text-text-secondary hover:text-white']"
               >
                 🏆 Mejor Valorados
               </button>
@@ -250,27 +250,27 @@
           <!-- Sección de Sugerencia Inteligente / Descubrimiento -->
           <div v-if="negociosDestacados.length > 0" class="space-y-4">
             <div class="flex items-center gap-2">
-              <Sparkles class="w-4 h-4 text-indigo-400" />
-              <h2 class="text-xs font-bold uppercase tracking-widest text-indigo-400">✨ Descubre nuevos negocios</h2>
+              <Sparkles class="w-4 h-4 text-primary" />
+              <h2 class="text-xs font-bold uppercase tracking-widest text-primary">✨ Descubre nuevos negocios</h2>
             </div>
             
             <div class="flex gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 snap-x">
               <div 
                 v-for="dest in negociosDestacados" 
                 :key="'dest-'+dest.id"
-                class="min-w-[280px] sm:min-w-[340px] bg-[#121626] border border-white/5 rounded-2xl p-5 snap-start hover:border-indigo-500/30 transition-all duration-300 group flex gap-4"
+                class="min-w-[280px] sm:min-w-[340px] bg-bg-card border border-border rounded-2xl p-5 snap-start hover:border-primary/30 transition-all duration-300 group flex gap-4"
               >
-                <div class="w-16 h-16 rounded-xl border border-white/10 overflow-hidden bg-gray-900 flex-shrink-0">
+                <div class="w-16 h-16 rounded-xl border border-border overflow-hidden bg-gray-900 flex-shrink-0">
                   <img v-if="dest.logo" :src="dest.logo" :alt="dest.nombre" class="w-full h-full object-cover" />
-                  <div v-else class="w-full h-full bg-indigo-900 flex items-center justify-center font-bold text-lg">{{ dest.nombre[0] }}</div>
+                  <div v-else class="w-full h-full bg-primary/20 flex items-center justify-center font-bold text-lg text-primary">{{ dest.nombre[0] }}</div>
                 </div>
                 <div class="flex flex-col justify-between flex-grow">
                   <div>
-                    <span class="text-[9px] font-black uppercase text-indigo-400 tracking-wider">{{ dest.categoria?.nombre }}</span>
-                    <h3 class="text-sm font-bold text-white leading-tight group-hover:text-indigo-300 transition-colors line-clamp-1 mt-0.5">{{ dest.nombre }}</h3>
-                    <p class="text-[10px] text-gray-400 line-clamp-1 mt-1">{{ dest.especialidad || dest.ciudad }}</p>
+                    <span class="text-[9px] font-black uppercase text-primary tracking-wider">{{ dest.categoria?.nombre }}</span>
+                    <h3 class="text-sm font-bold text-white leading-tight group-hover:text-primary transition-colors line-clamp-1 mt-0.5">{{ dest.nombre }}</h3>
+                    <p class="text-[10px] text-text-secondary line-clamp-1 mt-1">{{ dest.especialidad || dest.ciudad }}</p>
                   </div>
-                  <div class="flex items-center justify-between mt-3 pt-2 border-t border-white/5">
+                  <div class="flex items-center justify-between mt-3 pt-2 border-t border-border-sutil">
                     <div class="flex items-center gap-1 text-[10px] font-bold text-yellow-400">
                       <Star class="w-3 h-3 fill-yellow-400 text-yellow-400" />
                       <span>{{ dest.rating_avg || 'N/A' }}</span>
@@ -278,7 +278,7 @@
                     <a 
                       :href="`/${dest.slug}/book`" 
                       @click="trackClick(dest.id)"
-                      class="text-[10px] font-bold text-indigo-400 hover:text-white transition-colors"
+                      class="text-[10px] font-bold text-accent hover:text-white transition-colors"
                     >
                       Reservar ⚡
                     </a>
@@ -289,9 +289,9 @@
           </div>
 
           <!-- Corrección de búsqueda sugerida -->
-          <div v-if="correccionBusqueda" class="bg-indigo-900/10 border border-indigo-500/20 rounded-xl p-4 text-xs text-gray-300 flex items-center gap-2">
+          <div v-if="correccionBusqueda" class="bg-primary/10 border border-primary/20 rounded-xl p-4 text-xs text-text-secondary flex items-center gap-2">
             <span>¿Quisiste decir:</span>
-            <button @click="aplicarBusquedaCorregida" class="font-black text-indigo-400 hover:underline hover:text-indigo-300 transition-all">
+            <button @click="aplicarBusquedaCorregida" class="font-black text-primary hover:underline hover:text-primary-hover transition-all">
               "{{ correccionBusqueda }}"
             </button>
             <span>?</span>
@@ -314,13 +314,16 @@
               v-for="(negocio, index) in negocios"
               :key="negocio.id"
               :class="[
-                'directory-card group relative rounded-3xl overflow-hidden bg-[#111425] border border-white/5 transition-all duration-500 hover:border-indigo-500/30 flex flex-col justify-between p-6',
+                'directory-card group relative rounded-3xl overflow-hidden bg-bg-card border border-border transition-all duration-300 flex flex-col justify-between p-6',
                 `card-${negocio.layout_size || 'medium'}`
               ]"
-              :style="{ transform: getCardTransform(index, negocio.layout_size) }"
+              :style="{ 
+                transform: getCardTransform(index, negocio.layout_size),
+                borderLeft: '4px solid ' + getCategoryColor(negocio.categoria?.nombre)
+              }"
             >
               <!-- Glowing sutil en hover -->
-              <div class="absolute inset-0 bg-indigo-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+              <div class="absolute inset-0 bg-primary/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
               <!-- Decoración Diagonal Asimétrica -->
               <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl opacity-20">
@@ -333,23 +336,23 @@
               <div class="flex items-start justify-between gap-4 relative z-10">
                 <div class="flex items-center gap-3">
                   <!-- Logo Negocio -->
-                  <div class="w-12 h-12 rounded-2xl border border-white/10 overflow-hidden bg-gray-900 flex items-center justify-center shadow-lg shrink-0">
+                  <div class="w-12 h-12 rounded-2xl border border-border overflow-hidden bg-gray-900 flex items-center justify-center shadow-lg shrink-0">
                     <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover" />
                     <span v-else class="text-lg font-black text-white">{{ negocio.nombre[0] }}</span>
                   </div>
                   
                   <div>
-                    <span class="inline-block px-2.5 py-0.5 rounded-md bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-wider text-indigo-400">
+                    <span class="inline-block px-2.5 py-0.5 rounded-md bg-white/5 border border-border text-[9px] font-black uppercase tracking-wider text-primary">
                       {{ negocio.categoria?.nombre }}
                     </span>
-                    <h3 class="font-black text-white text-base leading-tight mt-1 line-clamp-1 group-hover:text-indigo-300 transition-colors">
+                    <h3 class="font-black text-white text-base leading-tight mt-1 line-clamp-1 group-hover:text-primary transition-colors">
                       {{ negocio.nombre }}
                     </h3>
                   </div>
                 </div>
 
                 <!-- Badge Verificado -->
-                <span v-if="negocio.verificado" class="w-5 h-5 rounded-full bg-indigo-500/10 border border-indigo-400/20 flex items-center justify-center text-xs text-indigo-400 shadow" title="Negocio Verificado">
+                <span v-if="negocio.verificado" class="w-5 h-5 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs text-primary shadow" title="Negocio Verificado">
                   ✓
                 </span>
               </div>
@@ -357,7 +360,7 @@
               <!-- Imagen de Portada (solo para cards grandes/medianas) -->
               <div 
                 v-if="negocio.layout_size !== 'small'" 
-                class="my-4 h-24 sm:h-28 rounded-2xl overflow-hidden bg-gray-950/60 relative z-10 border border-white/5 flex-shrink-0"
+                class="my-4 h-24 sm:h-28 rounded-2xl overflow-hidden bg-gray-950/60 relative z-10 border border-border flex-shrink-0"
               >
                 <img 
                   v-if="negocio.cover_imagen" 
@@ -369,25 +372,25 @@
                 <div 
                   v-else 
                   class="w-full h-full bg-gradient-to-br opacity-20"
-                  :style="{ backgroundImage: `linear-gradient(135deg, ${negocio.categoria?.color_hex || '#4f46e5'}, #0f1224)` }"
+                  :style="{ backgroundImage: `linear-gradient(135deg, ${negocio.categoria?.color_hex || '#3b82f6'}, #0f1224)` }"
                 ></div>
                 
                 <!-- Badge de Rating flotando en la foto -->
-                <div class="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 flex items-center gap-1 text-[10px] font-bold text-yellow-400 shadow">
+                <div class="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-border flex items-center gap-1 text-[10px] font-bold text-yellow-400 shadow">
                   <Star class="w-3 h-3 fill-yellow-400 text-yellow-400" />
                   <span>{{ negocio.rating_avg || '4.8' }}</span>
-                  <span class="text-gray-500 font-light">({{ negocio.rating_count || 12 }})</span>
+                  <span class="text-text-secondary font-light">({{ negocio.rating_count || 12 }})</span>
                 </div>
               </div>
 
               <!-- Pie de Tarjeta / Contenido de Reserva -->
-              <div class="flex items-end justify-between mt-auto pt-3 border-t border-white/5 relative z-10">
+              <div class="flex items-end justify-between mt-auto pt-3 border-t border-border-sutil relative z-10">
                 <!-- Bloque de Fecha Disponible (GRANDE) -->
                 <div class="flex flex-col select-none">
-                  <span class="text-[9px] uppercase font-bold tracking-wider text-gray-500">Próxima</span>
+                  <span class="text-[9px] uppercase font-bold tracking-wider text-text-secondary">Próxima</span>
                   <div class="flex items-baseline gap-1 mt-0.5 leading-none">
                     <span class="text-3xl font-black tracking-tighter text-white tabular-nums">{{ negocio.next_available_day }}</span>
-                    <span class="text-[10px] font-black uppercase text-rose-500 tracking-wider">{{ negocio.next_available_month.substring(0, 3) }}</span>
+                    <span class="text-[10px] font-black uppercase text-accent tracking-wider">{{ negocio.next_available_month.substring(0, 3) }}</span>
                   </div>
                 </div>
 
@@ -395,7 +398,7 @@
                 <a
                   :href="`/${negocio.slug}/book`"
                   @click="trackClick(negocio.id)"
-                  class="px-5 py-3 bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all duration-300 text-center shadow-[0_4px_20px_rgba(99,102,241,0.15)] hover:shadow-[0_4px_25px_rgba(139,92,246,0.3)] active:scale-95 flex items-center gap-2 group-hover:translate-x-1"
+                  class="px-5 py-3 bg-accent hover:bg-accent-hover text-white rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all duration-300 text-center shadow-cta-glow active:scale-95 flex items-center gap-2 hover:-translate-y-0.5"
                 >
                   <span>Pedir Cita</span>
                   <span class="group-hover:translate-x-0.5 transition-transform">→</span>
@@ -405,7 +408,7 @@
           </div>
 
           <!-- Paginación -->
-          <div v-if="pagination && pagination.last_page > 1" class="flex justify-center gap-2 mt-12 border-t border-white/5 pt-8">
+          <div v-if="pagination && pagination.last_page > 1" class="flex justify-center gap-2 mt-12 border-t border-border-sutil pt-8">
             <button
               v-for="page in pagination.last_page"
               :key="page"
@@ -413,8 +416,8 @@
               :class="[
                 'w-10 h-10 rounded-xl text-xs font-black transition-all shadow-md cursor-pointer active:scale-95',
                 page === pagination.current_page
-                  ? 'bg-indigo-600 text-white shadow-indigo-600/30'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
+                  ? 'bg-primary text-white shadow-primary/30'
+                  : 'bg-white/5 text-text-secondary hover:bg-white/10 hover:text-white border border-border'
               ]"
             >
               {{ page }}
@@ -859,6 +862,30 @@ const getCardTransform = (index, layoutSize) => {
   
   return `rotate(${rotation}deg) translateY(${offsetY}px)`;
 };
+
+const getCategoryColor = (nombre) => {
+  if (!nombre) return '#3B82F6';
+  const n = nombre.toLowerCase();
+  if (n.includes('clínica') || n.includes('clinica') || n.includes('salud') || n.includes('médic') || n.includes('dent') || n.includes('odontolog')) {
+    return '#3B82F6'; // Azul primario
+  }
+  if (n.includes('peluquería') || n.includes('peluqueria') || n.includes('belleza') || n.includes('estética') || n.includes('estetica') || n.includes('barber')) {
+    return '#FF5A5F'; // Coral
+  }
+  if (n.includes('fitness') || n.includes('bienestar') || n.includes('gimnasio') || n.includes('deporte')) {
+    return '#22C55E'; // Verde
+  }
+  if (n.includes('educación') || n.includes('educacion') || n.includes('clases') || n.includes('academia')) {
+    return '#6366F1'; // Índigo
+  }
+  if (n.includes('veterinaria') || n.includes('mascotas') || n.includes('veterinario')) {
+    return '#06B6D4'; // Turquesa
+  }
+  if (n.includes('consultoría') || n.includes('consultoria') || n.includes('asesor') || n.includes('abogado') || n.includes('gestor')) {
+    return '#F4B400'; // Dorado
+  }
+  return '#3B82F6'; // default
+};
 </script>
 
 <style scoped>
@@ -894,20 +921,20 @@ const getCardTransform = (index, layoutSize) => {
 .card-featured {
   grid-row: span 3;
   grid-column: span 2;
-  box-shadow: 0 0 25px rgba(99, 102, 241, 0.15);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
 .directory-card {
-  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s, box-shadow 0.3s;
+  transition: transform 0.3s ease, border-color 0.3s, box-shadow 0.3s;
 }
 
 /* Hover de tarjeta premium con glow y escala sutil */
 .directory-card:hover {
-  transform: rotate(0deg) scale(1.025) translateY(0) !important;
+  transform: rotate(0deg) scale(1.025) translateY(-8px) !important;
   z-index: 20;
-  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.25);
-  border-color: rgba(99, 102, 241, 0.4) !important;
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.35) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
 }
 
 @keyframes fadeIn {

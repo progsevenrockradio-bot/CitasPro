@@ -166,13 +166,13 @@ const theme = computed(() => {
     },
     medical: {
       name: 'Médica',
-      text: 'text-teal-400',
-      badgeBg: 'bg-teal-500/20'
+      text: 'text-primary',
+      badgeBg: 'bg-primary/20'
     },
     dental: {
       name: 'Dental',
-      text: 'text-sky-400',
-      badgeBg: 'bg-sky-500/20'
+      text: 'text-primary',
+      badgeBg: 'bg-primary/20'
     }
   };
   return themes[areaSeleccionada.value] || themes.pro;
