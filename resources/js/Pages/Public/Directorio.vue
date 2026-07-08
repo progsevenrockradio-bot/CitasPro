@@ -92,70 +92,142 @@
         <p class="text-gray-400 text-lg">Intenta con otro término de búsqueda o categoría.</p>
       </div>
 
-      <!-- Grid de Negocios (Tarjetas estilo vertical Imagen 13) -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div
-          v-for="negocio in negocios"
-          :key="negocio.id"
-          class="group bg-[#1a1f35] border border-indigo-500/20 rounded-xl overflow-hidden hover:border-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-all duration-300 flex flex-col relative"
-        >
-          <!-- Decoración diagonal de fondo estilo "Best Dressed" -->
-          <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
-             <svg class="absolute w-[200%] h-[200%] top-[-50%] left-[-50%] opacity-5 text-indigo-400 group-hover:text-indigo-300 transition-colors" viewBox="0 0 100 100" preserveAspectRatio="none">
-               <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" stroke-width="0.5" />
-               <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" stroke-width="0.5" />
-             </svg>
-          </div>
-
-          <!-- Banner superior del negocio -->
+      <!-- Grid de Negocios (Tarjetas no-uniformes estilo Banners Pack) -->
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
+        <template v-for="(negocio, index) in negocios" :key="negocio.id">
+          
+          <!-- ESTILO 3: Tarjeta Horizontal (ancho 2 columnas, index % 4 === 2) -->
           <div
-            class="h-28 relative overflow-hidden flex-shrink-0 border-b border-indigo-500/20"
-            :style="`background: linear-gradient(135deg, ${negocio.categoria?.color_hex || '#3730a3'}40, #111827)`"
+            v-if="index % 4 === 2"
+            class="group bg-[#161a2e] border border-indigo-500/20 rounded-xl overflow-hidden hover:border-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-all duration-300 col-span-1 sm:col-span-2 flex flex-col sm:flex-row justify-between p-6 gap-6 relative"
           >
-            <div class="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity mix-blend-overlay" :style="`background-color: ${negocio.categoria?.color_hex || '#4f46e5'}`"></div>
-          </div>
-
-          <!-- Logo flotante en el centro superior -->
-          <div class="absolute top-14 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full border-[3px] border-[#1a1f35] overflow-hidden bg-gray-800 flex items-center justify-center shadow-xl z-10">
-             <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover" />
-             <span v-else class="text-3xl font-black text-white">{{ negocio.nombre?.charAt(0) }}</span>
-          </div>
-
-          <div class="pt-10 pb-6 px-5 text-center flex-grow flex flex-col items-center relative z-10">
-            <h3 class="font-black text-white text-xl leading-tight group-hover:text-indigo-300 transition-colors tracking-wide">{{ negocio.nombre }}</h3>
-            <div class="flex items-center gap-1 mt-2">
-               <span class="w-6 border-t border-indigo-500/50"></span>
-               <p v-if="negocio.categoria" class="text-indigo-400 font-bold tracking-[0.2em] uppercase text-[10px]">
-                 {{ negocio.categoria.nombre }}
-               </p>
-               <span class="w-6 border-t border-indigo-500/50"></span>
+            <!-- Decoración diagonal -->
+            <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+              <svg class="absolute w-[200%] h-[200%] top-[-50%] left-[-50%] opacity-[0.03] text-indigo-400" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" stroke-width="0.5" />
+              </svg>
             </div>
 
-            <!-- Sección "Fecha" estilo Banner 13 ("28 November") -->
-            <div class="mt-8 mb-6 flex flex-col items-center justify-center">
-              <span class="text-6xl font-black text-white tabular-nums tracking-tighter drop-shadow-md">{{ new Date().getDate().toString().padStart(2, '0') }}</span>
-              <span class="text-sm font-bold text-red-400 uppercase tracking-widest mt-1">{{ getMesActual() }}</span>
+            <!-- Contenido Izquierdo (Logo, Nombre, Categoría, Ciudad) -->
+            <div class="flex flex-col sm:flex-row items-center gap-5 relative z-10">
+              <div class="w-20 h-20 rounded-full border-[3px] border-indigo-500/30 overflow-hidden bg-gray-800 flex items-center justify-center shadow-xl shrink-0">
+                <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover" />
+                <span v-else class="text-3xl font-black text-white">{{ negocio.nombre?.charAt(0) }}</span>
+              </div>
+              <div class="text-center sm:text-left">
+                <h3 class="font-black text-white text-2xl leading-tight group-hover:text-indigo-300 transition-colors tracking-wide">{{ negocio.nombre }}</h3>
+                <span v-if="negocio.categoria" class="inline-block mt-1 px-3 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold uppercase text-[9px] tracking-wider">
+                  {{ negocio.categoria.nombre }}
+                </span>
+                <p class="text-[11px] text-gray-400 mt-3 font-medium tracking-wide">
+                  {{ negocio.ciudad || 'Horario Flexible' }} • Reservas Online
+                </p>
+              </div>
             </div>
-            
-            <p v-if="negocio.ciudad" class="text-[11px] text-gray-400 mb-6 font-medium tracking-wide">
-              {{ negocio.ciudad }}<br/>
-              <span class="text-gray-500">Reservas Online</span>
-            </p>
-            <p v-else class="text-[11px] text-gray-400 mb-6 font-medium tracking-wide">
-              Horario Flexible<br/>
-              <span class="text-gray-500">Reservas Online</span>
-            </p>
 
-            <div class="mt-auto w-full pt-4 border-t border-indigo-500/20">
+            <!-- Contenido Derecho (Fecha y Botón Pedir Cita) -->
+            <div class="flex flex-col items-center justify-center border-t sm:border-t-0 sm:border-l border-white/10 pt-4 sm:pt-0 sm:pl-8 relative z-10 shrink-0 min-w-[150px]">
+              <div class="flex flex-col items-center justify-center mb-3">
+                <span class="text-4xl font-black text-white tabular-nums tracking-tighter">{{ new Date().getDate().toString().padStart(2, '0') }}</span>
+                <span class="text-[10px] font-bold text-red-400 uppercase tracking-widest">{{ getMesActual() }}</span>
+              </div>
               <a
                 :href="`/${negocio.slug}/book`"
-                class="block w-full py-3.5 bg-red-500 hover:bg-red-600 text-white rounded-sm font-bold uppercase tracking-[0.15em] text-sm transition-all text-center shadow-[0_4px_14px_rgba(239,68,68,0.4)]"
+                class="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md font-bold uppercase tracking-[0.1em] text-xs transition-all text-center shadow-[0_4px_14px_rgba(239,68,68,0.4)]"
               >
                 Pedir Cita
               </a>
             </div>
           </div>
-        </div>
+
+          <!-- ESTILO 2: Tarjeta Minimalista Sin Banner (index % 4 === 1) -->
+          <div
+            v-else-if="index % 4 === 1"
+            class="group bg-gradient-to-br from-[#1c223c] to-[#121629] border border-indigo-500/20 rounded-xl overflow-hidden hover:border-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-all duration-300 flex flex-col justify-between p-6 relative"
+          >
+            <!-- Decoración círculos/red de puntos -->
+            <div class="absolute inset-0 pointer-events-none opacity-[0.02] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+            <div class="flex items-start gap-4 relative z-10">
+              <div class="w-12 h-12 rounded-full border-2 border-indigo-500/30 overflow-hidden bg-gray-800 flex items-center justify-center shadow-lg shrink-0">
+                <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover" />
+                <span v-else class="text-xl font-black text-white">{{ negocio.nombre?.charAt(0) }}</span>
+              </div>
+              <div>
+                <h3 class="font-black text-white text-lg leading-snug group-hover:text-indigo-300 transition-colors tracking-wide line-clamp-2">{{ negocio.nombre }}</h3>
+                <p v-if="negocio.categoria" class="text-indigo-400 font-bold uppercase text-[9px] tracking-widest mt-0.5">
+                  {{ negocio.categoria.nombre }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Centro: Fecha y Botón Pedir Cita -->
+            <div class="my-6 flex flex-col items-center justify-center relative z-10">
+              <div class="flex flex-col items-center justify-center mb-3">
+                <span class="text-5xl font-black text-white tabular-nums tracking-tighter">{{ new Date().getDate().toString().padStart(2, '0') }}</span>
+                <span class="text-[10px] font-bold text-red-400 uppercase tracking-widest">{{ getMesActual() }}</span>
+              </div>
+              <a
+                :href="`/${negocio.slug}/book`"
+                class="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md font-bold uppercase tracking-[0.1em] text-xs transition-all text-center shadow-[0_4px_14px_rgba(239,68,68,0.4)]"
+              >
+                Pedir Cita
+              </a>
+            </div>
+
+            <div class="text-center text-[10px] text-gray-500 border-t border-white/5 pt-3 relative z-10">
+              {{ negocio.ciudad || 'Nacional' }} • Reservas Online
+            </div>
+          </div>
+
+          <!-- ESTILO 1: Tarjeta Vertical Clásica Rediseñada (index % 4 === 0 o 3) -->
+          <div
+            v-else
+            class="group bg-[#13172b] border border-indigo-500/20 rounded-xl overflow-hidden hover:border-indigo-400 hover:shadow-[0_0_30px_rgba(99,102,241,0.2)] transition-all duration-300 flex flex-col relative"
+          >
+            <!-- Banner superior -->
+            <div
+              class="h-24 relative overflow-hidden flex-shrink-0 border-b border-indigo-500/20"
+              :style="`background: linear-gradient(135deg, ${negocio.categoria?.color_hex || '#3730a3'}30, #0f1224)`"
+            >
+              <div class="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity mix-blend-overlay" :style="`background-color: ${negocio.categoria?.color_hex || '#4f46e5'}`"></div>
+            </div>
+
+            <!-- Logo flotante -->
+            <div class="absolute top-12 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full border-[3px] border-[#13172b] overflow-hidden bg-gray-800 flex items-center justify-center shadow-xl z-10">
+              <img v-if="negocio.logo" :src="negocio.logo" :alt="negocio.nombre" class="w-full h-full object-cover" />
+              <span v-else class="text-2xl font-black text-white">{{ negocio.nombre?.charAt(0) }}</span>
+            </div>
+
+            <div class="pt-8 pb-5 px-5 text-center flex-grow flex flex-col items-center justify-between relative z-10">
+              <div>
+                <h3 class="font-black text-white text-lg leading-snug group-hover:text-indigo-300 transition-colors tracking-wide line-clamp-2">{{ negocio.nombre }}</h3>
+                <p v-if="negocio.categoria" class="text-indigo-400 font-bold uppercase text-[9px] tracking-widest mt-1">
+                  {{ negocio.categoria.nombre }}
+                </p>
+              </div>
+
+              <!-- Centro: Fecha y Botón Pedir Cita -->
+              <div class="my-5 flex flex-col items-center justify-center">
+                <div class="flex flex-col items-center justify-center mb-3">
+                  <span class="text-5xl font-black text-white tabular-nums tracking-tighter">{{ new Date().getDate().toString().padStart(2, '0') }}</span>
+                  <span class="text-[10px] font-bold text-red-400 uppercase tracking-widest">{{ getMesActual() }}</span>
+                </div>
+                <a
+                  :href="`/${negocio.slug}/book`"
+                  class="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md font-bold uppercase tracking-[0.1em] text-xs transition-all text-center shadow-[0_4px_14px_rgba(239,68,68,0.4)]"
+                >
+                  Pedir Cita
+                </a>
+              </div>
+
+              <div class="text-[10px] text-gray-500">
+                {{ negocio.ciudad || 'Horario Flexible' }} • Reservas Online
+              </div>
+            </div>
+          </div>
+
+        </template>
       </div>
 
       <!-- Paginación -->

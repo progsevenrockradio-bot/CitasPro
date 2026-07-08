@@ -38,6 +38,11 @@ class DirectorioController extends Controller
             ->orderBy('nombre')
             ->paginate(20);
 
+        $negocios->getCollection()->transform(function ($negocio) {
+            $negocio->logo = $negocio->logo ? asset('storage/' . $negocio->logo) : null;
+            return $negocio;
+        });
+
         return response()->json([
             'success' => true,
             'data' => $negocios,
@@ -70,8 +75,8 @@ class DirectorioController extends Controller
                 'nombre' => $negocio->nombre,
                 'slug' => $negocio->slug,
                 'descripcion' => $negocio->descripcion,
-                'logo' => $negocio->logo,
-                'cover_imagen' => $negocio->cover_imagen,
+                'logo' => $negocio->logo ? asset('storage/' . $negocio->logo) : null,
+                'cover_imagen' => $negocio->cover_imagen ? asset('storage/' . $negocio->cover_imagen) : null,
                 'telefono' => $negocio->telefono,
                 'whatsapp' => $negocio->whatsapp,
                 'direccion' => $negocio->direccion,
