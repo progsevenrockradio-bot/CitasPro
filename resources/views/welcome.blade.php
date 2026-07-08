@@ -42,14 +42,47 @@
             overflow-x: hidden;
         }
 
+        /* Animaciones */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+
         /* Fondo Decorativo */
         .blur-bg {
             position: absolute;
             top: -10%;
-            left: 20%;
+            left: 10%;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 40%, rgba(0,0,0,0) 70%);
+            z-index: -1;
+            filter: blur(90px);
+            pointer-events: none;
+        }
+
+        .blur-bg-2 {
+            position: absolute;
+            bottom: -10%;
+            right: 0%;
             width: 600px;
             height: 600px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0,0,0,0) 70%);
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, rgba(0,0,0,0) 70%);
             z-index: -1;
             filter: blur(80px);
             pointer-events: none;
@@ -58,12 +91,18 @@
         header {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 24px 20px;
+            padding: 20px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: relative;
-            z-index: 10;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: rgba(11, 15, 25, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 0 0 24px 24px;
         }
 
         .logo-container {
@@ -180,36 +219,38 @@
         }
 
         .btn-primary {
-            padding: 14px 28px;
-            border-radius: 12px;
-            background-color: var(--primary);
+            padding: 16px 32px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
             color: white;
             text-decoration: none;
             font-weight: 700;
-            box-shadow: 0 4px 20px var(--primary-glow);
-            transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+            font-size: 16px;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+            transition: all 0.3s ease;
         }
 
         .btn-primary:hover {
-            background-color: var(--primary-hover);
-            box-shadow: 0 6px 24px rgba(99, 102, 241, 0.4);
-            transform: translateY(-1px);
+            box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5);
+            transform: translateY(-2px);
         }
 
         .btn-secondary {
-            padding: 14px 28px;
-            border-radius: 12px;
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
+            padding: 16px 32px;
+            border-radius: 30px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--text);
             text-decoration: none;
             font-weight: 700;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
+            font-size: 16px;
+            transition: all 0.3s ease;
         }
 
         .btn-secondary:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-color: var(--text-muted);
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
         }
 
         /* Características */
@@ -223,30 +264,38 @@
         }
 
         .feature-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 30px;
-            transition: transform 0.3s ease, border-color 0.3s ease;
+            background-color: rgba(17, 24, 39, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 35px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .feature-card:hover {
-            transform: translateY(-4px);
+            transform: translateY(-6px);
             border-color: var(--primary);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
         }
 
         .feature-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background-color: rgba(99, 102, 241, 0.1);
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
             border: 1px solid rgba(99, 102, 241, 0.2);
             color: var(--primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            margin-bottom: 20px;
+            font-size: 26px;
+            margin-bottom: 24px;
+            transition: transform 0.3s ease;
         }
 
         .feature-title {
@@ -281,20 +330,33 @@
         }
 
         .pricing-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 35px 24px;
+            background-color: rgba(17, 24, 39, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            padding: 40px 30px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: transform 0.3s ease, border-color 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
         }
 
         .pricing-card-featured {
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, rgba(17, 24, 39, 0.5) 100%);
             border-color: var(--primary);
-            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .pricing-card-featured:hover {
+            border-color: var(--primary);
+            box-shadow: 0 15px 50px rgba(99, 102, 241, 0.3);
         }
 
         .pricing-card-featured::before {
@@ -356,33 +418,36 @@
 
         .btn-pricing {
             display: block;
-            padding: 12px 20px;
-            border-radius: 10px;
+            padding: 14px 20px;
+            border-radius: 24px;
             text-decoration: none;
             font-weight: 700;
             font-size: 15px;
-            transition: background-color 0.2s ease;
+            transition: all 0.3s ease;
             text-align: center;
         }
 
         .btn-pricing-secondary {
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--text);
         }
 
         .btn-pricing-secondary:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
         }
 
         .btn-pricing-primary {
-            background-color: var(--primary);
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
             color: white;
-            box-shadow: 0 4px 15px var(--primary-glow);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
         }
 
         .btn-pricing-primary:hover {
-            background-color: var(--primary-hover);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+            transform: translateY(-2px);
         }
 
         /* Negocios Compatibles */
@@ -401,17 +466,20 @@
         }
 
         .business-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 24px;
+            background-color: rgba(17, 24, 39, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 30px;
             text-align: left;
-            transition: transform 0.2s ease, border-color 0.2s ease;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .business-card:hover {
-            transform: scale(1.02);
-            border-color: var(--primary);
+            transform: translateY(-6px);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
         }
 
         .business-header {
@@ -458,8 +526,9 @@
 <body>
 
     <div class="blur-bg"></div>
+    <div class="blur-bg-2"></div>
 
-    <header>
+    <header class="animate-fade-in">
         <div class="logo-container">
             <div class="logo-icon">
                 <span>C</span>
@@ -469,27 +538,25 @@
         <div class="nav-links">
             <a href="#planes" class="nav-link">Planes</a>
             <a href="/panel" class="nav-link" style="color: var(--primary); font-weight: bold;">Acceso Médicos/Negocios</a>
-            <a href="/api/reset-demo" class="nav-link" target="_blank">Reset Demo</a>
         </div>
     </header>
 
     <main>
         <!-- Hero -->
-        <section class="hero">
+        <section class="hero animate-fade-in delay-1">
             <div class="hero-badge">SaaS AUTOMATIZADO DE RESERVAS</div>
             <h1 class="hero-title">Tu negocio de citas<br>en piloto automático</h1>
             <p class="hero-subtitle">
                 Gestiona tus profesionales, configura servicios y horarios, cobra de forma segura y automatiza recordatorios por WhatsApp y SMS para reducir inasistencias.
             </p>
             <div class="hero-actions">
-                <a href="/panel" class="btn-primary" style="background-color: var(--text); color: var(--bg);">Entrar a mi Panel</a>
-                <a href="#planes" class="btn-primary">Ver Planes</a>
-                <a href="/api/reset-demo" target="_blank" class="btn-secondary">Reset Base de Datos</a>
+                <a href="/panel" class="btn-primary">Empezar Ahora</a>
+                <a href="#planes" class="btn-secondary">Ver Planes</a>
             </div>
         </section>
 
         <!-- Características -->
-        <section class="features">
+        <section class="features animate-fade-in delay-2">
             <div class="feature-card">
                 <div class="feature-icon">⏱</div>
                 <h3 class="feature-title">Agenda Online 24/7</h3>
@@ -598,7 +665,7 @@
                 <div class="pricing-card">
                     <div>
                         <div class="plan-name">BASIC</div>
-                        <div class="plan-price">9 €<span>/mes</span></div>
+                        <div class="plan-price">13.99 €<span>/mes</span></div>
                         <ul class="plan-features">
                             <li>1 Profesional (Single Pro)</li>
                             <li>Hasta 80 citas al mes</li>
@@ -606,14 +673,14 @@
                             <li>WhatsApp / SMS de respaldo</li>
                         </ul>
                     </div>
-                    <a href="https://citaspro.app" class="btn-pricing btn-pricing-secondary">Contratar Basic</a>
+                    <a href="/registro" class="btn-pricing btn-pricing-secondary">Contratar Basic</a>
                 </div>
 
                 <!-- Pro -->
                 <div class="pricing-card pricing-card-featured">
                     <div>
                         <div class="plan-name" style="color: var(--primary);">PRO</div>
-                        <div class="plan-price">17 €<span>/mes</span></div>
+                        <div class="plan-price">21.99 €<span>/mes</span></div>
                         <ul class="plan-features">
                             <li>Hasta 5 Profesionales</li>
                             <li>Citas ilimitadas</li>
@@ -621,14 +688,14 @@
                             <li>Recordatorios prioritarios</li>
                         </ul>
                     </div>
-                    <a href="https://citaspro.app" class="btn-pricing btn-pricing-primary">Mejorar a Pro</a>
+                    <a href="/registro" class="btn-pricing btn-pricing-primary">Mejorar a Pro</a>
                 </div>
 
                 <!-- Enterprise -->
                 <div class="pricing-card">
                     <div>
                         <div class="plan-name">ENTERPRISE</div>
-                        <div class="plan-price">30 €<span>/mes</span></div>
+                        <div class="plan-price">27.99 €<span>/mes</span></div>
                         <ul class="plan-features">
                             <li>Profesionales ilimitados</li>
                             <li>Citas ilimitadas</li>
