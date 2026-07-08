@@ -33,6 +33,8 @@ class Negocio extends Model
         'pais_id',
         'estado_id',
         'ciudad_id',
+        'municipio',
+        'codigo_postal',
         'latitud',
         'longitud',
         'horario_apertura',
@@ -43,6 +45,11 @@ class Negocio extends Model
         'plan_vence_en',
         'activo',
         'verificado',
+        'destacado',
+        'layout_size',
+        'visualizaciones',
+        'especialidad',
+        'palabras_clave',
         'mp_access_token',
         'redsys_merchant_code',
         'redsys_terminal',
@@ -71,6 +78,7 @@ class Negocio extends Model
         'horario_apertura'        => 'array',
         'activo'                  => 'boolean',
         'verificado'              => 'boolean',
+        'destacado'               => 'boolean',
         'booking_activo'          => 'boolean',
         'plan_vence_en'           => 'datetime',
         'latitud'                 => 'decimal:8',
@@ -80,6 +88,7 @@ class Negocio extends Model
         'cancelacion_limite_horas'=> 'integer',
         'telefonos_adicionales'   => 'array',
         'verification_phone_index'=> 'integer',
+        'visualizaciones'         => 'integer',
     ];
 
     // ─── Relaciones ────────────────────────────────────────────
@@ -87,6 +96,11 @@ class Negocio extends Model
     public function categoria(): BelongsTo
     {
         return $this->belongsTo(Categoria::class, 'categoria_id');
+    }
+
+    public function resenas(): HasMany
+    {
+        return $this->hasMany(Resena::class, 'negocio_id');
     }
 
     public function profesionales(): HasMany

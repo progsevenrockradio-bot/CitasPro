@@ -125,6 +125,8 @@ Route::get('/locations/cities/{estado_id}', [\App\Http\Controllers\Public\Locati
 
 // ── Directorio Público de Negocios ────────────────────────────────────────────
 Route::get('/directorio', [\App\Http\Controllers\Public\DirectorioController::class, 'index'])->name('public.directorio');
+Route::get('/directorio/sugerencias', [\App\Http\Controllers\Public\DirectorioController::class, 'sugerencias'])->name('public.directorio.sugerencias');
+Route::post('/directorio/track-view/{id}', [\App\Http\Controllers\Public\DirectorioController::class, 'trackView'])->name('public.directorio.track_view');
 Route::get('/directorio/{negocio:slug}', [\App\Http\Controllers\Public\DirectorioController::class, 'show'])->name('public.directorio.show');
 
 // ── Reserva Pública por Slug del Negocio ──────────────────────────────────────
