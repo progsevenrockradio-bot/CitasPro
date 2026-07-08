@@ -416,6 +416,16 @@
             font-weight: bold;
         }
 
+        .plan-features li.feature-missing {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .plan-features li.feature-missing::before {
+            content: '✕';
+            color: #EF4444;
+        }
+
         .btn-pricing {
             display: block;
             padding: 14px 20px;
@@ -653,12 +663,13 @@
                         <div class="plan-price">0 €<span>/mes</span></div>
                         <ul class="plan-features">
                             <li>1 Profesional</li>
-                            <li>Hasta 12 citas al mes</li>
-                            <li>Portafolio visual habilitado</li>
-                            <li>Soporte de la comunidad</li>
+                            <li>Hasta 15 citas al mes</li>
+                            <li>Portafolio visual</li>
+                            <li class="feature-missing">Sin recordatorios automáticos</li>
+                            <li class="feature-missing">Sin pasarela de pagos</li>
                         </ul>
                     </div>
-                    <a href="https://citaspro.app" class="btn-pricing btn-pricing-secondary">Empezar Gratis</a>
+                    <a href="/registro" class="btn-pricing btn-pricing-secondary">Empezar Gratis</a>
                 </div>
 
                 <!-- Basic -->
@@ -668,9 +679,10 @@
                         <div class="plan-price">13.99 €<span>/mes</span></div>
                         <ul class="plan-features">
                             <li>1 Profesional (Single Pro)</li>
-                            <li>Hasta 80 citas al mes</li>
-                            <li>Portafolio de fotos públicas</li>
+                            <li>Hasta 60 citas al mes</li>
                             <li>WhatsApp / SMS de respaldo</li>
+                            <li class="feature-missing">Sin pasarela de pagos</li>
+                            <li class="feature-missing">Sin personal extra</li>
                         </ul>
                     </div>
                     <a href="/registro" class="btn-pricing btn-pricing-secondary">Contratar Basic</a>
@@ -686,6 +698,7 @@
                             <li>Citas ilimitadas</li>
                             <li>Pasarela Stripe Integrada</li>
                             <li>Recordatorios prioritarios</li>
+                            <li class="feature-missing">Soporte estándar</li>
                         </ul>
                     </div>
                     <a href="/registro" class="btn-pricing btn-pricing-primary">Mejorar a Pro</a>
@@ -699,11 +712,12 @@
                         <ul class="plan-features">
                             <li>Profesionales ilimitados</li>
                             <li>Citas ilimitadas</li>
-                            <li>Soporte dedicado</li>
-                            <li>Integración a medida</li>
+                            <li>Soporte 24/7 dedicado</li>
+                            <li>Integración de API a medida</li>
+                            <li>Servidor optimizado</li>
                         </ul>
                     </div>
-                    <a href="https://citaspro.app" class="btn-pricing btn-pricing-secondary">Contactar Ventas</a>
+                    <a href="/registro" class="btn-pricing btn-pricing-secondary">Contactar Ventas</a>
                 </div>
             </div>
         </section>
