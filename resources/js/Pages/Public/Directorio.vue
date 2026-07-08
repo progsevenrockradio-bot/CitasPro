@@ -743,16 +743,16 @@ const getCategoryColor = (nombre) => {
 .dir-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 115px;
+  grid-auto-rows: 160px; /* Altura base suficiente para header + footer */
   grid-auto-flow: dense;
   gap: 18px;
 }
 /* Footprints de tarjeta */
-.dir-grid .card-xl { grid-column: span 3; grid-row: span 3; }  /* 20% */
-.dir-grid .card-l  { grid-column: span 2; grid-row: span 2; }  /* 25% */
-.dir-grid .card-m  { grid-column: span 2; grid-row: span 1; }  /* 30% */
-.dir-grid .card-v  { grid-column: span 1; grid-row: span 2; }  /* 15% */
-.dir-grid .card-s  { grid-column: span 1; grid-row: span 1; }  /* 10% */
+.dir-grid .card-xl { grid-column: span 3; grid-row: span 3; }  /* 5% */
+.dir-grid .card-l  { grid-column: span 2; grid-row: span 2; }  /* 15% */
+.dir-grid .card-m  { grid-column: span 2; grid-row: span 1; min-height: 160px; }  /* 30% */
+.dir-grid .card-v  { grid-column: span 1; grid-row: span 2; }  /* 20% */
+.dir-grid .card-s  { grid-column: span 1; grid-row: span 1; min-height: 160px; }  /* 30% */
 
 /* Desplazamientos orgánicos */
 .dir-card--offset-4  { margin-top: 4px;  }
@@ -902,12 +902,12 @@ const getCategoryColor = (nombre) => {
    RESPONSIVE
 ═══════════════════════════════════════════════════════════════ */
 @media (min-width: 640px) and (max-width: 1023px) {
-  .dir-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 130px; gap: 16px; }
+  .dir-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 160px; gap: 16px; }
   .dir-grid .card-xl { grid-column: span 2; grid-row: span 2; }
   .dir-grid .card-l  { grid-column: span 2; grid-row: span 2; }
-  .dir-grid .card-m  { grid-column: span 2; grid-row: span 1; }
+  .dir-grid .card-m  { grid-column: span 2; grid-row: span 1; min-height: 160px; }
   .dir-grid .card-v  { grid-column: span 1; grid-row: span 2; }
-  .dir-grid .card-s  { grid-column: span 1; grid-row: span 1; }
+  .dir-grid .card-s  { grid-column: span 1; grid-row: span 1; min-height: 160px; }
 }
 @media (max-width: 639px) {
   .dir-hero { padding: 2rem 0 1.5rem; }

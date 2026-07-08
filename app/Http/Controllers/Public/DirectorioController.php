@@ -250,27 +250,28 @@ class DirectorioController extends Controller
             $negocio->next_available_weekday = $nextAvailable->translatedFormat('l'); // Ej: sábado, jueves...
             
             // Sistema Inteligente de Huellas (Footprints) para Masonry Editorial
-            // Utiliza la semilla de sesión para que el layout varíe en cada visita, pero se mantenga en la paginación
+            // Valores: s (1×1), m (2×1 horizontal), v (1×2 vertical), l (2×2), xl (3×3)
             $hashLayout = crc32($negocio->id . '-' . $seed);
-            $rand = $hashLayout % 100;
+            $rand = abs($hashLayout) % 100;
             
             // Distribución probabilística:
-            // 35% small (1x1), 30% horizontal (2x1), 20% vertical (1x2), 15% large (2x2)
-            if ($rand < 35) {
-                $negocio->layout_size = 'small';
-            } elseif ($rand < 65) {
-                $negocio->layout_size = 'horizontal';
-            } elseif ($rand < 85) {
-                $negocio->layout_size = 'vertical';
+            // 30% s, 30% m (horizontal), 20% v (vertical), 15% l, 5% xl
+            if ($rand < 30) {
+                $negocio->layout_size = 's';
+            } elseif ($rand < 60) {
+                $negocio->layout_size = 'm';
+            } elseif ($rand < 80) {
+                $negocio->layout_size = 'v';
+            } elseif ($rand < 95) {
+                $negocio->layout_size = 'l';
             } else {
-                $negocio->layout_size = 'large';
+                $negocio->layout_size = 'xl';
             }
             
-            // Generar desplazamientos ligeros en el eje Y (marginTop random) para romper la cuadrícula
-            // Solo para small y vertical
+            // Desplazamientos orgánicos (solo para tarjetas pequeñas y verticales)
             $negocio->offset_y = 0;
-            if (in_array($negocio->layout_size, ['small', 'vertical'])) {
-                $offsetRand = ($hashLayout % 5) * 4; // 0, 4, 8, 12, 16 px
+            if (in_array($negocio->layout_size, ['s', 'v'])) {
+                $offsetRand = (abs($hashLayout) % 5) * 4; // 0, 4, 8, 12, 16 px
                 $negocio->offset_y = $offsetRand;
             }
             
