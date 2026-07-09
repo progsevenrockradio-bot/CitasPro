@@ -824,13 +824,16 @@ const cssVars = computed(() => ({
   top: 0;
   z-index: 100;
   transition: background var(--t), border-color var(--t), backdrop-filter var(--t);
-  border-bottom: 1px solid transparent;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(8, 12, 24, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 .lp-nav--scrolled {
-  background: rgba(8,12,24,0.82);
+  background: rgba(8, 12, 24, 0.92);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom-color: var(--border);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 .lp-nav-inner {
   max-width: 1280px;
@@ -858,8 +861,8 @@ const cssVars = computed(() => ({
 .lp-logo-name { font-weight: 900; font-size: 1.05rem; color: #fff; letter-spacing: -0.02em; }
 /* Nav links */
 .lp-nav-links { display: flex; gap: 1.75rem; align-items: center; }
-.lp-nav-link { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: color var(--t); }
-.lp-nav-link:hover { color: var(--text); }
+.lp-nav-link { color: rgba(255, 255, 255, 0.75); font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: color var(--t); }
+.lp-nav-link:hover { color: #fff; }
 /* Nav CTA */
 .lp-nav-cta { display: flex; gap: 0.5rem; align-items: center; }
 /* Hamburger */
