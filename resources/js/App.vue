@@ -1,10 +1,12 @@
 <template>
   <router-view></router-view>
+  <CookieBanner />
 </template>
 
 <script setup>
 import { onMounted } from 'vue';
 import axios from 'axios';
+import CookieBanner from './Pages/Components/CookieBanner.vue';
 
 const applyThemeColors = (configs) => {
   if (!configs) return;

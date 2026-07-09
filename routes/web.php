@@ -17,6 +17,9 @@ Route::get('/', function () {
     return view('app');
 });
 
+// Sitemap
+Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+
 // Ruta pública para el perfil del profesional y reservas de clientes
 Route::get('/p/{id}', [\App\Http\Controllers\ClienteWebController::class, 'perfil'])->name('cliente.perfil');
 
@@ -47,6 +50,15 @@ Route::get('/{slug}/book', function () {
 })->where('slug', '[a-z0-9\-]+')->name('reserva.publica');
 
 // Auth::routes();
+
+// ── Páginas Legales ────────────────────────────────────────────────────
+Route::view('/aviso-legal', 'legal.aviso-legal')->name('legal.aviso');
+Route::view('/politica-privacidad', 'legal.politica-privacidad')->name('legal.privacidad');
+Route::view('/politica-cookies', 'legal.politica-cookies')->name('legal.cookies');
+Route::view('/terminos-condiciones', 'legal.terminos-generales')->name('legal.terminos');
+Route::view('/condiciones-clientes', 'legal.condiciones-clientes')->name('legal.clientes');
+Route::view('/contrato', 'legal.contrato-profesionales')->name('legal.contrato');
+Route::view('/dpa', 'legal.dpa')->name('legal.dpa');
 
 // Permitir que el router de la SPA maneje todas las demás rutas web al refrescar (F5)
 Route::fallback(function () {

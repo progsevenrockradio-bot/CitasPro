@@ -123,6 +123,9 @@ Route::post('/suscripciones/webhook', [SuscripcionController::class, 'webhookSus
 Route::get('/locations/states/{pais_id}', [\App\Http\Controllers\Public\LocationController::class, 'states'])->name('locations.states');
 Route::get('/locations/cities/{estado_id}', [\App\Http\Controllers\Public\LocationController::class, 'cities'])->name('locations.cities');
 
+// ── Registro de Consentimiento Legal ──────────────────────────────────────────
+Route::post('/consent/log', [\App\Http\Controllers\Api\ConsentController::class, 'log'])->name('consent.log');
+
 // ── Directorio Público de Negocios ────────────────────────────────────────────
 Route::get('/directorio', [\App\Http\Controllers\Public\DirectorioController::class, 'index'])->name('public.directorio');
 Route::get('/directorio/sugerencias', [\App\Http\Controllers\Public\DirectorioController::class, 'sugerencias'])->name('public.directorio.sugerencias');
