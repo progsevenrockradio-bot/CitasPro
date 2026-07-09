@@ -824,16 +824,16 @@ const cssVars = computed(() => ({
   top: 0;
   z-index: 100;
   transition: background var(--t), border-color var(--t), backdrop-filter var(--t);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(8, 12, 24, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 .lp-nav--scrolled {
-  background: rgba(8, 12, 24, 0.92);
+  background: rgba(8, 12, 24, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(255, 255, 255, 0.15);
 }
 .lp-nav-inner {
   max-width: 1280px;
