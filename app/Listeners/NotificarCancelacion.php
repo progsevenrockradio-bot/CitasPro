@@ -10,14 +10,19 @@ use App\Mail\CitaCanceladaMail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+
 /**
  * NotificarCancelacion
  *
  * Notifica tanto al cliente (WhatsApp/SMS) como al profesional (Telegram)
  * cuando una cita es cancelada.
  */
-class NotificarCancelacion
+class NotificarCancelacion implements ShouldQueue
 {
+    use InteractsWithQueue;
+
 
     public function __construct(
         private readonly WhatsAppService $whatsapp,

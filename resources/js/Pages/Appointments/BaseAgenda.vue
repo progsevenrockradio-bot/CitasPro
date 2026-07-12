@@ -259,8 +259,27 @@ const imprimirAgenda = () => {
   window.print();
 };
 
-const exportarPdf = () => {
-  window.open(`/api/dashboard/citas/export-pdf?type=${props.type}`, '_blank');
+const exportarPdf = async () => {
+  try {
+    const response = await axios.get(`/api/dashboard/citas/export-pdf`, {
+      params: { type: props.type },
+      responseType: 'blob'
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Citas_${props.type}_${new Date().getTime()}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    
+    // Limpieza
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Error al exportar PDF:", error);
+    alert('No se pudo generar el PDF. Verifica tu sesión.');
+  }
 };
 
 const editarCita = (cita) => {
