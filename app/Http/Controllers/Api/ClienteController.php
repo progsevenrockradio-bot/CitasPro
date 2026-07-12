@@ -103,6 +103,7 @@ class ClienteController extends Controller
             ],
             'historial_citas' => $historialCitas,
             'historial_clinico' => $historialClinico,
+            'tipo_clinica' => $profesional->negocio->tipo_clinica ?? 'general',
         ]);
     }
 

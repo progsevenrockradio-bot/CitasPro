@@ -94,6 +94,7 @@
               {{ $t('ficha.tab_historial') }}
             </button>
             <button 
+              v-if="['medical', 'dental'].includes(tipoClinica)"
               @click="activeTab = 'historia_clinica'"
               :class="['flex-1 py-4 font-medium transition-colors border-b-2', activeTab === 'historia_clinica' ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-text-muted hover:text-white hover:bg-white/5']"
             >
@@ -238,6 +239,7 @@ const cliente = ref(null);
 const stats = ref({ total_citas: 0, canceladas: 0 });
 const citas = ref([]);
 const historialClinico = ref([]);
+const tipoClinica = ref('general');
 const activeTab = ref('clinica');
 
 const savingFicha = ref(false);
@@ -304,6 +306,7 @@ const cargarDatos = async () => {
       stats.value = res.data.estadisticas || { total_citas: 0, canceladas: 0 };
       citas.value = res.data.historial_citas || [];
       historialClinico.value = res.data.historial_clinico || [];
+      tipoClinica.value = res.data.tipo_clinica || 'general';
       ficha.value = {
         condiciones_medicas: res.data.cliente.condiciones_medicas || '',
         notas_privadas: res.data.cliente.notas_internas || ''
