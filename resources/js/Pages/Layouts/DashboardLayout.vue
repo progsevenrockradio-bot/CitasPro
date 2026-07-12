@@ -12,16 +12,6 @@
         <span class="font-bold text-xl tracking-tight truncate">CitasPro</span>
       </div>
 
-      <!-- Selector de Área (para Administradores o Dueños) -->
-      <div v-if="esAdminODueno && userProfile?.rol !== 'superadmin'" class="px-6 pb-4">
-        <label class="block text-xs font-bold text-text-muted tracking-wider mb-2">ÁREA ACTUAL</label>
-        <CustomSelect 
-          :modelValue="areaSeleccionada"
-          @update:modelValue="(val) => { areaSeleccionada = val; cambiarArea(); }"
-          :options="areasOptions"
-          buttonClass="px-3 py-2 text-sm"
-        />
-      </div>
 
       <nav class="flex-1 px-4 space-y-2 mt-2">
         <!-- Enlaces dinámicos según el área activa -->
@@ -121,15 +111,7 @@
       <header class="h-16 border-b border-border bg-bg-card/50 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-10">
         <h1 class="text-lg font-semibold">{{ $route.name }}</h1>
         <div class="flex items-center gap-3">
-          <!-- Selector móvil -->
-          <div v-if="esAdminODueno" class="w-28">
-            <CustomSelect 
-              :modelValue="areaSeleccionada"
-              @update:modelValue="(val) => { areaSeleccionada = val; cambiarArea(); }"
-              :options="areasMobileOptions"
-              buttonClass="px-2 py-1.5 text-xs"
-            />
-          </div>
+
           <LanguageSwitcher />
         </div>
       </header>
@@ -149,17 +131,6 @@ import axios from 'axios';
 import LanguageSwitcher from '../Components/LanguageSwitcher.vue';
 import CustomSelect from '../Components/CustomSelect.vue';
 
-const areasOptions = [
-  { value: 'pro', label: 'Citas Pro (General)' },
-  { value: 'medical', label: 'Clínica Médica' },
-  { value: 'dental', label: 'Clínica Dental' }
-];
-
-const areasMobileOptions = [
-  { value: 'pro', label: 'Pro' },
-  { value: 'medical', label: 'Médica' },
-  { value: 'dental', label: 'Dental' }
-];
 
 const router = useRouter();
 const route = useRoute();
