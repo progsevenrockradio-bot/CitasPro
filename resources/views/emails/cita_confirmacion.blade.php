@@ -1,9 +1,11 @@
 @component('mail::message')
-# Hola,
-
 @if($rol === 'paciente')
+# Hola {{ $cita->cliente->nombre }},
+
 Tu cita ha sido confirmada en **{{ $cita->negocio->nombre }}**. Aquí tienes los detalles:
 @else
+# Hola {{ $cita->negocio->nombre }},
+
 Se ha registrado una nueva cita en tu negocio. Detalles:
 @endif
 

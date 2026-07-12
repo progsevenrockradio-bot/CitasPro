@@ -8,11 +8,11 @@
     <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         <h2 style="color: #e53e3e; text-align: center;">Cita Cancelada</h2>
         
-        <p>Hola,</p>
-        
         @if($destinatario === 'paciente')
+            <p>Hola {{ $cita->cliente->nombre }},</p>
             <p>Te informamos que tu cita en <strong>{{ $cita->negocio->nombre ?? 'nuestro centro' }}</strong> ha sido cancelada.</p>
         @else
+            <p>Hola {{ $cita->negocio->nombre }},</p>
             <p>La cita con el paciente <strong>{{ $cita->cliente->nombre }} {{ $cita->cliente->apellido }}</strong> ha sido cancelada.</p>
         @endif
 

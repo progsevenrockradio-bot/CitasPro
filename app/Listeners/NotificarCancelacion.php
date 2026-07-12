@@ -57,8 +57,17 @@ class NotificarCancelacion implements ShouldQueue
             $this->telegram->notificarCancelacionCita($cita, $motivo);
         }
 
-        // 2.5 Notificar al profesional (Email)
-        if ($cita->profesional && !empty($cita->profesional->email)) {
+        // 2.5 Notificar al Negocio (Email)
+        if ($cita->negocio && !empty($cita->negocio->email)) {
+            try {
+                Mail::to($cita->negocio->email)->send(new CitaCanceladaMail($cita, 'clinica', $motivo));
+            } catch (\Exception $e) {
+                Log::error("Error enviando email de cancelación al negocio: " . $e->getMessage());
+            }
+        }
+
+        // 2.6 Notificar al profesional (Email) si es distinto al correo del negocio
+        if ($cita->profesional && !empty($cita->profesional->email) && $cita->profesional->email !== ($cita->negocio->email ?? '')) {
             try {
                 Mail::to($cita->profesional->email)->send(new CitaCanceladaMail($cita, 'profesional', $motivo));
             } catch (\Exception $e) {
