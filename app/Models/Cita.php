@@ -57,6 +57,25 @@ class Cita extends Model
                 STR_PAD_LEFT
             );
         });
+
+        // Genera el pago en efectivo completado automáticamente al agendar
+        static::created(function (Cita $cita) {
+            if ($cita->precio_total > 0) {
+                \App\Models\Pago::updateOrCreate(
+                    ['cita_id' => $cita->id],
+                    [
+                        'cliente_id' => $cita->cliente_id,
+                        'negocio_id' => $cita->negocio_id,
+                        'monto' => $cita->precio_total,
+                        'monto_total' => $cita->precio_total,
+                        'metodo' => 'efectivo',
+                        'estado' => 'completado',
+                        'pagado_en' => now(),
+                        'moneda' => $cita->moneda ?? 'EUR',
+                    ]
+                );
+            }
+        });
     }
 
     // ─── Relaciones ────────────────────────────────────────────
