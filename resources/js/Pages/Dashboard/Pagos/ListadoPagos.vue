@@ -34,6 +34,7 @@
                 <th class="p-4">Método</th>
                 <th class="p-4">Estado</th>
                 <th class="p-4">Fecha Pago</th>
+                <th class="p-4 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border/50 text-sm">
@@ -113,6 +114,19 @@
                 <td class="p-4 text-text-muted text-xs">
                   {{ pago.pagado_en ? formatFechaCompleta(pago.pagado_en) : 'Pendiente de cobro' }}
                 </td>
+
+                <!-- Acciones -->
+                <td class="p-4 text-right">
+                  <button 
+                    @click="descargarFacturaPdf(pago.id)" 
+                    :disabled="downloadingPdf === pago.id || pago.estado === 'pendiente'"
+                    title="Descargar Factura PDF"
+                    class="p-2 rounded-xl border border-border text-text-muted hover:text-white hover:bg-primary/20 hover:border-primary/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Download v-if="downloadingPdf !== pago.id" class="w-4 h-4" />
+                    <Loader2 v-else class="w-4 h-4 animate-spin text-primary" />
+                  </button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -147,15 +161,16 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { Loader2 } from 'lucide-vue-next';
+import { Loader2, Download } from 'lucide-vue-next';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const loading = ref(true);
 const pagos = ref([]);
+const downloadingPdf = ref(null);
 
-// Detección de súper administrador
+// Verificar rol
 const esSuperAdmin = computed(() => pagos.value.some(p => p.negocio));
 
 // Paginación
@@ -204,9 +219,37 @@ const formatHora = (horaStr) => {
 const formatFechaCompleta = (fechaCompletaStr) => {
   if (!fechaCompletaStr) return '';
   try {
-    return format(parseISO(fechaCompletaStr), "d 'de' MMMM, yyyy HH:mm", { locale: es });
+    const fechaObj = new Date(fechaCompletaStr);
+    const mes = fechaObj.toLocaleString('es', { month: 'short' });
+    const dia = fechaObj.getDate();
+    const año = fechaObj.getFullYear();
+    return `${dia} ${mes} ${año}`;
   } catch {
     return fechaCompletaStr;
+  }
+};
+
+// ── Descargar Factura PDF ──────────────────────────────────────────────
+const descargarFacturaPdf = async (pagoId) => {
+  downloadingPdf.value = pagoId;
+  try {
+    const res = await axios.get(`/api/dashboard/pagos/${pagoId}/factura-pdf`, {
+      responseType: 'blob'
+    });
+    
+    // Crear objeto URL para el Blob
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Factura_${pagoId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('Error al descargar la factura PDF:', error);
+    alert('Ocurrió un error al intentar descargar la factura.');
+  } finally {
+    downloadingPdf.value = null;
   }
 };
 

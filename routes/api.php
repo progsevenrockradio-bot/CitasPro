@@ -341,6 +341,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // ── Pagos
         Route::get('/pagos', [PagoController::class, 'index'])->name('pagos.index');
+        Route::get('/pagos/{pago}/factura-pdf', [PagoController::class, 'descargarFacturaPdf'])->name('pagos.factura.pdf');
         Route::post('/pagos/procesar', [PagoController::class, 'procesar'])->name('pagos.procesar');
 
         // ── Gestión de Citas del Profesional (General)

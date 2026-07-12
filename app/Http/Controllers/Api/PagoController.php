@@ -414,4 +414,37 @@ class PagoController extends Controller
 
         return response()->json(['status' => 'success']);
     }
+
+    /**
+     * Descarga el recibo / factura en formato PDF de un pago específico.
+     */
+    public function descargarFacturaPdf(Request $request, Pago $pago)
+    {
+        $user = $request->user();
+
+        // Verificar permisos
+        if ($user->rol !== 'superadmin') {
+            if ($user->rol === 'dueño' || $user->rol === 'admin') {
+                if ($pago->negocio_id !== $user->negocio_id) {
+                    return response()->json(['message' => 'Acceso denegado.'], 403);
+                }
+            } else {
+                if ($pago->cita && $pago->cita->profesional_id !== $user->id) {
+                    return response()->json(['message' => 'Acceso denegado.'], 403);
+                }
+            }
+        }
+
+        // Cargar las relaciones necesarias
+        $pago->load(['cliente', 'negocio.datosFiscales', 'cita.servicio', 'cita.profesional']);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.factura_pdf', [
+            'pago' => $pago,
+            'negocio' => $pago->negocio,
+            'cliente' => $pago->cliente,
+            'cita' => $pago->cita,
+        ]);
+
+        return $pdf->download("Factura_{$pago->id}.pdf");
+    }
 }
