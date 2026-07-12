@@ -148,6 +148,19 @@
       :confirm-text="$t('acciones.si_eliminar')"
       :cancel-text="$t('acciones.cancelar')"
       @confirm="executeCancelarCita"
+      @cancel="showCancelModal = false"
+    />
+
+    <!-- Modal Error -->
+    <ConfirmModal
+      :show="showErrorModal"
+      title="Error"
+      :message="errorMessage"
+      type="danger"
+      :confirm-text="$t('acciones.aceptar')"
+      cancel-text=""
+      @confirm="showErrorModal = false"
+      @cancel="showErrorModal = false"
     />
 
     <!-- Modal Nueva Cita -->
@@ -237,7 +250,10 @@ const showCancelModal = ref(false);
 const showEditarCita = ref(false);
 const showEmailModal = ref(false);
 const citaToCancel = ref(null);
+const showErrorModal = ref(false);
+const errorMessage = ref('');
 const citaToEdit = ref(null);
+
 
 const imprimirAgenda = () => {
   window.print();
@@ -307,16 +323,18 @@ const cancelarCita = (id) => {
 const executeCancelarCita = async () => {
   if (!citaToCancel.value) return;
   const id = citaToCancel.value;
+  showCancelModal.value = false;
   
   try {
-    await axios.delete(`/api/citas/${props.type}/${id}`);
+    const url = props.type === 'general' ? `/api/citas/${id}` : `/api/citas/${props.type}/${id}`;
+    await axios.delete(url);
     fetchAgenda();
     fetchMetrics();
     citaToCancel.value = null;
   } catch (error) {
     console.error("Error al cancelar cita", error);
-    // TODO: Considerar usar un componente de Toast o Notificación en lugar de alert
-    alert(t('agenda.error_cancelar'));
+    errorMessage.value = t('agenda.error_cancelar') || 'No se pudo cancelar la cita.';
+    showErrorModal.value = true;
   }
 };
 
