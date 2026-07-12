@@ -284,7 +284,7 @@
               </div>
             </div>
             <div>
-              <label class="block text-xs text-gray-400 mb-1">{{ $t ? $t('reserva.email_opt') : 'Email (opcional)' }}</label>
+              <label class="block text-xs text-gray-400 mb-1">{{ $t ? $t('reserva.email_req') : 'Email' }} <span class="text-red-500">*</span></label>
               <input v-model="form.cliente_email" type="email" placeholder="tu@email.com"
                 class="w-full bg-black/50 border border-white/20 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500" />
             </div>
@@ -317,8 +317,8 @@
           :disabled="!form.cliente_nombre || !form.telefono_numero || !form.pais_prefijo || sending"
           class="w-full py-4 rounded-xl font-black text-lg transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]"
           :class="{
-            'bg-indigo-600 hover:bg-indigo-700': form.cliente_nombre && form.telefono_numero && form.pais_prefijo && !sending,
-            'bg-gray-600 cursor-not-allowed opacity-50': !form.cliente_nombre || !form.telefono_numero || !form.pais_prefijo || sending
+            'bg-indigo-600 hover:bg-indigo-700': form.cliente_nombre && form.telefono_numero && form.pais_prefijo && form.cliente_email && !sending,
+            'bg-gray-600 cursor-not-allowed opacity-50': !form.cliente_nombre || !form.telefono_numero || !form.pais_prefijo || !form.cliente_email || sending
           }"
         >
           {{ sending ? ($t ? $t('reserva.reservando') : 'Reservando...') : ($t ? $t('reserva.confirmar_reserva') : '✅ Confirmar Cita') }}
@@ -594,8 +594,15 @@ const reservar = () => {
     submitError.value = "Por favor, selecciona una fecha y hora para tu cita.";
     return;
   }
-  if (!form.value.cliente_nombre || !form.value.telefono_numero || !form.value.pais_prefijo) {
-    submitError.value = "Por favor, ingresa tu nombre y número de teléfono completo (con prefijo) para continuar.";
+  if (!form.value.cliente_nombre || !form.value.telefono_numero || !form.value.pais_prefijo || !form.value.cliente_email) {
+    submitError.value = "Por favor, ingresa tu nombre, número de teléfono y correo electrónico para continuar.";
+    return;
+  }
+  
+  // Validación básica de formato de correo
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(form.value.cliente_email)) {
+    submitError.value = "Por favor, ingresa un correo electrónico válido.";
     return;
   }
   submitError.value = null;

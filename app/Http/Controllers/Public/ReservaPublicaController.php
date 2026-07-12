@@ -202,12 +202,14 @@ class ReservaPublicaController extends Controller
             'cliente_nombre' => 'required|string|max:100',
             'cliente_apellido'=> 'sometimes|nullable|string|max:100',
             'cliente_telefono'=> 'required|string|min:7|max:20',
-            'cliente_email'  => 'sometimes|nullable|email|max:150',
+            'cliente_email'  => 'required|email|max:150',
             'notas_cliente'  => 'sometimes|nullable|string|max:500',
             'respuestas_clinicas' => 'sometimes|nullable|array',
         ], [
             'cliente_nombre.required'   => 'Por favor ingresa tu nombre.',
             'cliente_telefono.required' => 'Por favor ingresa tu número de teléfono.',
+            'cliente_email.required'    => 'El correo electrónico es obligatorio.',
+            'cliente_email.email'       => 'El formato del correo electrónico no es válido.',
             'fecha.after_or_equal'      => 'No puedes reservar en una fecha pasada.',
         ]);
 
