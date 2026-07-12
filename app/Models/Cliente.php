@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Sanctum\HasApiTokens;
+use App\Traits\HasGdprConsent;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * Modelo Cliente — usuario final que reserva citas.
@@ -15,13 +18,14 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class Cliente extends Model
 {
-    use HasApiTokens, SoftDeletes;
+    use HasApiTokens, SoftDeletes, HasFactory, HasGdprConsent;
 
     protected $table = 'clientes';
 
     protected $fillable = [
         'nombre',
         'apellido',
+        'nif',
         'telefono',
         'email',
         'foto',
@@ -34,6 +38,7 @@ class Cliente extends Model
         'acepta_marketing',
         'telefono_verificado_en',
         'telegram_chat_id',
+        'detalles_opcionales',
     ];
 
     protected $casts = [
@@ -41,6 +46,7 @@ class Cliente extends Model
         'acepta_marketing'         => 'boolean',
         'fecha_nacimiento'         => 'date',
         'telefono_verificado_en'   => 'datetime',
+        'detalles_opcionales'      => 'array',
     ];
 
     protected $hidden = [
@@ -48,6 +54,11 @@ class Cliente extends Model
     ];
 
     // ─── Relaciones ────────────────────────────────────────────
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class, 'cliente_id');
+    }
 
     public function citas(): HasMany
     {
@@ -96,12 +107,12 @@ class Cliente extends Model
 
     // ─── Scopes ────────────────────────────────────────────────
 
-    public function scopeActivo($query)
+    public function scopeActivo(Builder $query)
     {
         return $query->where('activo', true);
     }
 
-    public function scopeVerificado($query)
+    public function scopeVerificado(Builder $query)
     {
         return $query->whereNotNull('telefono_verificado_en');
     }

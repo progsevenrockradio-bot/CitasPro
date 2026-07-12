@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\FormularioIngresoController;
 use App\Http\Controllers\Api\GoogleCalendarController;
 use App\Http\Controllers\Api\WhatsAppQrController;
 use App\Http\Controllers\Api\SuperAdmin\WebConfigController;
+use App\Http\Controllers\Api\InvoiceController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
 
@@ -288,6 +289,11 @@ Route::middleware('auth:sanctum')->group(function () {
             // Exportación y envío de listados
             Route::get('/citas/export-pdf', [\App\Http\Controllers\Api\ExportController::class, 'exportarCitasPdf'])->name('citas.export.pdf');
             Route::post('/citas/send-email', [\App\Http\Controllers\Api\ExportController::class, 'enviarCitasEmail'])->name('citas.send.email');
+        });
+
+        // ── Facturación (VeriFactu)
+        Route::prefix('invoices')->name('invoices.')->group(function () {
+            Route::post('/', [InvoiceController::class, 'store'])->name('store');
         });
 
         // ── Gestión de Portafolio

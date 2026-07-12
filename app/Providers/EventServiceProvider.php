@@ -52,6 +52,13 @@ class EventServiceProvider extends ServiceProvider
             NotificarCancelacion::class,
             SincronizarGoogleCalendar::class . '@handleCitaCancelada',
         ],
+
+        // ── Appointment Completed (Workflow Principal) ───────────────────────
+        \App\Events\AppointmentCompleted::class => [
+            \App\Listeners\GenerateInvoice::class,
+            \App\Listeners\SignInvoiceWithVeriFactu::class,
+            \App\Listeners\SendInvoiceToClient::class,
+        ],
     ];
 
     public function boot(): void

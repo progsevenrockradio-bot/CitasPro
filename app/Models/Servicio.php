@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -21,11 +22,13 @@ class Servicio extends Model
         'imagen',
         'duracion_min',
         'precio',
+        'iva_porcentaje',
         'moneda',
         'precio_desde',
         'max_clientes_simultaneous',
         'categoria_servicio',
         'activo',
+        'detalles_opcionales',
         'orden',
         'requiere_sena',
         'tipo_sena',
@@ -35,6 +38,7 @@ class Servicio extends Model
 
     protected $casts = [
         'precio'                    => 'decimal:2',
+        'iva_porcentaje'            => 'decimal:2',
         'precio_desde'              => 'boolean',
         'activo'                    => 'boolean',
         'duracion_min'              => 'integer',
@@ -42,6 +46,7 @@ class Servicio extends Model
         'orden'                     => 'integer',
         'requiere_sena'             => 'boolean',
         'valor_sena'                => 'decimal:2',
+        'detalles_opcionales'       => 'array',
     ];
 
     // ─── Relaciones ────────────────────────────────────────────
@@ -74,22 +79,22 @@ class Servicio extends Model
 
     // ─── Scopes ────────────────────────────────────────────────
 
-    public function scopeGeneral($query)
+    public function scopeGeneral(Builder $query)
     {
         return $query->where('type', 'general');
     }
 
-    public function scopeMedical($query)
+    public function scopeMedical(Builder $query)
     {
         return $query->where('type', 'medical');
     }
 
-    public function scopeDental($query)
+    public function scopeDental(Builder $query)
     {
         return $query->where('type', 'dental');
     }
 
-    public function scopeActivo($query)
+    public function scopeActivo(Builder $query)
     {
         return $query->where('activo', true)->orderBy('orden');
     }

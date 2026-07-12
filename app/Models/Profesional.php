@@ -18,6 +18,10 @@ class Profesional extends Authenticatable
 
     protected $fillable = [
         'negocio_id',
+        'nif',
+        'iae',
+        'regimen_fiscal',
+        'roi',
         'nombre',
         'apellido',
         'telefono',
@@ -32,6 +36,7 @@ class Profesional extends Authenticatable
         'calificacion_promedio',
         'total_resenas',
         'horario_disponible',
+        'detalles_opcionales',
         'rol',
         'activo',
         'aceptar_online',
@@ -50,6 +55,8 @@ class Profesional extends Authenticatable
 
     protected $casts = [
         'horario_disponible'      => 'array',
+        'detalles_opcionales'     => 'array',
+        'roi'                     => 'boolean',
         'activo'                  => 'boolean',
         'aceptar_online'          => 'boolean',
         'doble_factor_activo'     => 'boolean',
