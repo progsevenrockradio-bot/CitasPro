@@ -258,7 +258,7 @@
           <div class="bg-white/5 border border-white/10 rounded-xl p-4 space-y-3">
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs text-gray-400 mb-1">{{ $t ? $t('reserva.nombre_req') : 'Nombre *' }}</label>
+                <label class="block text-xs text-gray-400 mb-1">{{ $t ? $t('reserva.nombre_req') : 'Nombre' }} <span class="text-red-500">*</span></label>
                 <input v-model="form.cliente_nombre" type="text" :placeholder="$t ? $t('reserva.tu_nombre') : 'Tu nombre'"
                   class="w-full bg-black/50 border border-white/20 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500" />
               </div>
@@ -269,7 +269,7 @@
               </div>
             </div>
             <div>
-              <label class="block text-xs text-gray-400 mb-1">{{ $t ? $t('reserva.telefono_req') : 'Teléfono *' }}</label>
+              <label class="block text-xs text-gray-400 mb-1">{{ $t ? $t('reserva.telefono_req') : 'Teléfono' }} <span class="text-red-500">*</span></label>
               <div class="flex gap-2">
                 <div class="w-32 shrink-0">
                   <CustomSelect 
@@ -590,6 +590,10 @@ const cargarSlots = async () => {
 };
 
 const reservar = () => {
+  if (!form.value.fecha || !form.value.hora) {
+    submitError.value = "Por favor, selecciona una fecha y hora para tu cita.";
+    return;
+  }
   if (!form.value.cliente_nombre || !form.value.telefono_numero || !form.value.pais_prefijo) {
     submitError.value = "Por favor, ingresa tu nombre y número de teléfono completo (con prefijo) para continuar.";
     return;
@@ -627,10 +631,13 @@ const confirmarReservaFinal = async () => {
       submitError.value = res.data.message || 'Ocurrió un error.';
     }
   } catch (err) {
-    submitError.value = err.response?.data?.message
-      || err.response?.data?.errors
-        ? Object.values(err.response.data.errors).flat().join(' ')
-        : 'Ocurrió un error al procesar tu reserva.';
+    if (err.response?.data?.errors) {
+      submitError.value = Object.values(err.response.data.errors).flat().join(' ');
+    } else if (err.response?.data?.message) {
+      submitError.value = err.response.data.message;
+    } else {
+      submitError.value = 'Ocurrió un error al procesar tu reserva. Por favor intenta de nuevo.';
+    }
   } finally {
     sending.value = false;
   }
