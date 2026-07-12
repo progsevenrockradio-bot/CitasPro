@@ -146,6 +146,7 @@ Route::prefix('public/{negocio:slug}')->name('public.')->group(function () {
     Route::post('/reservar', [\App\Http\Controllers\Public\ReservaPublicaController::class, 'store'])
         ->middleware('throttle:5,1')
         ->name('reservar');
+    Route::post('/confirmar-pago', [\App\Http\Controllers\Public\ReservaPublicaController::class, 'confirmarPago'])->name('confirmar-pago');
 });
 
 // ── Demo (Reset Database) — SOLO entorno local ─────────────────

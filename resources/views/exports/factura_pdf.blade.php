@@ -26,7 +26,18 @@
 
     <div class="header">
         @if($negocio && $negocio->logo)
-            <img src="{{ $negocio->logo }}" alt="{{ $negocio->nombre }}">
+            @php
+                $logoPath = public_path('storage/' . $negocio->logo);
+                // Si guardó la URL completa en BD en vez de ruta relativa, intentamos limpiar
+                if(str_starts_with($negocio->logo, 'http')) {
+                    $logoPath = public_path(str_replace(url('/'), '', $negocio->logo));
+                }
+            @endphp
+            @if(file_exists($logoPath))
+                <img src="{{ $logoPath }}" alt="{{ $negocio->nombre }}">
+            @else
+                <!-- Imagen no encontrada localmente: {{ $logoPath }} -->
+            @endif
         @endif
         <h1>Comprobante de Pago #{{ str_pad($pago->id, 6, '0', STR_PAD_LEFT) }}</h1>
         <p>Fecha de Emisión: {{ now()->format('d/m/Y H:i') }}</p>

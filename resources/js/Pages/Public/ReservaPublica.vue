@@ -632,8 +632,13 @@ const confirmarReservaFinal = async () => {
     });
 
     if (res.data.success) {
-      confirmacion.value = res.data.cita;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (res.data.cita && res.data.cita.checkout_url) {
+        // Redirigir a la pasarela de pago (Stripe)
+        window.location.href = res.data.cita.checkout_url;
+      } else {
+        confirmacion.value = res.data.cita;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     } else {
       submitError.value = res.data.message || 'Ocurrió un error.';
     }

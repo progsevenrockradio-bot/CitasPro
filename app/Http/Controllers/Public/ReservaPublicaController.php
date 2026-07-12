@@ -331,6 +331,29 @@ class ReservaPublicaController extends Controller
                     ]);
                 }
 
+                // Generar Pago
+                if ($cita->precio_total > 0) {
+                    $pago = \App\Models\Pago::create([
+                        'cita_id'    => $cita->id,
+                        'cliente_id' => $cita->cliente_id,
+                        'negocio_id' => $cita->negocio_id,
+                        'monto'      => $cita->precio_total,
+                        'monto_total'=> $cita->precio_total,
+                        'metodo'     => $negocio->cobro_online_obligatorio ? 'stripe' : 'efectivo',
+                        'estado'     => $negocio->cobro_online_obligatorio ? 'pendiente' : 'completado',
+                        'pagado_en'  => $negocio->cobro_online_obligatorio ? null : now(),
+                        'moneda'     => $cita->moneda ?? 'EUR',
+                    ]);
+                    
+                    if ($negocio->cobro_online_obligatorio && $negocio->stripe_secret_key) {
+                        $stripeService = app(\App\Services\StripeService::class);
+                        $successUrl = url("/{$negocio->slug}/pago-exito/{$cita->id}");
+                        $cancelUrl = url("/{$negocio->slug}");
+                        $checkoutUrl = $stripeService->crearCheckoutSession($pago, $successUrl, $cancelUrl);
+                        $cita->setAttribute('checkout_url', $checkoutUrl);
+                    }
+                }
+
                 return $cita;
             });
 
@@ -350,6 +373,7 @@ class ReservaPublicaController extends Controller
                     'duracion_min'      => $servicio->duracion_min,
                     'precio'            => $servicio->precio,
                     'moneda'            => $servicio->moneda ?? 'EUR',
+                    'checkout_url'      => $cita->checkout_url ?? null,
                 ],
             ], 201);
 
@@ -358,6 +382,56 @@ class ReservaPublicaController extends Controller
                 'success' => false,
                 'message' => 'Ocurrió un error al procesar tu reserva. Por favor inténtalo de nuevo.',
             ], 500);
+        }
+    }
+
+    /**
+     * Endpoint invocado desde el frontend de éxito de Stripe
+     * para verificar la sesión y marcar el pago como completado.
+     */
+    public function confirmarPago(Request $request, $slug)
+    {
+        $negocio = Negocio::where('slug', $slug)->firstOrFail();
+        
+        $validated = $request->validate([
+            'cita_id' => 'required|integer|exists:citas,id',
+            'session_id' => 'required|string',
+        ]);
+
+        $cita = Cita::where('negocio_id', $negocio->id)->findOrFail($validated['cita_id']);
+        $pago = \App\Models\Pago::where('cita_id', $cita->id)->first();
+
+        if (!$pago) {
+            return response()->json(['success' => false, 'message' => 'Pago no encontrado.'], 404);
+        }
+
+        if ($pago->estado === 'completado') {
+            return response()->json(['success' => true, 'message' => 'El pago ya estaba completado.']);
+        }
+
+        // Configurar Stripe
+        $secret = $negocio->stripe_secret_key ?: config('services.stripe.secret');
+        if (empty($secret)) {
+            // Mock mode success
+            $pago->update(['estado' => 'completado', 'pagado_en' => now()]);
+            return response()->json(['success' => true]);
+        }
+
+        try {
+            \Stripe\Stripe::setApiKey($secret);
+            $session = \Stripe\Checkout\Session::retrieve($validated['session_id']);
+
+            if ($session->payment_status === 'paid') {
+                $pago->update([
+                    'estado' => 'completado',
+                    'pagado_en' => now(),
+                ]);
+                return response()->json(['success' => true, 'message' => 'Pago completado con éxito.']);
+            }
+
+            return response()->json(['success' => false, 'message' => 'El pago aún no se ha completado en Stripe.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error al verificar con Stripe: ' . $e->getMessage()]);
         }
     }
 }

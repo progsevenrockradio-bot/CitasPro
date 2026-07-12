@@ -98,6 +98,16 @@ class NegocioController extends Controller
             'telefono'                  => 'sometimes|nullable|string|max:20',
             'whatsapp'                  => 'sometimes|nullable|string|max:20',
             'email'                     => 'sometimes|nullable|email|max:100',
+            'booking_activo'            => 'sometimes|boolean',
+            'booking_mensaje'           => 'sometimes|nullable|string|max:500',
+            
+            // Payment Integrations
+            'mp_access_token'           => 'sometimes|nullable|string',
+            'stripe_public_key'         => 'sometimes|nullable|string',
+            'stripe_secret_key'         => 'sometimes|nullable|string',
+            'mp_public_key'             => 'sometimes|nullable|string',
+            'cobro_online_obligatorio'  => 'sometimes|boolean',
+            'pasarela_preferida'        => 'sometimes|nullable|string|in:stripe,mercadopago',
             'sitio_web'                 => 'sometimes|nullable|url|max:255',
             'direccion'                 => 'sometimes|nullable|string|max:255',
             'ciudad'                    => 'sometimes|nullable|string|max:100',

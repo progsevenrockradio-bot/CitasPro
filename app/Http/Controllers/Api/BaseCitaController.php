@@ -114,7 +114,22 @@ class BaseCitaController extends Controller
             'canal'            => $validated['canal'] ?? 'telefono',
             'notas_profesional'=> $validated['notas_profesional'] ?? null,
             'type'             => $this->appointmentType,
+            'moneda'           => $servicio->moneda ?? 'EUR',
         ]);
+
+        if ($cita->precio_total > 0) {
+            \App\Models\Pago::create([
+                'cita_id'    => $cita->id,
+                'cliente_id' => $cita->cliente_id,
+                'negocio_id' => $cita->negocio_id,
+                'monto'      => $cita->precio_total,
+                'monto_total'=> $cita->precio_total,
+                'metodo'     => 'efectivo',
+                'estado'     => 'completado',
+                'pagado_en'  => now(),
+                'moneda'     => $cita->moneda ?? 'EUR',
+            ]);
+        }
 
         event(new \App\Events\CitaCreada($cita->load(['cliente', 'servicio', 'profesional'])));
 

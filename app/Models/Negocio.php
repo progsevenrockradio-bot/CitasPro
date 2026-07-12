@@ -66,6 +66,12 @@ class Negocio extends Model
         'verification_phone_index',
         'numero_fiscal',
         'tipo_clinica',
+        // Pasarelas de Pago
+        'stripe_public_key',
+        'stripe_secret_key',
+        'mp_public_key',
+        'cobro_online_obligatorio',
+        'pasarela_preferida',
     ];
 
     protected $appends = [

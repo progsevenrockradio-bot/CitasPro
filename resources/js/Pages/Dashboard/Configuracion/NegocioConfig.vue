@@ -264,6 +264,62 @@
       </div>
     </div>
 
+    <!-- Pasarelas de Pago -->
+    <div class="bg-bg-card border border-border rounded-2xl p-6 mt-6 space-y-5">
+      <h3 class="text-lg font-bold border-b border-border/50 pb-3 flex items-center justify-between">
+        <span>Pasarelas de Pago Online</span>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input 
+            type="checkbox" 
+            v-model="form.cobro_online_obligatorio" 
+            class="sr-only peer"
+          />
+          <div class="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+          <span class="ml-3 text-sm font-medium text-white">Cobro Online Activo</span>
+        </label>
+      </h3>
+      
+      <p class="text-sm text-text-muted">Configura tus credenciales para permitir que tus clientes paguen al momento de reservar. Puedes obtener estas claves en el panel de desarrolladores de Stripe o MercadoPago.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <!-- Stripe -->
+        <div class="bg-black/10 rounded-xl p-4 border border-border/50">
+          <h4 class="font-semibold text-white mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-[#635BFF]" viewBox="0 0 40 40" fill="none"><path d="M20 40C31.0457 40 40 31.0457 40 20C40 8.9543 31.0457 0 20 0C8.9543 0 0 8.9543 0 20C0 31.0457 8.9543 40 20 40Z" fill="currentColor"/><path d="M19.349 14.5422C19.349 13.5658 20.2163 12.8711 21.3653 12.8711C23.0163 12.8711 25.1099 13.5658 26.6918 14.5022L28.2831 10.334C26.4764 9.25026 24.0883 8.65971 21.6441 8.65971C17.3323 8.65971 14.3734 10.8828 14.3734 14.9937C14.3734 21.4371 23.9592 20.4471 23.9592 23.6948C23.9592 24.8409 22.8682 25.6572 21.4429 25.6572C19.3248 25.6572 17.0673 24.6672 15.3129 23.504L13.7217 27.6958C15.7196 29.0435 18.5288 29.8398 21.2655 29.8398C25.867 29.8398 28.9814 27.5312 28.9814 23.3639C28.9816 16.5866 19.349 17.7554 19.349 14.5422Z" fill="white"/></svg>
+            Stripe (Recomendado)
+          </h4>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-text-muted mb-1">Public Key</label>
+              <input v-model="form.stripe_public_key" type="text" placeholder="pk_test_..." class="w-full bg-black/20 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-muted mb-1">Secret Key</label>
+              <input v-model="form.stripe_secret_key" type="password" placeholder="sk_test_..." class="w-full bg-black/20 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+          </div>
+        </div>
+
+        <!-- MercadoPago -->
+        <div class="bg-black/10 rounded-xl p-4 border border-border/50 opacity-75">
+          <h4 class="font-semibold text-white mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-[#009ee3]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.07 17.585v-4.66h-2.11v-4.66h2.11v-1.63c0-2.09 1.28-3.23 3.15-3.23.9 0 1.67.07 1.9.1v2.2l-1.3.01c-1.02 0-1.22.48-1.22 1.2v1.35h2.43l-.32 4.66h-2.11v4.66h-2.53z"/></svg>
+            MercadoPago (Latinoamérica)
+          </h4>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-text-muted mb-1">Public Key</label>
+              <input v-model="form.mp_public_key" type="text" placeholder="APP_USR-..." class="w-full bg-black/20 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-muted mb-1">Access Token</label>
+              <input v-model="form.mp_access_token" type="password" placeholder="APP_USR-..." class="w-full bg-black/20 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Datos Fiscales -->
     <DatosFiscalesForm 
       :pais-id="form.pais_id"
@@ -383,7 +439,13 @@ const form = ref({
   es_medico: false,
   telefonos_adicionales: [],
   verification_phone_index: null,
-  numero_fiscal: ''
+  numero_fiscal: '',
+  stripe_public_key: '',
+  stripe_secret_key: '',
+  mp_public_key: '',
+  mp_access_token: '',
+  cobro_online_obligatorio: false,
+  pasarela_preferida: 'stripe'
 });
 
 const diasSemana = [
@@ -452,7 +514,13 @@ const cargarNegocio = async () => {
       es_medico: Boolean(d.es_medico),
       telefonos_adicionales: d.telefonos_adicionales || [],
       verification_phone_index: d.verification_phone_index !== undefined ? d.verification_phone_index : null,
-      numero_fiscal: d.numero_fiscal || ''
+      numero_fiscal: d.numero_fiscal || '',
+      stripe_public_key: d.stripe_public_key || '',
+      stripe_secret_key: d.stripe_secret_key || '',
+      mp_public_key: d.mp_public_key || '',
+      mp_access_token: d.mp_access_token || '',
+      cobro_online_obligatorio: Boolean(d.cobro_online_obligatorio),
+      pasarela_preferida: d.pasarela_preferida || 'stripe'
     };
   } catch (error) {
     console.error("Error al cargar negocio:", error);

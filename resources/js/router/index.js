@@ -119,6 +119,12 @@ const routes = [
     meta: { public: true }
   },
   {
+    path: '/:slug/pago-exito/:id',
+    name: 'PagoExito',
+    component: () => import('../Pages/Public/PagoExito.vue'),
+    meta: { public: true }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/panel'
   }
