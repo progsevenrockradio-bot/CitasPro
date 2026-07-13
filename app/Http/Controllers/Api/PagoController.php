@@ -9,6 +9,7 @@ use App\Models\Profesional;
 use App\Services\StripeService;
 use App\Services\MercadoPagoService;
 use App\Services\RedsysService;
+use App\Events\PagoConfirmado;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -291,9 +292,11 @@ class PagoController extends Controller
             ]);
 
             $cita->update(['estado' => 'confirmada']);
-            
-            // Disparar evento para flujo de notificaciones
+
+            // Notificaciones de cita actualizada
             event(new \App\Events\CitaActualizada($cita));
+            // Notificaciones de pago confirmado (Email + WhatsApp)
+            event(new PagoConfirmado($pago->load(['cliente', 'negocio', 'cita.servicio'])));
         }
 
         return response()->json([
@@ -333,6 +336,7 @@ class PagoController extends Controller
 
                 $pago->cita()->update(['estado' => 'confirmada']);
                 event(new \App\Events\CitaActualizada($pago->cita));
+                event(new PagoConfirmado($pago->load(['cliente', 'negocio', 'cita.servicio'])));
             }
         }
 
@@ -341,42 +345,99 @@ class PagoController extends Controller
 
     /**
      * Webhook público para recibir notificaciones de MercadoPago (IPN/Webhooks).
+     *
+     * MercadoPago envía el webhook en DOS formatos:
+     *   - IPN clásico:        POST body con `external_reference` y `status`
+     *   - Webhook moderno:    POST body con `data.id` (payment_id) SIN external_reference
+     *
+     * En el formato moderno, necesitamos llamar a la API de MP para obtener el
+     * external_reference y el status real del pago.
      */
     public function webhookMercadoPago(Request $request): JsonResponse
     {
         Log::info('PagoController: Webhook MercadoPago recibido.', $request->all());
 
-        // El ID de referencia externa que enviamos es el ID del Pago local
-        $pagoId = $request->input('external_reference');
-        
-        // Si no viene directo, puede ser una consulta IPN por ID de recurso
-        if (!$pagoId && $request->input('type') === 'payment') {
-            $paymentId = $request->input('data.id') ?? $request->input('id');
-            // En producción, aquí haríamos un GET a MP para recuperar external_reference usando el paymentId.
-            // Para robustez y pruebas locales, permitimos que se envíe el pagoId en las consultas
+        // ── Extraer el Payment ID del payload (ambos formatos) ─────────────────
+        $paymentId = $request->input('data.id')    // Formato moderno (JSON body)
+                  ?? $request->input('id')           // IPN alternativo
+                  ?? $request->query('id');           // IPN clásico por query string
+
+        if (!$paymentId) {
+            Log::warning('PagoController: Webhook MP sin payment ID, ignorado.');
+            return response()->json(['status' => 'ignored']);
         }
 
-        // Si es una simulación de webhook o una notificación confirmada
-        $status = $request->input('status', 'approved');
+        // ── Determinar el token a usar ─────────────────────────────────────────
+        // Intentamos recuperar el pago por external_reference si viene en el payload
+        $pagoIdFromPayload = $request->input('external_reference');
+        $pagoProvisional   = $pagoIdFromPayload ? Pago::with('negocio')->find($pagoIdFromPayload) : null;
+        $token = $pagoProvisional?->negocio?->mp_access_token
+               ?: config('services.mercadopago.access_token');
 
-        if ($pagoId && ($status === 'approved' || $status === 'completed')) {
-            $pago = Pago::find($pagoId);
-            
-            if ($pago && !$pago->estaCompletado()) {
+        // ── Modo simulación en local ────────────────────────────────────────────
+        if (empty($token) || $token === 'Coloca_Aqui_Tu_MercadoPago_Access_Token') {
+            // Sin token real, confiamos en el payload directamente
+            $status = $request->input('status', 'approved');
+            $mpData = ['simulated' => true, 'payment_id' => $paymentId];
+            $pagoId = $pagoIdFromPayload;
+
+            if (!$pagoId) {
+                Log::warning('PagoController: Webhook MP simulado sin external_reference, ignorado.');
+                return response()->json(['status' => 'ignored']);
+            }
+        } else {
+            // ── Llamada real a la API de MercadoPago ───────────────────────────
+            // Esto resuelve el problema: cuando el webhook moderno NO incluye
+            // external_reference, la llamamos explícitamente para obtenerlo.
+            $response = \Illuminate\Support\Facades\Http::withToken($token)
+                ->get("https://api.mercadopago.com/v1/payments/{$paymentId}");
+
+            if (!$response->successful()) {
+                Log::error("PagoController: Error al verificar pago MP #{$paymentId} — HTTP {$response->status()}");
+                return response()->json(['status' => 'error'], 500);
+            }
+
+            $mpData = $response->json();
+            $status = $mpData['status'] ?? 'pending';
+
+            // external_reference es nuestro ID de Pago — viene siempre en la API aunque
+            // no venga en el webhook payload
+            $pagoId = $mpData['external_reference'] ?? $pagoIdFromPayload;
+
+            if (!$pagoId) {
+                Log::warning("PagoController: Pago MP #{$paymentId} sin external_reference, ignorado.");
+                return response()->json(['status' => 'ignored']);
+            }
+        }
+
+        // ── Buscar el Pago local ────────────────────────────────────────────────
+        $pago = Pago::with('negocio')->find($pagoId);
+        if (!$pago) {
+            Log::error("PagoController: Pago #{$pagoId} no encontrado para webhook MP #{$paymentId}");
+            return response()->json(['status' => 'not_found'], 404);
+        }
+
+        // ── Procesar según el estado ────────────────────────────────────────────
+        if ($status === 'approved' || $status === 'completed') {
+            if (!$pago->estaCompletado()) {
                 $pago->update([
                     'estado'    => 'completado',
                     'pagado_en' => now(),
-                    'metadata'  => array_merge($pago->metadata ?? [], ['mp_webhook' => $request->all()])
+                    'metadata'  => array_merge($pago->metadata ?? [], ['mp_webhook' => $mpData])
                 ]);
 
                 $pago->cita()->update(['estado' => 'confirmada']);
                 event(new \App\Events\CitaActualizada($pago->cita));
-                Log::info("PagoController: Pago #{$pagoId} confirmado vía MercadoPago.");
+                event(new PagoConfirmado($pago->load(['cliente', 'negocio', 'cita.servicio'])));
+                Log::info("PagoController: Pago #{$pagoId} confirmado vía MercadoPago (MP payment #{$paymentId}).");
             }
+        } elseif ($status === 'rejected' || $status === 'cancelled') {
+            Log::info("PagoController: Pago MP #{$paymentId} rechazado/cancelado — estado MP: {$status}");
         }
 
         return response()->json(['status' => 'success']);
     }
+
 
     /**
      * Webhook público para recibir notificaciones online de Redsys.
@@ -407,6 +468,7 @@ class PagoController extends Controller
 
                     $pago->cita()->update(['estado' => 'confirmada']);
                     event(new \App\Events\CitaActualizada($pago->cita));
+                    event(new PagoConfirmado($pago->load(['cliente', 'negocio', 'cita.servicio'])));
                     Log::info("PagoController: Pago #{$pagoId} confirmado vía Redsys.");
                 }
             }

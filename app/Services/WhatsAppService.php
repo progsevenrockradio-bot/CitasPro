@@ -121,8 +121,55 @@ class WhatsAppService
     }
 
     /**
+     * Envía confirmación de pago completado al cliente.
+     *
+     * Plantilla esperada en Meta con variables:
+     *   {{1}} = nombre del cliente
+     *   {{2}} = nombre del servicio
+     *   {{3}} = importe (ej. "25.00 EUR")
+     *   {{4}} = código de referencia de la cita
+     *   {{5}} = nombre del negocio
+     */
+    public function enviarConfirmacionPago(\App\Models\Pago $pago): bool
+    {
+        $cliente  = $pago->cliente;
+        $negocio  = $pago->negocio;
+        $cita     = $pago->cita;
+        $servicio = $cita?->servicio;
+
+        if (!$cliente || !$negocio) {
+            return false;
+        }
+
+        $importe   = number_format((float) ($pago->monto ?? 0), 2) . ' ' . strtoupper($pago->moneda ?? 'EUR');
+        $referencia = $cita?->codigo_referencia ?? "PAGO-{$pago->id}";
+
+        // Modo QR: mensaje de texto libre
+        if ($negocio->whatsapp_modelo === 'qr') {
+            $texto = "✅ Hola {$cliente->nombre}, tu pago de {$importe} por {$servicio?->nombre} en {$negocio->nombre} ha sido confirmado. Referencia: {$referencia}.";
+            return $this->qrService->enviarMensaje($negocio, $cliente->telefono, $texto);
+        }
+
+        // Modo Cloud API: plantilla aprobada
+        $parametros = [
+            $cliente->nombre,
+            $servicio?->nombre ?? 'Servicio',
+            $importe,
+            $referencia,
+            $negocio->nombre,
+        ];
+
+        return $this->enviarPlantilla(
+            destinatario: $cliente->telefono,
+            plantilla:    config('services.whatsapp.template_pago_confirmado', 'pago_confirmado'),
+            parametros:   $parametros,
+            contexto:     "Confirmación de pago #{$pago->id} — Cita: {$referencia}",
+        );
+    }
+    /**
      * Envía notificación de cancelación al cliente.
      */
+
     public function enviarCancelacion(Cita $cita, string $motivoCancelacion = ''): bool
     {
         $cliente  = $cita->cliente;

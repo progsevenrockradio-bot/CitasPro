@@ -54,9 +54,9 @@ class CreateRectificationInvoiceAction
             $rectificativa->tipo_cambio = $original->tipo_cambio;
             
             // Invertir importes financieros de la cabecera
-            $rectificativa->subtotal = -$original->subtotal;
-            $rectificativa->impuestos = -$original->impuestos;
-            $rectificativa->total = -$original->total;
+            $rectificativa->subtotal = number_format(-$original->subtotal, 2, '.', '');
+            $rectificativa->impuestos = number_format(-$original->impuestos, 2, '.', '');
+            $rectificativa->total = number_format(-$original->total, 2, '.', '');
             
             $rectificativa->estado = 'rectificativa';
             $rectificativa->rectifies_invoice_id = $original->id;

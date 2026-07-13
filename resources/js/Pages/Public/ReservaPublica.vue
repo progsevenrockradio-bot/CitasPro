@@ -305,6 +305,77 @@
           </div>
         </section>
 
+        <!-- ── Paso 5: Método de Pago ── -->
+        <section v-if="requierePago && form.hora && form.cliente_nombre && form.telefono_numero && form.cliente_email" ref="step5" class="animate-in fade-in duration-300">
+          <h2 class="text-lg font-bold mb-3 flex items-center gap-2">
+            <span class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-black">5</span>
+            {{ $t ? $t('reserva.metodo_pago') : 'Método de Pago' }}
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            
+            <button
+              v-if="negocio.metodos_pago?.stripe"
+              @click="form.metodo_pago = 'stripe'"
+              type="button"
+              :class="[
+                'text-left p-4 rounded-xl border transition-all flex flex-col items-center gap-3 text-center',
+                form.metodo_pago === 'stripe'
+                  ? 'border-indigo-500 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.2)] transform scale-[1.02]'
+                  : 'border-white/10 bg-white/5 hover:border-white/20'
+              ]"
+            >
+              <div class="w-12 h-12 rounded-full bg-indigo-900/50 flex items-center justify-center text-2xl">
+                💳
+              </div>
+              <div>
+                <p class="font-bold text-white text-sm">Tarjeta de Crédito</p>
+                <p class="text-[10px] text-gray-400 mt-1">Pago seguro con Stripe</p>
+              </div>
+            </button>
+
+            <button
+              v-if="negocio.metodos_pago?.mercadopago"
+              @click="form.metodo_pago = 'mercadopago'"
+              type="button"
+              :class="[
+                'text-left p-4 rounded-xl border transition-all flex flex-col items-center gap-3 text-center',
+                form.metodo_pago === 'mercadopago'
+                  ? 'border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.2)] transform scale-[1.02]'
+                  : 'border-white/10 bg-white/5 hover:border-white/20'
+              ]"
+            >
+              <div class="w-12 h-12 rounded-full bg-blue-900/50 flex items-center justify-center text-2xl">
+                🤝
+              </div>
+              <div>
+                <p class="font-bold text-white text-sm">Mercado Pago</p>
+                <p class="text-[10px] text-gray-400 mt-1">Dinero en cuenta o cuotas</p>
+              </div>
+            </button>
+
+            <button
+              v-if="negocio.metodos_pago?.efectivo"
+              @click="form.metodo_pago = 'efectivo'"
+              type="button"
+              :class="[
+                'text-left p-4 rounded-xl border transition-all flex flex-col items-center gap-3 text-center',
+                form.metodo_pago === 'efectivo'
+                  ? 'border-emerald-500 bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.2)] transform scale-[1.02]'
+                  : 'border-white/10 bg-white/5 hover:border-white/20'
+              ]"
+            >
+              <div class="w-12 h-12 rounded-full bg-emerald-900/50 flex items-center justify-center text-2xl">
+                💵
+              </div>
+              <div>
+                <p class="font-bold text-white text-sm">En el Local</p>
+                <p class="text-[10px] text-gray-400 mt-1">Efectivo el día de la cita</p>
+              </div>
+            </button>
+
+          </div>
+        </section>
+
         <!-- Error de envío -->
         <div v-if="submitError" class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-red-400 text-sm">
           {{ submitError }}
@@ -314,11 +385,11 @@
         <button
           v-if="form.hora"
           @click="reservar"
-          :disabled="!form.cliente_nombre || !form.telefono_numero || !form.pais_prefijo || sending"
+          :disabled="!form.cliente_nombre || !form.telefono_numero || !form.pais_prefijo || sending || (requierePago && !form.metodo_pago)"
           class="w-full py-4 rounded-xl font-black text-lg transition-all shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]"
           :class="{
-            'bg-indigo-600 hover:bg-indigo-700': form.cliente_nombre && form.telefono_numero && form.pais_prefijo && form.cliente_email && !sending,
-            'bg-gray-600 cursor-not-allowed opacity-50': !form.cliente_nombre || !form.telefono_numero || !form.pais_prefijo || !form.cliente_email || sending
+            'bg-indigo-600 hover:bg-indigo-700': form.cliente_nombre && form.telefono_numero && form.pais_prefijo && form.cliente_email && !sending && (!requierePago || form.metodo_pago),
+            'bg-gray-600 cursor-not-allowed opacity-50': !form.cliente_nombre || !form.telefono_numero || !form.pais_prefijo || !form.cliente_email || sending || (requierePago && !form.metodo_pago)
           }"
         >
           {{ sending ? ($t ? $t('reserva.reservando') : 'Reservando...') : ($t ? $t('reserva.confirmar_reserva') : '✅ Confirmar Cita') }}
@@ -356,6 +427,7 @@ const slug = computed(() => route.params.slug);
 const step2 = ref(null);
 const step3 = ref(null);
 const step4 = ref(null);
+const step5 = ref(null);
 const slotsContainer = ref(null);
 const clinicalFormSection = ref(null);
 
@@ -423,6 +495,16 @@ const form = ref({
   cliente_email: '',
   notas_cliente: '',
   respuestas_clinicas: {},
+  metodo_pago: null,
+});
+
+const servicioSeleccionado = computed(() => {
+  if (!form.value.servicio_id) return null;
+  return servicios.value.find(s => s.id === form.value.servicio_id);
+});
+
+const requierePago = computed(() => {
+  return servicioSeleccionado.value && parseFloat(servicioSeleccionado.value.precio) > 0;
 });
 
 let checkTimer = null;
@@ -599,6 +681,11 @@ const reservar = () => {
     return;
   }
   
+  if (requierePago.value && !form.value.metodo_pago) {
+    submitError.value = "Por favor, selecciona un método de pago.";
+    return;
+  }
+  
   // Validación básica de formato de correo
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(form.value.cliente_email)) {
@@ -629,6 +716,7 @@ const confirmarReservaFinal = async () => {
       cliente_email: form.value.cliente_email,
       notas_cliente: form.value.notas_cliente,
       respuestas_clinicas: form.value.respuestas_clinicas,
+      metodo_pago: form.value.metodo_pago,
     });
 
     if (res.data.success) {
@@ -669,6 +757,7 @@ const reiniciar = () => {
     cliente_email: '',
     notas_cliente: '',
     respuestas_clinicas: {},
+    metodo_pago: null,
   };
   slots.value = [];
   requiereHistorial.value = false;

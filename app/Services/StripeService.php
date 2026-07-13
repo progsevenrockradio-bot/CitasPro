@@ -66,6 +66,8 @@ class StripeService
 
     /**
      * Crea una Checkout Session de Stripe y devuelve la URL para redirigir al cliente.
+     *
+     * @return string
      */
     public function crearCheckoutSession(Pago $pago, string $successUrl, string $cancelUrl): string
     {

@@ -55,6 +55,13 @@ class NegocioController extends Controller
                 'numero_fiscal'      => $negocio->numero_fiscal,
                 'datos_fiscales'     => $negocio->datosFiscales ? $negocio->datosFiscales->datos_fiscales : null,
                 'pais_fiscal_fields' => $negocio->paisObj ? $negocio->paisObj->fiscal_fields : null,
+                // ── Pasarelas de Pago (claves secretas NUNCA se devuelven en texto plano) ──
+                'stripe_public_key'          => $negocio->stripe_public_key,
+                'stripe_secret_key_set'      => !empty($negocio->stripe_secret_key),
+                'mp_public_key'              => $negocio->mp_public_key,
+                'mp_access_token_set'        => !empty($negocio->mp_access_token),
+                'cobro_online_obligatorio'   => (bool) $negocio->cobro_online_obligatorio,
+                'pasarela_preferida'         => $negocio->pasarela_preferida,
             ]
         ]);
 

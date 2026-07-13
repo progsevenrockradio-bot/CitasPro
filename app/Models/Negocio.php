@@ -96,6 +96,10 @@ class Negocio extends Model
         'telefonos_adicionales'   => 'array',
         'verification_phone_index'=> 'integer',
         'visualizaciones'         => 'integer',
+        // ── Credenciales Sensibles (encriptadas en BD) ────────────────────
+        'stripe_secret_key'       => 'encrypted',
+        'mp_access_token'         => 'encrypted',
+        'whatsapp_session_token'  => 'encrypted',
     ];
 
     // ─── Relaciones ────────────────────────────────────────────

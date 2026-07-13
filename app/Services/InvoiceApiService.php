@@ -110,9 +110,9 @@ class InvoiceApiService
                 ]);
             }
 
-            $invoice->subtotal = $subtotalAcumulado;
-            $invoice->impuestos = $impuestosAcumulados;
-            $invoice->total = $subtotalAcumulado + $impuestosAcumulados;
+            $invoice->subtotal = number_format($subtotalAcumulado, 2, '.', '');
+            $invoice->impuestos = number_format($impuestosAcumulados, 2, '.', '');
+            $invoice->total = number_format($subtotalAcumulado + $impuestosAcumulados, 2, '.', '');
 
             // 5. Criptografía y Encadenamiento VeriFactu
             $ultimaFactura = Invoice::where('negocio_id', $negocioId)

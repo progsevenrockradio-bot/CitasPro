@@ -7,6 +7,7 @@ use App\Models\Cita;
 use App\Models\Cliente;
 use App\Models\Negocio;
 use App\Models\Profesional;
+use App\Events\PagoConfirmado;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -58,6 +59,12 @@ class ReservaPublicaController extends Controller
                 'todos_telefonos'     => $negocio->all_phones,
                 'telefono_verificacion' => $negocio->verification_phone,
                 'numero_fiscal'       => $negocio->numero_fiscal,
+                'cobro_online_obligatorio' => $negocio->cobro_online_obligatorio,
+                'metodos_pago'        => [
+                    'stripe'      => !empty($negocio->stripe_secret_key) || !empty(config('services.stripe.secret')),
+                    'mercadopago' => !empty($negocio->mp_access_token) || !empty(config('services.mercadopago.access_token')),
+                    'efectivo'    => !$negocio->cobro_online_obligatorio,
+                ],
             ],
             'profesionales' => $negocio->profesionales->map(fn($p) => [
                 'id'                   => $p->id,
@@ -205,6 +212,7 @@ class ReservaPublicaController extends Controller
             'cliente_email'  => 'required|email|max:150',
             'notas_cliente'  => 'sometimes|nullable|string|max:500',
             'respuestas_clinicas' => 'sometimes|nullable|array',
+            'metodo_pago'    => 'sometimes|nullable|string|in:stripe,mercadopago,efectivo',
         ], [
             'cliente_nombre.required'   => 'Por favor ingresa tu nombre.',
             'cliente_telefono.required' => 'Por favor ingresa tu número de teléfono.',
@@ -333,24 +341,34 @@ class ReservaPublicaController extends Controller
 
                 // Generar Pago
                 if ($cita->precio_total > 0) {
+                    $metodo = $validated['metodo_pago'] ?? ($negocio->cobro_online_obligatorio ? 'stripe' : 'efectivo');
+
                     $pago = \App\Models\Pago::create([
                         'cita_id'    => $cita->id,
                         'cliente_id' => $cita->cliente_id,
                         'negocio_id' => $cita->negocio_id,
                         'monto'      => $cita->precio_total,
                         'monto_total'=> $cita->precio_total,
-                        'metodo'     => $negocio->cobro_online_obligatorio ? 'stripe' : 'efectivo',
-                        'estado'     => $negocio->cobro_online_obligatorio ? 'pendiente' : 'completado',
-                        'pagado_en'  => $negocio->cobro_online_obligatorio ? null : now(),
+                        'metodo'     => $metodo,
+                        'estado'     => $metodo === 'efectivo' ? 'completado' : 'pendiente',
+                        'pagado_en'  => $metodo === 'efectivo' ? now() : null,
                         'moneda'     => $cita->moneda ?? 'EUR',
                     ]);
                     
-                    if ($negocio->cobro_online_obligatorio && $negocio->stripe_secret_key) {
+                    if ($metodo === 'stripe' && ($negocio->stripe_secret_key || config('services.stripe.secret'))) {
                         $stripeService = app(\App\Services\StripeService::class);
                         $successUrl = url("/{$negocio->slug}/pago-exito/{$cita->id}");
                         $cancelUrl = url("/{$negocio->slug}");
                         $checkoutUrl = $stripeService->crearCheckoutSession($pago, $successUrl, $cancelUrl);
                         $cita->setAttribute('checkout_url', $checkoutUrl);
+                    } elseif ($metodo === 'mercadopago' && ($negocio->mp_access_token || config('services.mercadopago.access_token'))) {
+                        $mpService = app(\App\Services\MercadoPagoService::class);
+                        $successUrl = url("/{$negocio->slug}/pago-exito/{$cita->id}");
+                        $cancelUrl = url("/{$negocio->slug}");
+                        $checkoutUrl = $mpService->crearPreferencia($pago, $successUrl, $cancelUrl, $cancelUrl);
+                        if ($checkoutUrl) {
+                            $cita->setAttribute('checkout_url', $checkoutUrl);
+                        }
                     }
                 }
 
@@ -389,7 +407,7 @@ class ReservaPublicaController extends Controller
      * Endpoint invocado desde el frontend de éxito de Stripe
      * para verificar la sesión y marcar el pago como completado.
      */
-    public function confirmarPago(Request $request, $slug)
+    public function confirmarPago(Request $request, string $slug)
     {
         $negocio = Negocio::where('slug', $slug)->firstOrFail();
         
@@ -426,6 +444,8 @@ class ReservaPublicaController extends Controller
                     'estado' => 'completado',
                     'pagado_en' => now(),
                 ]);
+                // Disparar notificaciones de pago confirmado
+                event(new PagoConfirmado($pago->load(['cliente', 'negocio', 'cita.servicio'])));
                 return response()->json(['success' => true, 'message' => 'Pago completado con éxito.']);
             }
 

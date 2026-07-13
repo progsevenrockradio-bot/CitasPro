@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property float|string $subtotal
+ * @property float|string $impuestos
+ * @property float|string $total
+ * @property float|string $tipo_cambio
+ */
 class Invoice extends Model
 {
     use HasFactory, SoftDeletes;

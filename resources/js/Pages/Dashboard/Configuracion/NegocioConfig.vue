@@ -149,14 +149,11 @@
               class="flex-1 bg-black/20 border border-border rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
             />
             
-            <select 
-              v-model="phone.type" 
-              class="w-28 bg-black/20 border border-border rounded-xl px-2 py-2 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-            >
-              <option value="local">Local</option>
-              <option value="mobile">Móvil</option>
-              <option value="fax">Fax</option>
-            </select>
+            <CustomSelect
+              v-model="phone.type"
+              :options="tipoTelefonoOpciones"
+              button-class="px-2 py-2 text-sm w-28"
+            />
             
             <label class="flex items-center gap-1 cursor-pointer select-none">
               <input 
@@ -294,14 +291,24 @@
               <input v-model="form.stripe_public_key" type="text" placeholder="pk_test_..." class="w-full bg-black/20 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div>
-              <label class="block text-xs font-medium text-text-muted mb-1">Secret Key</label>
-              <input v-model="form.stripe_secret_key" type="password" placeholder="sk_test_..." class="w-full bg-black/20 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary" />
+              <label class="block text-xs font-medium text-text-muted mb-1 flex items-center gap-2">
+                Secret Key
+                <span v-if="form.stripe_secret_key_set && !form.stripe_secret_key" class="inline-flex items-center gap-1 text-green-400 bg-green-400/10 border border-green-400/30 rounded-full px-2 py-0.5 text-[10px] font-semibold">
+                  <CheckCircle class="w-3 h-3" /> Configurada
+                </span>
+              </label>
+              <input
+                v-model="form.stripe_secret_key"
+                type="password"
+                :placeholder="form.stripe_secret_key_set ? '••••••••  (dejar vacío para no cambiar)' : 'sk_test_...'"
+                class="w-full bg-black/20 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
+              />
             </div>
           </div>
         </div>
 
         <!-- MercadoPago -->
-        <div class="bg-black/10 rounded-xl p-4 border border-border/50 opacity-75">
+        <div class="bg-black/10 rounded-xl p-4 border border-border/50">
           <h4 class="font-semibold text-white mb-4 flex items-center gap-2">
             <svg class="w-5 h-5 text-[#009ee3]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1.07 17.585v-4.66h-2.11v-4.66h2.11v-1.63c0-2.09 1.28-3.23 3.15-3.23.9 0 1.67.07 1.9.1v2.2l-1.3.01c-1.02 0-1.22.48-1.22 1.2v1.35h2.43l-.32 4.66h-2.11v4.66h-2.53z"/></svg>
             MercadoPago (Latinoamérica)
@@ -312,8 +319,18 @@
               <input v-model="form.mp_public_key" type="text" placeholder="APP_USR-..." class="w-full bg-black/20 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div>
-              <label class="block text-xs font-medium text-text-muted mb-1">Access Token</label>
-              <input v-model="form.mp_access_token" type="password" placeholder="APP_USR-..." class="w-full bg-black/20 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary" />
+              <label class="block text-xs font-medium text-text-muted mb-1 flex items-center gap-2">
+                Access Token
+                <span v-if="form.mp_access_token_set && !form.mp_access_token" class="inline-flex items-center gap-1 text-green-400 bg-green-400/10 border border-green-400/30 rounded-full px-2 py-0.5 text-[10px] font-semibold">
+                  <CheckCircle class="w-3 h-3" /> Configurado
+                </span>
+              </label>
+              <input
+                v-model="form.mp_access_token"
+                type="password"
+                :placeholder="form.mp_access_token_set ? '••••••••  (dejar vacío para no cambiar)' : 'APP_USR-...'"
+                class="w-full bg-black/20 border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
+              />
             </div>
           </div>
         </div>
@@ -384,6 +401,7 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 import LocationSelects from '../../Components/LocationSelects.vue';
 import DatosFiscalesForm from '../Components/DatosFiscalesForm.vue';
+import CustomSelect from '../../Components/CustomSelect.vue';
 
 const router = useRouter();
 const loading = ref(true);
@@ -401,6 +419,13 @@ const fileToUpload = ref(null);
 
 const initialDatosFiscales = ref({});
 const initialFiscalFields = ref([]);
+
+// Opciones para el CustomSelect de tipo de teléfono
+const tipoTelefonoOpciones = [
+  { value: 'local',  label: 'Local' },
+  { value: 'mobile', label: 'Móvil' },
+  { value: 'fax',    label: 'Fax' },
+];
 
 const onLogoChange = (e) => {
   const file = e.target.files[0];
@@ -441,9 +466,11 @@ const form = ref({
   verification_phone_index: null,
   numero_fiscal: '',
   stripe_public_key: '',
-  stripe_secret_key: '',
+  stripe_secret_key: '',         // En blanco = no cambiar; con valor = actualizar
+  stripe_secret_key_set: false,  // Indica si ya hay una clave guardada en BD
   mp_public_key: '',
-  mp_access_token: '',
+  mp_access_token: '',           // En blanco = no cambiar; con valor = actualizar
+  mp_access_token_set: false,    // Indica si ya hay un token guardado en BD
   cobro_online_obligatorio: false,
   pasarela_preferida: 'stripe'
 });
@@ -516,9 +543,11 @@ const cargarNegocio = async () => {
       verification_phone_index: d.verification_phone_index !== undefined ? d.verification_phone_index : null,
       numero_fiscal: d.numero_fiscal || '',
       stripe_public_key: d.stripe_public_key || '',
-      stripe_secret_key: d.stripe_secret_key || '',
+      stripe_secret_key: '',                        // nunca rellenamos: el backend no lo retorna
+      stripe_secret_key_set: d.stripe_secret_key_set || false,
       mp_public_key: d.mp_public_key || '',
-      mp_access_token: d.mp_access_token || '',
+      mp_access_token: '',                          // nunca rellenamos: el backend no lo retorna
+      mp_access_token_set: d.mp_access_token_set || false,
       cobro_online_obligatorio: Boolean(d.cobro_online_obligatorio),
       pasarela_preferida: d.pasarela_preferida || 'stripe'
     };
@@ -537,6 +566,11 @@ const guardarCambios = async () => {
   try {
     const formData = new FormData();
     Object.keys(form.value).forEach(key => {
+      // Omitir los flags internos _set (no son campos de BD)
+      if (key.endsWith('_set')) return;
+      // Si la clave secreta está vacía, no la enviamos (el backend conserva la existente)
+      if ((key === 'stripe_secret_key' || key === 'mp_access_token') && !form.value[key]) return;
+
       if (key === 'horario_apertura' || key === 'telefonos_adicionales') {
         formData.append(key, JSON.stringify(form.value[key]));
       } else if (form.value[key] !== null && form.value[key] !== undefined) {
@@ -581,11 +615,9 @@ const eliminarNegocioDefinitivo = async () => {
     const res = await axios.delete('/api/negocio');
     mostrarModalEliminar.value = false;
     
-    // Limpiamos token local y mandamos a login
+    // Limpiamos token local y redirigimos a login (negocio eliminado con éxito)
     localStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
-    
-    alert(res.data.message);
     router.push('/login');
   } catch (error) {
     console.error("Error al borrar negocio:", error);

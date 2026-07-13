@@ -12,7 +12,7 @@ class MercadoPagoService
      * Crea una preferencia de pago en MercadoPago.
      * Si no hay credenciales configuradas, simula el flujo de redirección.
      */
-    public function crearPreferencia(Pago $pago): ?string
+    public function crearPreferencia(Pago $pago, ?string $successUrl = null, ?string $failureUrl = null, ?string $pendingUrl = null): ?string
     {
         $negocio = $pago->negocio;
         
@@ -44,13 +44,13 @@ class MercadoPagoService
                         ]
                     ],
                     'back_urls' => [
-                        'success' => config('app.url') . '/dashboard?mp_success=1',
-                        'failure' => config('app.url') . '/dashboard?mp_fail=1',
-                        'pending' => config('app.url') . '/dashboard?mp_pending=1',
+                        'success' => $successUrl ?? (config('app.url') . '/dashboard?mp_success=1'),
+                        'failure' => $failureUrl ?? (config('app.url') . '/dashboard?mp_fail=1'),
+                        'pending' => $pendingUrl ?? (config('app.url') . '/dashboard?mp_pending=1'),
                     ],
                     'auto_return' => 'approved',
                     'external_reference' => (string) $pago->id,
-                    'notification_url'   => config('app.url') . '/api/pagos/webhook/mercadopago',
+                    'notification_url'   => config('app.url') . '/api/pagos/webhook/mercadopago?external_reference=' . $pago->id,
                 ]);
 
             if ($response->successful()) {

@@ -5,10 +5,12 @@ namespace App\Providers;
 use App\Events\CitaCreada;
 use App\Events\CitaActualizada;
 use App\Events\CitaCancelada;
+use App\Events\PagoConfirmado;
 use App\Listeners\NotificarProfesionalTelegram;
 use App\Listeners\EnviarConfirmacionCliente;
 use App\Listeners\NotificarCancelacion;
 use App\Listeners\SincronizarGoogleCalendar;
+use App\Listeners\NotificarPagoConfirmado;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -58,6 +60,12 @@ class EventServiceProvider extends ServiceProvider
             \App\Listeners\GenerateInvoice::class,
             \App\Listeners\SignInvoiceWithVeriFactu::class,
             \App\Listeners\SendInvoiceToClient::class,
+        ],
+
+        // ── Pago Confirmado ───────────────────────────────────────────
+        // Dispara: email al cliente + WhatsApp al cliente + email al negocio
+        PagoConfirmado::class => [
+            NotificarPagoConfirmado::class,
         ],
     ];
 

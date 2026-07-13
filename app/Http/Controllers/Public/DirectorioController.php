@@ -231,6 +231,7 @@ class DirectorioController extends Controller
         }
 
         // Paginación estable
+        /** @var \Illuminate\Pagination\LengthAwarePaginator $negocios */
         $negocios = $query->paginate(24);
 
         $negocios->getCollection()->transform(function ($negocio) use ($seed) {
