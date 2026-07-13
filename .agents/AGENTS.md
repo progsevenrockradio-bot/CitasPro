@@ -31,3 +31,17 @@
 - **Disponibilidad de Formato PDF e Impresión:** Todo módulo de la plataforma que contenga registros importantes para el usuario o el negocio (tales como citas, fichas clínicas/historias clínicas, consultas médicas y recibos o comprobantes de pago) debe incluir de manera obligatoria una opción para **imprimir directamente desde el navegador** o **descargar/enviar como archivo PDF**.
 - **Generación y Diseño:** Las vistas de impresión y los PDFs generados deben contar con hojas de estilo CSS optimizadas para impresión (`@media print`) que oculten menús de navegación, barras laterales y botones innecesarios, dejando únicamente la información limpia y estructurada. Para la generación de PDFs en backend, se utilizarán librerías estándar compatibles con Laravel (como `barryvdh/laravel-dompdf`).
 - **Envío de Comprobantes:** Siempre que el sistema envíe una confirmación o recibo por correo electrónico al paciente o negocio, se debe adjuntar o enlazar una versión en PDF del documento para asegurar la portabilidad y el archivo del registro.
+
+## Sistema de Diseño y Personalización (Design System)
+
+- **Identidad Visual Base**: La estética premium se rige por Tailwind CSS y tipografía "Outfit". Los colores por defecto son Fondo Oscuro (`#0B1021`, `#171C36`), Primario Azul (`#3B82F6`) y Acento Rojo/Coral (`#FF5A5F`).
+- **Temas Dinámicos (Whitelabel)**: El panel del SuperAdmin debe permitir sobrescribir estos colores primarios y de acento, así como actualizar el logo global de la plataforma. La inyección de estos colores dinámicos se realizará en el frontend mediante el mapeo de variables CSS en el layout principal o a través de endpoints de configuración.
+- **Consistencia de UI**: Queda ESTRICTAMENTE PROHIBIDO el uso de selects, alertas, o modales nativos del navegador. Cualquier nueva interfaz debe componerse empleando la biblioteca de componentes internos (ej. `CustomSelect.vue`, `ConfirmModal.vue`).
+
+## Arquitectura del Panel SuperAdmin (Gestión SaaS Multi-tenant)
+
+- **Separación Lógica estricta**: Los controladores y endpoints destinados al administrador de la plataforma deben vivir en su propio namespace (`App\Http\Controllers\Api\SuperAdmin`) y estar protegidos por un middleware dedicado (`IsSuperAdmin`).
+- **Aislamiento de Inquilinos (Tenants)**: Fuera de las rutas del SuperAdmin, TODAS las consultas a la base de datos deben estar forzosamente filtradas por `negocio_id` (ya sea por Global Scopes o cláusulas `where` explícitas) para evitar fugas de datos entre negocios.
+- **Gestión Integral de Negocios**: El SuperAdmin requiere la capacidad de Listar, Suspender (Soft-deletes o desactivación manual) y "Iniciar Sesión Como" (Impersonate) para dar soporte técnico a un negocio sin requerir la contraseña del cliente.
+- **Control de Marca y Configuraciones Globales**: El panel de SuperAdmin debe incluir una sección para gestionar credenciales maestras (SMTP de la plataforma, APIs globales) y las variables de diseño (colores y logos).
+- **Planes y Feature Toggles**: Preparar la arquitectura para permitir limitar funciones según el nivel o plan del negocio (ej. "Límite de 5 profesionales" o "Desactivar WhatsApp en plan básico").
