@@ -84,19 +84,21 @@ class StripeService
 
         $montoEnCentavos = (int) round($pago->monto * 100);
 
-        $session = \Stripe\Checkout\Session::create([
-            'payment_method_types' => ['card'],
-            'line_items' => [[
-                'price_data' => [
-                    'currency' => strtolower($pago->moneda ?: 'eur'),
-                    'product_data' => [
-                        'name' => 'Reserva de Cita - ' . ($pago->cita->servicio->nombre ?? 'Servicio'),
-                        'description' => 'Pago por reserva en ' . ($negocio->nombre ?? 'nuestro centro'),
-                    ],
-                    'unit_amount' => $montoEnCentavos,
+        $lineItems = [[
+            'price_data' => [
+                'currency' => strtolower($pago->moneda ?: 'eur'),
+                'product_data' => [
+                    'name' => 'Reserva de Cita - ' . ($pago->cita->servicio->nombre ?? 'Servicio'),
+                    'description' => 'Pago por reserva en ' . ($negocio->nombre ?? 'nuestro centro'),
                 ],
-                'quantity' => 1,
-            ]],
+                'unit_amount' => $montoEnCentavos,
+            ],
+            'quantity' => 1,
+        ]];
+
+        $sessionData = [
+            'payment_method_types' => ['card'],
+            'line_items' => $lineItems,
             'mode' => 'payment',
             'success_url' => $successUrl . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => $cancelUrl,
@@ -105,7 +107,9 @@ class StripeService
                 'pago_id' => $pago->id,
                 'cita_id' => $pago->cita_id,
             ],
-        ]);
+        ];
+
+        $session = \Stripe\Checkout\Session::create($sessionData);
 
         $pago->update([
             'referencia_externa' => $session->id
