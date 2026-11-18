@@ -403,6 +403,7 @@ class OtpAuthController extends Controller
                     'email' => $request->email,
                     'password' => \Illuminate\Support\Facades\Hash::make($request->password),
                     'telefono' => $telefono,
+                    'rol' => 'dueño',
                     'activo' => true,
                 ]);
             } catch (\Exception $e) {

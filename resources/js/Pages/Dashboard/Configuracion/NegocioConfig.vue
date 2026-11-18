@@ -231,7 +231,12 @@
                   class="sr-only peer"
                 />
                 <div class="w-9 h-5 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500"></div>
-                <span class="text-xs text-text-muted ml-2">Cerrado</span>
+                <span
+                  class="text-xs ml-2 font-medium"
+                  :class="form.horario_apertura[day.key].cerrado ? 'text-red-400' : 'text-emerald-400'"
+                >
+                  {{ form.horario_apertura[day.key].cerrado ? 'Cerrado' : 'Abierto' }}
+                </span>
               </label>
             </div>
             
@@ -600,7 +605,10 @@ const guardarCambios = async () => {
     setTimeout(() => { successMsg.value = ''; }, 3000);
   } catch (error) {
     console.error("Error al guardar:", error);
-    errorMsg.value = error.response?.data?.message || 'Hubo un error al guardar los cambios.';
+    const data = error.response?.data;
+    const firstFieldError = data?.errors ? Object.values(data.errors).flat()[0] : null;
+    errorMsg.value = firstFieldError || data?.message || 'Hubo un error al guardar los cambios.';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   } finally {
     saving.value = false;
   }
