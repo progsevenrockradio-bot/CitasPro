@@ -4,22 +4,19 @@ namespace App\Console\Commands;
 
 use App\Mail\CitaRecordatorioMail;
 use App\Models\Cita;
-use App\Services\TelegramService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
  * RecordarCitasCommand
  *
- * Artisan command que busca citas próximas y envía recordatorios por correo electrónico a los clientes.
- *
- * Uso manual:
- *   php artisan citas:recordar
- *   php artisan citas:recordar --dry-run      # Solo muestra sin enviar
- *   php artisan citas:recordar --solo-hoy     # Solo citas de hoy
- *   php artisan citas:recordar --cita=123     # Solo una cita específica
+ * Comando manual alternativo para enviar un único recordatorio por correo
+ * electrónico por cita (ventana principal 24h y respaldo 1h [0..90m]).
+ * Comparte el bloqueo por fila (lockForUpdate) sobre recordatorio_enviado
+ * para no duplicar envíos si coincide con citas:recordatorios.
  */
 class RecordarCitasCommand extends Command
 {
@@ -35,23 +32,17 @@ class RecordarCitasCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Envía recordatorios de citas próximas por correo electrónico.';
+    protected $description = 'Envía un único recordatorio por correo electrónico por cita (ventana 24h y respaldo 1h).';
 
-    // Contadores para el reporte final
     private int $totalProcesadas  = 0;
     private int $totalEnviadas    = 0;
     private int $totalFallidas    = 0;
     private int $totalOmitidas    = 0;
 
-    public function __construct(
-        private readonly TelegramService $telegram,
-    ) {
+    public function __construct()
+    {
         parent::__construct();
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Punto de entrada
-    // ─────────────────────────────────────────────────────────────────────────
 
     public function handle(): int
     {
@@ -69,7 +60,6 @@ class RecordarCitasCommand extends Command
 
         $this->newLine();
 
-        // ── Obtener citas a procesar ─────────────────────────────────────────
         $citas = $this->obtenerCitas(citaId: $citaId, soloHoy: $soloHoy);
 
         if ($citas->isEmpty()) {
@@ -81,33 +71,23 @@ class RecordarCitasCommand extends Command
         $this->info("📋 Citas encontradas para recordar: <comment>{$citas->count()}</comment>");
         $this->newLine();
 
-        // ── Procesar cada cita ───────────────────────────────────────────────
         foreach ($citas as $cita) {
             $this->procesarCita($cita, $dryRun);
         }
 
-        // ── Reporte final ────────────────────────────────────────────────────
         $this->newLine();
         $this->generarReporte($inicio);
 
-        // ── Notificar al dueño del negocio si hubo fallos ────────────────────
         if ($this->totalFallidas > 0 && !$dryRun) {
-            $this->alertarFallos();
+            $this->registrarFallosEnLog();
         }
 
         return self::SUCCESS;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Obtener citas que necesitan recordatorio
-    // ─────────────────────────────────────────────────────────────────────────
-
     /**
-     * Consulta la BD buscando citas que:
-     *  a) Están dentro de las próximas 24h (recordatorio principal)
-     *  b) Están dentro de la próxima 1h (recordatorio urgente)
-     *  c) No han recibido recordatorio aún
-     *  d) Tienen estado 'confirmada' o 'pendiente'
+     * Consulta la BD buscando citas elegibles aún no recordadas dentro de la
+     * ventana principal (24h ± 1h) o la ventana de respaldo (0..90 min).
      */
     private function obtenerCitas(?string $citaId, bool $soloHoy): \Illuminate\Database\Eloquent\Collection
     {
@@ -141,7 +121,7 @@ class RecordarCitasCommand extends Command
                 $horaInicioCita = Carbon::parse("{$fechaStr} {$cita->hora_inicio}", $tz);
                 $v24Ini = $ahoraNegocio->copy()->addHours($horasAntes - 1);
                 $v24Fin = $ahoraNegocio->copy()->addHours($horasAntes + 1);
-                $v1Ini  = $ahoraNegocio->copy()->addMinutes($minutosUrg - 30);
+                $v1Ini  = $ahoraNegocio->copy();
                 $v1Fin  = $ahoraNegocio->copy()->addMinutes($minutosUrg + 30);
 
                 return $horaInicioCita->between($v24Ini, $v24Fin) || $horaInicioCita->between($v1Ini, $v1Fin);
@@ -150,10 +130,6 @@ class RecordarCitasCommand extends Command
 
         return new \Illuminate\Database\Eloquent\Collection($filtradas->all());
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Procesar una cita individual
-    // ─────────────────────────────────────────────────────────────────────────
 
     private function procesarCita(Cita $cita, bool $dryRun): void
     {
@@ -170,14 +146,12 @@ class RecordarCitasCommand extends Command
             . "{$servicio->nombre} | {$fecha} {$hora} | {$negocio->nombre}"
         );
 
-        // Si es dry-run, no enviamos nada
         if ($dryRun) {
             $this->info("     [DRY-RUN] Omitido.");
             $this->totalOmitidas++;
             return;
         }
 
-        // ── Verificar que el cliente tiene correo electrónico válido ─────────
         if (empty($cliente->email) || !filter_var($cliente->email, FILTER_VALIDATE_EMAIL)) {
             $this->warn("     ⚠️  Sin correo electrónico válido. Omitido.");
             Log::warning("RecordarCitasCommand: Cita #{$cita->id} sin correo electrónico válido de cliente.");
@@ -185,17 +159,37 @@ class RecordarCitasCommand extends Command
             return;
         }
 
-        // ── Envío exclusivo por correo electrónico (sin respaldo WhatsApp/SMS) ──
         try {
-            Mail::to($cliente->email)->send(new CitaRecordatorioMail($cita));
+            $enviado = DB::transaction(function () use ($cita, $cliente) {
+                $citaBloqueada = Cita::whereKey($cita->id)
+                    ->lockForUpdate()
+                    ->first();
 
-            $cita->update([
-                'recordatorio_enviado'    => true,
-                'recordatorio_enviado_en' => now(),
-            ]);
+                if (
+                    !$citaBloqueada
+                    || $citaBloqueada->recordatorio_enviado
+                    || !in_array($citaBloqueada->estado, ['confirmada', 'pendiente'], true)
+                ) {
+                    return false;
+                }
 
-            $this->line("     <fg=green>✓ Recordatorio por correo enviado correctamente.</>");
-            $this->totalEnviadas++;
+                Mail::to($cliente->email)->send(new CitaRecordatorioMail($citaBloqueada));
+
+                $citaBloqueada->update([
+                    'recordatorio_enviado'    => true,
+                    'recordatorio_enviado_en' => now(),
+                ]);
+
+                return true;
+            });
+
+            if ($enviado) {
+                $this->line("     <fg=green>✓ Recordatorio por correo enviado correctamente.</>");
+                $this->totalEnviadas++;
+            } else {
+                $this->line("     [OMITIDO] Ya recordada o cancelada concurrentemente.");
+                $this->totalOmitidas++;
+            }
         } catch (\Throwable $e) {
             $this->error("     ✗ Falló envío por correo. No se marca como enviado.");
             $this->totalFallidas++;
@@ -207,10 +201,6 @@ class RecordarCitasCommand extends Command
             ]);
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Reporte y alertas
-    // ─────────────────────────────────────────────────────────────────────────
 
     private function generarReporte(Carbon $inicio): void
     {
@@ -236,22 +226,8 @@ class RecordarCitasCommand extends Command
         ]);
     }
 
-    /**
-     * Si hay fallos, notifica al bot de Telegram del sistema.
-     * Requiere configurar TELEGRAM_ADMIN_CHAT_ID en .env.
-     */
-    private function alertarFallos(): void
+    private function registrarFallosEnLog(): void
     {
-        $adminChatId = config('services.telegram.admin_chat_id');
-
-        if (empty($adminChatId)) {
-            return;
-        }
-
-        $mensaje = "⚠️ <b>CitasPro Alert</b>\n\n"
-                 . "El comando <code>citas:recordar</code> tuvo {$this->totalFallidas} fallo(s) al enviar recordatorios por correo.\n"
-                 . "Revisa los logs: <code>storage/logs/laravel.log</code>";
-
-        $this->telegram->enviarTextoLibre($adminChatId, $mensaje);
+        Log::warning("RecordarCitasCommand finalizó con {$this->totalFallidas} fallo(s) en envío de correo.");
     }
 }

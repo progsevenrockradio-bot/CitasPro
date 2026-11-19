@@ -11,7 +11,9 @@ use App\Models\Negocio;
 use App\Models\Profesional;
 use App\Models\Servicio;
 use App\Services\SmsService;
+use App\Services\TelegramService;
 use App\Services\WhatsAppService;
+use Illuminate\Console\Scheduling\Schedule;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -548,6 +550,189 @@ class ReservaRecorridoTest extends TestCase
                 ->json('agenda.0.dia_label');
             $this->assertSame('Friday, November 20', $labelEn);
             $this->assertStringNotContainsString(' de ', $labelEn);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_recordatorios_minutos_no_en_punto_menos_24h_reintento_fuera_ventana_y_unico_aviso(): void
+    {
+        [$negocio, $dueno, $servicio] = $this->crearEntornoReserva();
+        config(['app.timezone' => 'UTC']);
+
+        $wa = Mockery::mock(WhatsAppService::class);
+        $wa->shouldNotReceive('enviarRecordatorio');
+        $sms = Mockery::mock(SmsService::class);
+        $sms->shouldNotReceive('enviarRecordatorio');
+        $tg = Mockery::mock(TelegramService::class);
+        $tg->shouldNotReceive('enviarTextoLibre', 'enviarResumenDiario');
+        $this->app->instance(WhatsAppService::class, $wa);
+        $this->app->instance(SmsService::class, $sms);
+        $this->app->instance(TelegramService::class, $tg);
+
+        $cliA = Cliente::create(['nombre' => 'Ana', 'apellido' => 'Treinta', 'telefono' => '+34600900001', 'email' => 'ana.1030@ejemplo.local']);
+        $cliB = Cliente::create(['nombre' => 'Beto', 'apellido' => 'CuarentaCinco', 'telefono' => '+34600900002', 'email' => 'beto.1045@ejemplo.local']);
+        $cliC = Cliente::create(['nombre' => 'Clara', 'apellido' => 'Quince', 'telefono' => '+34600900003', 'email' => 'clara.1015@ejemplo.local']);
+
+        $citaA = Cita::create([
+            'negocio_id'           => $negocio->id,
+            'cliente_id'           => $cliA->id,
+            'profesional_id'       => $dueno->id,
+            'servicio_id'          => $servicio->id,
+            'fecha'                => '2026-11-21',
+            'hora_inicio'          => '10:30:00',
+            'hora_fin'             => '11:30:00',
+            'duracion_min'         => 60,
+            'estado'               => 'confirmada',
+            'precio_total'         => 45.00,
+            'recordatorio_enviado' => false,
+        ]);
+
+        try {
+            $mailFake = Mail::getFacadeRoot();
+
+            // 1. Cita A (10:30, minutos != :00) a las 10:00 del día previo (+24h 30m) recibe su único aviso
+            Carbon::setTestNow(Carbon::create(2026, 11, 20, 10, 0, 0, 'Europe/Madrid'));
+            $this->artisan('citas:recordatorios')->assertExitCode(0);
+            Mail::assertSent(CitaRecordatorioMail::class, 1);
+            $this->assertTrue((bool) $citaA->fresh()->recordatorio_enviado);
+
+            // 2. Cita B (10:45, minutos != :00) falla dentro de ventana 24h (10:00 del día previo, +24h 45m)
+            $citaB = Cita::create([
+                'negocio_id'           => $negocio->id,
+                'cliente_id'           => $cliB->id,
+                'profesional_id'       => $dueno->id,
+                'servicio_id'          => $servicio->id,
+                'fecha'                => '2026-11-21',
+                'hora_inicio'          => '10:45:00',
+                'hora_fin'             => '11:45:00',
+                'duracion_min'         => 60,
+                'estado'               => 'confirmada',
+                'precio_total'         => 45.00,
+                'recordatorio_enviado' => false,
+            ]);
+
+            $pendingMail = Mockery::mock();
+            $pendingMail->shouldReceive('send')->once()->andThrow(new \RuntimeException('SMTP timeout'));
+            $failingMailer = Mockery::mock();
+            $failingMailer->shouldReceive('to')->once()->with($cliB->email)->andReturn($pendingMail);
+            Mail::swap($failingMailer);
+
+            $this->artisan('citas:recordatorios')->assertExitCode(0);
+            $this->assertFalse((bool) $citaB->fresh()->recordatorio_enviado);
+
+            Mail::swap($mailFake);
+
+            // 3. Reintento a las 13:00 (+21h 45m, ya fuera de [23h..25h] y aún fuera de [0..90m]): espera al respaldo 1h
+            Carbon::setTestNow(Carbon::create(2026, 11, 20, 13, 0, 0, 'Europe/Madrid'));
+            $this->artisan('citas:recordatorios')->assertExitCode(0);
+            $this->assertFalse((bool) $citaB->fresh()->recordatorio_enviado);
+            Mail::assertSent(CitaRecordatorioMail::class, 1);
+
+            // 4. Cita C (10:15, minutos != :00) reservada con < 24h (a las 07:00 del mismo día = +3h 15m)
+            Carbon::setTestNow(Carbon::create(2026, 11, 21, 7, 0, 0, 'Europe/Madrid'));
+            $citaC = Cita::create([
+                'negocio_id'           => $negocio->id,
+                'cliente_id'           => $cliC->id,
+                'profesional_id'       => $dueno->id,
+                'servicio_id'          => $servicio->id,
+                'fecha'                => '2026-11-21',
+                'hora_inicio'          => '10:15:00',
+                'hora_fin'             => '11:15:00',
+                'duracion_min'         => 60,
+                'estado'               => 'confirmada',
+                'precio_total'         => 45.00,
+                'recordatorio_enviado' => false,
+            ]);
+            $this->artisan('citas:recordatorios')->assertExitCode(0);
+            $this->assertFalse((bool) $citaC->fresh()->recordatorio_enviado);
+
+            // 5. En ventana de respaldo 1h [0..90m] (09:30 del 2026-11-21):
+            //    - Cita A (+60m) NO recibe segundo aviso (1 aviso único por cita)
+            //    - Cita B (+75m) se recupera y envía en el reintento tras salir de la ventana 24h
+            //    - Cita C (+45m) recibe su único aviso pese a reservarse con < 24h
+            Carbon::setTestNow(Carbon::create(2026, 11, 21, 9, 30, 0, 'Europe/Madrid'));
+            $this->artisan('citas:recordatorios')->assertExitCode(0);
+
+            $this->assertTrue((bool) $citaB->fresh()->recordatorio_enviado);
+            $this->assertTrue((bool) $citaC->fresh()->recordatorio_enviado);
+            Mail::assertSent(CitaRecordatorioMail::class, 3);
+            Mail::assertSent(CitaRecordatorioMail::class, fn (CitaRecordatorioMail $m) => $m->hasTo($cliA->email) && $m->cita->id === $citaA->id);
+            Mail::assertSent(CitaRecordatorioMail::class, fn (CitaRecordatorioMail $m) => $m->hasTo($cliB->email) && $m->cita->id === $citaB->id);
+            Mail::assertSent(CitaRecordatorioMail::class, fn (CitaRecordatorioMail $m) => $m->hasTo($cliC->email) && $m->cita->id === $citaC->id);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_ambos_comandos_no_duplican_y_scheduler_solo_activa_correo(): void
+    {
+        [$negocio, $dueno, $servicio] = $this->crearEntornoReserva();
+        config(['app.timezone' => 'UTC']);
+
+        $wa = Mockery::mock(WhatsAppService::class);
+        $wa->shouldNotReceive('enviarRecordatorio');
+        $sms = Mockery::mock(SmsService::class);
+        $sms->shouldNotReceive('enviarRecordatorio');
+        $tg = Mockery::mock(TelegramService::class);
+        $tg->shouldNotReceive('enviarTextoLibre', 'enviarResumenDiario');
+        $this->app->instance(WhatsAppService::class, $wa);
+        $this->app->instance(SmsService::class, $sms);
+        $this->app->instance(TelegramService::class, $tg);
+
+        $cli1 = Cliente::create(['nombre' => 'Lucas', 'apellido' => 'Uno', 'telefono' => '+34600900011', 'email' => 'lucas.cmd@ejemplo.local']);
+        $cli2 = Cliente::create(['nombre' => 'Nora', 'apellido' => 'Dos', 'telefono' => '+34600900012', 'email' => 'nora.cmd@ejemplo.local']);
+
+        $cita1 = Cita::create([
+            'negocio_id'           => $negocio->id,
+            'cliente_id'           => $cli1->id,
+            'profesional_id'       => $dueno->id,
+            'servicio_id'          => $servicio->id,
+            'fecha'                => '2026-11-21',
+            'hora_inicio'          => '10:20:00',
+            'hora_fin'             => '11:20:00',
+            'duracion_min'         => 60,
+            'estado'               => 'confirmada',
+            'precio_total'         => 45.00,
+            'recordatorio_enviado' => false,
+        ]);
+
+        try {
+            Carbon::setTestNow(Carbon::create(2026, 11, 20, 10, 0, 0, 'Europe/Madrid'));
+
+            $this->artisan('citas:recordatorios')->assertExitCode(0);
+            $this->artisan('citas:recordar')->assertExitCode(0);
+
+            $cita2 = Cita::create([
+                'negocio_id'           => $negocio->id,
+                'cliente_id'           => $cli2->id,
+                'profesional_id'       => $dueno->id,
+                'servicio_id'          => $servicio->id,
+                'fecha'                => '2026-11-21',
+                'hora_inicio'          => '10:40:00',
+                'hora_fin'             => '11:40:00',
+                'duracion_min'         => 60,
+                'estado'               => 'confirmada',
+                'precio_total'         => 45.00,
+                'recordatorio_enviado' => false,
+            ]);
+
+            $this->artisan('citas:recordar')->assertExitCode(0);
+            $this->artisan('citas:recordatorios')->assertExitCode(0);
+
+            Mail::assertSent(CitaRecordatorioMail::class, 2);
+            $this->assertTrue((bool) $cita1->fresh()->recordatorio_enviado);
+            $this->assertTrue((bool) $cita2->fresh()->recordatorio_enviado);
+
+            // Verificar configuración del Scheduler: únicamente citas:recordatorios en Europe/Madrid
+            $events = app(Schedule::class)->events();
+            $this->assertCount(1, $events);
+            $event = $events[0];
+            $this->assertStringContainsString('citas:recordatorios', (string) $event->command);
+            $this->assertSame('Europe/Madrid', (string) $event->timezone);
+            $this->assertSame('0 * * * *', $event->expression);
+            $this->assertTrue($event->withoutOverlapping);
+            $this->assertSame(30, $event->expiresAt);
         } finally {
             Carbon::setTestNow();
         }

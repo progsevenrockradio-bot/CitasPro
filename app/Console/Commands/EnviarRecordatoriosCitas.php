@@ -5,13 +5,14 @@ namespace App\Console\Commands;
 use App\Mail\CitaRecordatorioMail;
 use App\Models\Cita;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class EnviarRecordatoriosCitas extends Command
 {
     protected $signature   = 'citas:recordatorios';
-    protected $description = 'Envía recordatorios automáticos por correo electrónico a clientes con citas próximas (24h y 1h antes).';
+    protected $description = 'Envía un único recordatorio por correo electrónico por cita (ventana 24h y respaldo 1h).';
 
     public function __construct()
     {
@@ -30,19 +31,21 @@ class EnviarRecordatoriosCitas extends Command
 
         $enviados1h = $this->procesarRecordatorios(
             horasMin: 0,
-            horasMax: 90, // 90 minutos = 1.5h → ventana segura
+            horasMax: 90, // 90 minutos = ventana de respaldo para <24h o reintentos
             etiqueta: '1h',
             minutosMax: 90
         );
 
         $total = $enviados24h + $enviados1h;
-        $this->info("✅ Recordatorios por correo enviados: {$total} (24h: {$enviados24h}, urgentes: {$enviados1h})");
+        $this->info("✅ Recordatorios por correo enviados: {$total} (24h: {$enviados24h}, respaldo 1h: {$enviados1h})");
 
         return 0;
     }
 
     /**
-     * Busca citas en el rango de horas dado y envía recordatorios exclusivamente por correo.
+     * Busca citas elegibles en la ventana indicada y envía como máximo un único
+     * recordatorio por cita usando bloqueo pesimista en BD para evitar duplicados
+     * incluso si citas:recordatorios y citas:recordar coinciden en paralelo.
      */
     private function procesarRecordatorios(
         int $horasMin,
@@ -50,7 +53,6 @@ class EnviarRecordatoriosCitas extends Command
         string $etiqueta,
         ?int $minutosMax = null
     ): int {
-        // Buscar citas confirmadas/pendientes sin recordatorio evaluando en la zona horaria del negocio
         $citas = Cita::with(['cliente', 'servicio', 'negocio', 'profesional'])
             ->whereIn('estado', ['confirmada', 'pendiente'])
             ->where('recordatorio_enviado', false)
@@ -90,18 +92,35 @@ class EnviarRecordatoriosCitas extends Command
                     continue;
                 }
 
-                $this->line("  → Recordatorio {$etiqueta} por correo: Cita #{$cita->id} — {$cita->cliente->nombre} ({$cita->cliente->email})");
+                $enviado = DB::transaction(function () use ($cita, $etiqueta) {
+                    $citaBloqueada = Cita::whereKey($cita->id)
+                        ->lockForUpdate()
+                        ->first();
 
-                Mail::to($cita->cliente->email)->send(new CitaRecordatorioMail($cita, $etiqueta));
+                    if (
+                        !$citaBloqueada
+                        || $citaBloqueada->recordatorio_enviado
+                        || !in_array($citaBloqueada->estado, ['confirmada', 'pendiente'], true)
+                    ) {
+                        return false;
+                    }
 
-                // Marcar como enviado solo cuando el envío por correo fue aceptado sin error
-                $cita->update([
-                    'recordatorio_enviado'    => true,
-                    'recordatorio_enviado_en' => now(),
-                ]);
+                    $this->line("  → Recordatorio {$etiqueta} por correo: Cita #{$citaBloqueada->id} — {$cita->cliente->nombre} ({$cita->cliente->email})");
 
-                $enviados++;
+                    Mail::to($cita->cliente->email)->send(new CitaRecordatorioMail($citaBloqueada, $etiqueta));
 
+                    // Marcar como enviado solo cuando el servidor SMTP aceptó el correo sin error
+                    $citaBloqueada->update([
+                        'recordatorio_enviado'    => true,
+                        'recordatorio_enviado_en' => now(),
+                    ]);
+
+                    return true;
+                });
+
+                if ($enviado) {
+                    $enviados++;
+                }
             } catch (\Throwable $e) {
                 Log::error("EnviarRecordatoriosCitas: Error enviando recordatorio por correo en cita #{$cita->id} — " . $e->getMessage());
                 $this->error("  ✗ Error en cita #{$cita->id}: " . $e->getMessage());

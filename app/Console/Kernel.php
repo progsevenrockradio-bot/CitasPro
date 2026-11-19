@@ -2,7 +2,6 @@
 
 namespace App\Console;
 
-use App\Console\Commands\EnviarRecordatoriosCitas;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
@@ -10,53 +9,63 @@ use Illuminate\Support\Facades\Log;
 class Kernel extends ConsoleKernel
 {
     /**
+     * Zona horaria por defecto para las tareas programadas.
+     */
+    protected function scheduleTimezone(): \DateTimeZone|string|null
+    {
+        return 'Europe/Madrid';
+    }
+
+    /**
      * Define the application's command schedule.
      *
      * Activar en el servidor (crontab -e):
-     *   * * * * * cd /path/to/citaspro && php artisan schedule:run >> /dev/null 2>&1
-     *
-     * En Windows (Task Scheduler) cada minuto ejecutar:
-     *   php C:\laragon\www\CitasPro\artisan schedule:run
+     *   * * * * * docker exec -u 1000 -e HOME=/tmp web-php php /var/www/citaspro/artisan schedule:run >> /DATA/proyectos/citaspro/storage/logs/cron-schedule.log 2>&1
      */
     protected function schedule(Schedule $schedule): void
     {
-        // ── Recordatorios de citas ────────────────────────────────────────────
-        // Ejecuta cada hora para detectar citas en ventana de 24h y 1h
+        // ── Recordatorios de citas por correo (única tarea autorizada activa) ──
+        // Se ejecuta cada hora en horario Europe/Madrid y envía un único aviso
+        // por cita (ventana principal 24h y ventana 1h [0..90m] como respaldo).
         $schedule
             ->command('citas:recordatorios')
+            ->timezone('Europe/Madrid')
             ->hourly()
-            ->between('07:00', '22:00')         // Solo en horario razonable
-            ->withoutOverlapping()               // No ejecutar si ya está corriendo
-            ->onOneServer()                      // En clúster, solo un servidor
+            ->between('07:00', '22:00')
+            ->withoutOverlapping(30)
+            ->onOneServer()
             ->onFailure(function () {
                 Log::error('Scheduler: citas:recordatorios falló.');
             })
             ->appendOutputTo(storage_path('logs/scheduler-recordatorios.log'));
 
-        // ── Resumen diario al staff (08:00 AM) ────────────────────────────────
-        // Notifica a cada profesional sus citas del día via Telegram
-        $schedule
-            ->command('citas:resumen-diario')
-            ->dailyAt('08:00')
-            ->withoutOverlapping()
-            ->onOneServer()
-            ->appendOutputTo(storage_path('logs/scheduler-resumen.log'));
+        // Las tareas siguientes quedan expresamente deshabilitadas por defecto
+        // hasta recibir autorización explícita (p. ej. resumen por Telegram y
+        // purgas automáticas de OTPs/tokens).
+        if ((bool) config('services.scheduler.habilitar_tareas_adicionales', false)) {
+            $schedule
+                ->command('citas:resumen-diario')
+                ->timezone('Europe/Madrid')
+                ->dailyAt('08:00')
+                ->withoutOverlapping(30)
+                ->onOneServer()
+                ->appendOutputTo(storage_path('logs/scheduler-resumen.log'));
 
-        // ── Limpieza de OTPs expirados ────────────────────────────────────────
-        // Elimina códigos OTP vencidos para mantener la tabla limpia
-        $schedule
-            ->command('citas:limpiar-otps')
-            ->daily()
-            ->at('03:00')
-            ->withoutOverlapping()
-            ->appendOutputTo(storage_path('logs/scheduler-limpieza.log'));
+            $schedule
+                ->command('citas:limpiar-otps')
+                ->timezone('Europe/Madrid')
+                ->daily()
+                ->at('03:00')
+                ->withoutOverlapping(30)
+                ->appendOutputTo(storage_path('logs/scheduler-limpieza.log'));
 
-        // ── Limpieza de tokens Sanctum expirados (cada semana) ────────────────
-        $schedule
-            ->command('sanctum:prune-expired --hours=720') // 30 días
-            ->weekly()
-            ->sundays()
-            ->at('04:00');
+            $schedule
+                ->command('sanctum:prune-expired --hours=720')
+                ->timezone('Europe/Madrid')
+                ->weekly()
+                ->sundays()
+                ->at('04:00');
+        }
     }
 
     /**
@@ -68,4 +77,3 @@ class Kernel extends ConsoleKernel
         require base_path('routes/console.php');
     }
 }
-
