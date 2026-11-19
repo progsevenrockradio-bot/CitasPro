@@ -89,6 +89,12 @@ const routes = [
   },
   // ── Autenticación ──────────────────────────────────────────────
   {
+    path: '/mi-cuenta',
+    name: 'MiCuentaCliente',
+    component: () => import('../Pages/Public/MiCuentaCliente.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('../Pages/Auth/Login.vue'),

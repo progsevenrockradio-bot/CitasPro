@@ -55,6 +55,10 @@ class OtpAuthController extends Controller
                 'email',
                 'max:150',
             ],
+            'account_type' => [
+                'sometimes',
+                'in:cliente,negocio',
+            ],
         ], [
             'telefono.regex' => 'El número debe tener formato internacional, ej: +34612345678.',
             'telefono.min'   => 'El número de celular es demasiado corto.',
@@ -129,19 +133,44 @@ class OtpAuthController extends Controller
             $rateLimiterKey = "otp_enviar:tel:{$destinatario}";
         }
 
-        // Bloquear login passwordless directo por OTP para profesionales con contraseña
-        $profesionalExistente = null;
-        if (!empty($request->email)) {
-            $profesionalExistente = Profesional::where('email', strtolower(trim($request->email)))->first();
-        }
-        if (!$profesionalExistente && !empty($request->telefono)) {
-            $profesionalExistente = Profesional::where('telefono', $this->normalizarTelefono($request->telefono))->first();
-        }
-        if ($profesionalExistente && !empty($profesionalExistente->password)) {
+        $accountType = $request->input('account_type');
+
+        if ($accountType === 'negocio') {
             return response()->json([
                 'success' => false,
-                'message' => 'Esta cuenta requiere iniciar sesión con contraseña.',
+                'message' => 'Las cuentas de negocio o profesional deben iniciar sesión con correo y contraseña.',
             ], 403);
+        }
+
+        if ($accountType === 'cliente') {
+            $clienteExiste = false;
+            if (!empty($request->email)) {
+                $clienteExiste = Cliente::where('email', strtolower(trim($request->email)))->exists();
+            }
+            if (!$clienteExiste && !empty($request->telefono)) {
+                $clienteExiste = Cliente::where('telefono', $this->normalizarTelefono($request->telefono))->exists();
+            }
+            if (!$clienteExiste) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No existe una cuenta de cliente registrada con ese correo o teléfono.',
+                ], 404);
+            }
+        } else {
+            // Bloquear login passwordless directo por OTP para profesionales con contraseña
+            $profesionalExistente = null;
+            if (!empty($request->email)) {
+                $profesionalExistente = Profesional::where('email', strtolower(trim($request->email)))->first();
+            }
+            if (!$profesionalExistente && !empty($request->telefono)) {
+                $profesionalExistente = Profesional::where('telefono', $this->normalizarTelefono($request->telefono))->first();
+            }
+            if ($profesionalExistente && !empty($profesionalExistente->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta cuenta requiere iniciar sesión con contraseña.',
+                ], 403);
+            }
         }
 
         // ── Rate Limiting ───────────────────────────────────────
@@ -265,6 +294,7 @@ class OtpAuthController extends Controller
             'apellido'        => ['sometimes', 'string', 'max:100'],
             'nombre_token'    => ['sometimes', 'string', 'max:100'],
             'challenge_token' => ['nullable', 'string', 'max:128'],
+            'account_type'    => ['sometimes', 'in:cliente,negocio'],
         ], [
             'codigo.required' => 'El código de verificación es obligatorio.',
             'codigo.size'     => 'El código debe tener exactamente 6 dígitos.',
@@ -348,9 +378,20 @@ class OtpAuthController extends Controller
                     return ['ok' => false, 'status' => 422, 'reason' => 'invalid', 'intentos_restantes' => $intentosRestantes];
                 }
 
-                $profesional = $telefono
-                    ? Profesional::where('telefono', $telefono)->first()
-                    : Profesional::where('email', $identificador)->first();
+                $accountType = $request->input('account_type');
+                $profesional = null;
+
+                if ($accountType !== 'cliente') {
+                    $profesional = $telefono
+                        ? Profesional::where('telefono', $telefono)->first()
+                        : Profesional::where('email', $identificador)->first();
+                }
+
+                if ($accountType === 'negocio' && !$request->boolean('es_registro')) {
+                    if (!$profesional) {
+                        return ['ok' => false, 'status' => 403, 'reason' => 'not_negocio'];
+                    }
+                }
 
                 if (!$request->boolean('es_registro') && $profesional && !empty($profesional->password)) {
                     if ($otpRecord->tipo !== '2fa' || !$otpRecord->verificarChallenge($request->input('challenge_token'), $profesional->id)) {
@@ -402,6 +443,13 @@ class OtpAuthController extends Controller
 
         if (!$resultado['ok']) {
             RateLimiter::hit($rateLimiterKey, decaySeconds: 300);
+
+            if ($resultado['reason'] === 'not_negocio') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este correo no tiene un perfil de negocio o profesional.',
+                ], 403);
+            }
 
             if ($resultado['reason'] === 'challenge_required') {
                 return response()->json([
@@ -459,6 +507,9 @@ class OtpAuthController extends Controller
                 'expira_en'  => now()->addDays(30)->toIso8601String(),
                 'user'       => [
                     'id'               => $user->id,
+                    'negocio_id'       => $user->negocio_id,
+                    'rol'              => $user->rol,
+                    'type'             => $user->type,
                     'nombre'           => $user->nombre,
                     'apellido'         => $user->apellido,
                     'telefono'         => $user->telefono,
@@ -473,6 +524,13 @@ class OtpAuthController extends Controller
         $cliente = $telefono
             ? Cliente::where('telefono', $telefono)->first()
             : Cliente::where('email', $identificador)->first();
+
+        if (!$cliente && $request->input('account_type') === 'cliente') {
+            return response()->json([
+                'success' => false,
+                'message' => 'No existe una cuenta de cliente registrada con ese correo o teléfono.',
+            ], 404);
+        }
 
         if (!$cliente) {
             $esNuevoCliente = true;
@@ -653,7 +711,7 @@ class OtpAuthController extends Controller
                 'acepta_marketing'      => $user->acepta_marketing,
                 'telefono_verificado'   => $user->telefonoVerificado(),
                 'created_at'            => $user->created_at->toIso8601String(),
-                'total_citas'           => clone $user->citas()->count(),
+                'total_citas'           => $user->citas()->count(),
             ],
             // Para mantener compatibilidad si algo del frontend lo usaba directamente:
             'cliente' => [
@@ -878,12 +936,33 @@ class OtpAuthController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string',
+            'account_type' => 'sometimes|in:cliente,negocio',
         ]);
 
-        $profesional = Profesional::where('email', strtolower(trim($request->email)))->first();
+        if ($request->input('account_type') === 'cliente') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Las cuentas de cliente acceden mediante código de verificación por correo.',
+            ], 422);
+        }
 
-        // Si no existe o contraseña incorrecta
-        if (!$profesional || !\Illuminate\Support\Facades\Hash::check($request->password, $profesional->password)) {
+        $emailNormalizado = strtolower(trim($request->email));
+        $profesional = Profesional::where('email', $emailNormalizado)->first();
+
+        if (!$profesional) {
+            if ($request->input('account_type') === 'negocio' && Cliente::where('email', $emailNormalizado)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este correo pertenece a una cuenta de cliente y no tiene perfil de negocio o profesional.',
+                ], 403);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Credenciales incorrectas.',
+            ], 401);
+        }
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->password, $profesional->password)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Credenciales incorrectas.',
@@ -915,6 +994,8 @@ class OtpAuthController extends Controller
 
             return response()->json([
                 'success' => true,
+                'role' => 'profesional',
+                'account_type' => 'negocio',
                 'requiere_2fa' => true,
                 'challenge_token' => $plainChallenge,
                 'canal' => $canal,
@@ -934,12 +1015,16 @@ class OtpAuthController extends Controller
 
         return response()->json([
             'success' => true,
+            'role' => 'profesional',
             'requiere_2fa' => false,
             'token' => $token->plainTextToken,
             'token_tipo' => 'Bearer',
             'expira_en' => now()->addDays(30)->toIso8601String(),
             'user' => [
                 'id' => $profesional->id,
+                'negocio_id' => $profesional->negocio_id,
+                'rol' => $profesional->rol,
+                'type' => $profesional->type,
                 'nombre' => $profesional->nombre,
                 'apellido' => $profesional->apellido,
                 'telefono' => $profesional->telefono,

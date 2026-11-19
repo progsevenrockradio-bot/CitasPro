@@ -1,7 +1,10 @@
 <template>
   <div class="min-h-screen bg-bg text-text flex">
+    <!-- Overlay móvil -->
+    <div v-if="mobileMenuOpen" @click="mobileMenuOpen = false" class="fixed inset-0 bg-black/60 z-40 md:hidden"></div>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-bg-card backdrop-blur-md border-r border-border hidden md:flex flex-col">
+    <aside :class="['w-64 bg-bg-card backdrop-blur-md border-r border-border flex-col z-50 overflow-y-auto overscroll-contain', mobileMenuOpen ? 'fixed inset-y-0 left-0 flex' : 'hidden md:flex']" aria-label="Menú lateral">
       <div class="p-6 flex items-center gap-3">
         <div v-if="logoNegocio" class="w-8 h-8 rounded-lg overflow-hidden shadow-lg border border-border shrink-0">
           <img :src="logoNegocio" class="w-full h-full object-cover" />
@@ -10,10 +13,13 @@
           <span :class="['font-bold', theme.text]">C</span>
         </div>
         <span class="font-bold text-xl tracking-tight truncate">CitasPro</span>
+        <button type="button" @click="mobileMenuOpen = false" class="md:hidden ml-auto p-1.5 rounded-lg text-text-muted hover:text-white hover:bg-white/10 transition-colors" aria-label="Cerrar menú">
+          <X class="w-5 h-5" />
+        </button>
       </div>
 
 
-      <nav class="flex-1 px-4 space-y-2 mt-2">
+      <nav class="flex-1 px-4 space-y-2 mt-2" @click="$event.target.closest('a') ? (mobileMenuOpen = false) : null">
         <!-- Enlaces dinámicos según el área activa -->
         <template v-if="userProfile?.rol !== 'superadmin'">
           <router-link :to="'/panel/' + areaSeleccionada" class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all" exact-active-class="bg-primary/10 text-primary font-medium" class-active="text-text-muted hover:bg-white/5 hover:text-white">
@@ -108,8 +114,18 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-      <header class="h-16 border-b border-border bg-bg-card/50 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-10">
-        <h1 class="text-lg font-semibold">{{ $route.name }}</h1>
+      <header class="h-16 border-b border-border bg-bg-card/50 backdrop-blur-sm flex items-center justify-between px-4 md:px-6 sticky top-0 z-10">
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            @click="mobileMenuOpen = !mobileMenuOpen"
+            class="md:hidden p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white"
+            aria-label="Abrir menú"
+          >
+            <Menu class="w-5 h-5" />
+          </button>
+          <h1 class="text-lg font-semibold">{{ $route.name }}</h1>
+        </div>
         <div class="flex items-center gap-3">
 
           <LanguageSwitcher />
@@ -124,7 +140,7 @@
 </template>
 
 <script setup>
-import { Calendar, Users, MessageCircle, LogOut, Settings, Scissors, Briefcase, Clock, CreditCard, Star } from 'lucide-vue-next';
+import { Calendar, Users, MessageCircle, LogOut, Settings, Scissors, Briefcase, Clock, CreditCard, Star, Menu, X } from 'lucide-vue-next';
 import { useRouter, useRoute } from 'vue-router';
 import { ref, onMounted, computed, watch } from 'vue';
 import axios from 'axios';
@@ -141,6 +157,8 @@ const areaSeleccionada = ref('pro');
 const bookingUrl = ref(null);
 const logoNegocio = ref(null);
 const copiado = ref(false);
+const mobileMenuOpen = ref(false);
+watch(() => route.fullPath, () => { mobileMenuOpen.value = false; });
 
 const theme = computed(() => {
   const themes = {
@@ -166,6 +184,10 @@ const theme = computed(() => {
 const loadProfile = async () => {
   try {
     const res = await axios.get('/api/auth/me');
+    if (res.data?.role === 'cliente') {
+      router.replace('/mi-cuenta');
+      return;
+    }
     if (res.data.success && res.data.user) {
       userProfile.value = res.data.user;
       esAdminODueno.value = ['dueño', 'admin'].includes(res.data.user.rol);

@@ -1,9 +1,9 @@
 <template>
-  <div v-if="visible" class="fixed bottom-6 left-6 right-6 md:left-auto md:max-w-md z-50 animate-fade-in-up">
+  <div v-if="visible" class="fixed bottom-0 left-0 right-0 md:bottom-6 md:right-6 md:left-auto md:max-w-md z-50 animate-fade-in-up" data-testid="cookie-banner">
     <!-- Main Banner Panel -->
-    <div class="bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl p-6 text-white">
+    <div class="bg-zinc-900/95 backdrop-blur-xl border-t md:border border-zinc-800 rounded-t-2xl md:rounded-2xl shadow-2xl p-3.5 sm:p-5 text-white max-h-[85vh] overflow-y-auto">
       <div v-if="!showConfig">
-        <div class="flex items-center gap-3 mb-3">
+        <div class="flex items-center justify-between gap-2 mb-1.5 sm:mb-3">
           <div class="p-2 bg-blue-500/10 text-blue-400 rounded-lg">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -12,29 +12,29 @@
           <h3 class="text-lg font-semibold font-sans">Control de Cookies</h3>
         </div>
         
-        <p class="text-sm text-zinc-400 mb-5 leading-relaxed">
+        <p class="text-xs sm:text-sm text-zinc-400 mb-3 sm:mb-4 leading-snug sm:leading-relaxed">
           Utilizamos cookies propias y de terceros para optimizar tu experiencia y analizar el uso de nuestra plataforma. Puedes aceptar todas, configurar tus preferencias o rechazar las no esenciales. 
           Lee nuestra 
           <a href="/politica-cookies" class="text-blue-400 hover:text-blue-300 underline" target="_blank">Política de Cookies</a>.
         </p>
 
-        <div class="flex flex-col sm:flex-row gap-3">
+        <div class="flex flex-row gap-2 sm:gap-3">
           <button 
             @click="acceptAll" 
-            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/20 text-sm"
+            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-xl transition-all shadow-lg shadow-blue-600/20 text-xs sm:text-sm"
           >
             Aceptar todas
           </button>
           
           <button 
             @click="acceptEssentialOnly" 
-            class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium py-2.5 px-4 rounded-xl transition-all text-sm border border-zinc-700/50"
+            class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium py-2 px-3 rounded-xl transition-all text-xs sm:text-sm border border-zinc-700/50"
           >
             Rechazar no esenciales
           </button>
         </div>
         
-        <div class="text-center mt-4">
+        <div class="text-center mt-2 sm:mt-3">
           <button 
             @click="showConfig = true" 
             class="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"

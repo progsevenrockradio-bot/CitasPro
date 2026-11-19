@@ -54,7 +54,10 @@
     "inicia_sesion": "Log in",
     "enviado_telefono": "We have sent a code to",
     "verificar_crear": "Verify and Create Account",
-    "reenviar": "Resend code"
+    "reenviar": "Resend code",
+    "soy_cliente": "I am a client",
+    "soy_negocio": "I am a business / pro",
+    "enviar_codigo": "Send access code"
   },
   "sidebar": {
     "agenda": "Calendar",

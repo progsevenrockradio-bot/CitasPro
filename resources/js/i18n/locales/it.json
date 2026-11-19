@@ -54,7 +54,10 @@
     "inicia_sesion": "Accedi",
     "enviado_telefono": "Abbiamo inviato un codice a",
     "verificar_crear": "Verifica e Crea Account",
-    "reenviar": "Invia di nuovo"
+    "reenviar": "Invia di nuovo",
+    "soy_cliente": "Sono un cliente",
+    "soy_negocio": "Sono un'attività / prof.",
+    "enviar_codigo": "Invia codice di accesso"
   },
   "sidebar": {
     "agenda": "Calendario",
