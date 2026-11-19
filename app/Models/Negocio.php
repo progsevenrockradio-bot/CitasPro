@@ -39,6 +39,7 @@ class Negocio extends Model
         'latitud',
         'longitud',
         'horario_apertura',
+        'timezone',
         'duracion_turno_min',
         'anticipacion_min_reserva',
         'cancelacion_limite_horas',
@@ -185,6 +186,11 @@ class Negocio extends Model
     /**
      * Verifica si el plan SaaS está vigente.
      */
+    public function getTimezoneEfectiva(): string
+    {
+        return $this->timezone ?: config('app.timezone', 'Europe/Madrid');
+    }
+
     public function planVigente(): bool
     {
         if ($this->plan === 'free') {

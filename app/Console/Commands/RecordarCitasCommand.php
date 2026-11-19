@@ -128,47 +128,41 @@ class RecordarCitasCommand extends Command
         $horasAntes   = (int) config('services.notificaciones.recordatorio_horas_antes', 24);
         $minutosUrg   = (int) config('services.notificaciones.recordatorio_minutos_urgente', 60);
 
-        // Ventanas de tiempo
-        $ventana24h_inicio = now()->addHours($horasAntes - 1);       // 23h desde ahora
-        $ventana24h_fin    = now()->addHours($horasAntes + 1);       // 25h desde ahora
-        $ventana1h_inicio  = now()->addMinutes($minutosUrg - 30);    // 30min desde ahora
-        $ventana1h_fin     = now()->addMinutes($minutosUrg + 30);    // 90min desde ahora
-
         $query = Cita::query()
             ->with(['cliente', 'servicio', 'negocio', 'profesional'])
             ->where('recordatorio_enviado', false)
             ->whereIn('estado', ['confirmada', 'pendiente'])
-            ->where(function ($q) use ($ventana24h_inicio, $ventana24h_fin, $ventana1h_inicio, $ventana1h_fin) {
-                // Ventana de 24h (recordatorio principal)
-                $q->where(function ($sub) use ($ventana24h_inicio, $ventana24h_fin) {
-                    $sub->whereDate('fecha', '>=', $ventana24h_inicio->toDateString())
-                        ->whereDate('fecha', '<=', $ventana24h_fin->toDateString())
-                        ->whereRaw(
-                            "STR_TO_DATE(CONCAT(fecha, ' ', hora_inicio), '%Y-%m-%d %H:%i:%s') BETWEEN ? AND ?",
-                            [$ventana24h_inicio, $ventana24h_fin]
-                        );
-                })
-                // O ventana de 1h (recordatorio urgente)
-                ->orWhere(function ($sub) use ($ventana1h_inicio, $ventana1h_fin) {
-                    $sub->whereDate('fecha', '>=', $ventana1h_inicio->toDateString())
-                        ->whereDate('fecha', '<=', $ventana1h_fin->toDateString())
-                        ->whereRaw(
-                            "STR_TO_DATE(CONCAT(fecha, ' ', hora_inicio), '%Y-%m-%d %H:%i:%s') BETWEEN ? AND ?",
-                            [$ventana1h_inicio, $ventana1h_fin]
-                        );
-                });
-            });
+            ->whereDate('fecha', '>=', now()->subDay()->toDateString())
+            ->whereDate('fecha', '<=', now()->addDays(3)->toDateString());
 
-        // Filtros opcionales
         if ($citaId) {
             $query->where('id', $citaId);
         }
 
-        if ($soloHoy) {
-            $query->whereDate('fecha', today());
-        }
+        $filtradas = $query->orderBy('fecha')->orderBy('hora_inicio')->get()
+            ->filter(function (Cita $cita) use ($horasAntes, $minutosUrg, $soloHoy) {
+                if (!$cita->negocio || !$cita->cliente || !$cita->servicio || !$cita->profesional) {
+                    return false;
+                }
+                $tz = $cita->negocio->getTimezoneEfectiva();
+                $ahoraNegocio = now($tz);
+                $fechaStr = $cita->fecha instanceof Carbon ? $cita->fecha->format('Y-m-d') : (string) $cita->fecha;
 
-        return $query->orderBy('fecha')->orderBy('hora_inicio')->get();
+                if ($soloHoy && $fechaStr !== $ahoraNegocio->toDateString()) {
+                    return false;
+                }
+
+                $horaInicioCita = Carbon::parse("{$fechaStr} {$cita->hora_inicio}", $tz);
+                $v24Ini = $ahoraNegocio->copy()->addHours($horasAntes - 1);
+                $v24Fin = $ahoraNegocio->copy()->addHours($horasAntes + 1);
+                $v1Ini  = $ahoraNegocio->copy()->addMinutes($minutosUrg - 30);
+                $v1Fin  = $ahoraNegocio->copy()->addMinutes($minutosUrg + 30);
+
+                return $horaInicioCita->between($v24Ini, $v24Fin) || $horaInicioCita->between($v1Ini, $v1Fin);
+            })
+            ->values();
+
+        return new \Illuminate\Database\Eloquent\Collection($filtradas->all());
     }
 
     // ─────────────────────────────────────────────────────────────────────────

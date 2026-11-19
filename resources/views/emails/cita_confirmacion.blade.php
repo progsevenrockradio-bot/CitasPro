@@ -17,6 +17,8 @@ Se ha registrado una nueva cita en tu negocio. Detalles:
 | **Profesional** | {{ $cita->profesional->nombre_completo }} |
 | **Fecha** | {{ $cita->fecha->format('d/m/Y') }} |
 | **Hora** | {{ substr($cita->hora_inicio, 0, 5) }} |
+| **Zona horaria** | {{ $cita->negocio->timezone ?? config('app.timezone', 'Europe/Madrid') }} |
+| **Precio** | {{ number_format((float) $cita->precio_total, 2) }} {{ $cita->moneda ?? 'EUR' }} |
 | **Cliente** | {{ $cita->cliente->nombre_completo }} ({{ $cita->cliente->telefono }}) |
 @if($cita->notas_cliente)
 | **Notas** | {{ $cita->notas_cliente }} |

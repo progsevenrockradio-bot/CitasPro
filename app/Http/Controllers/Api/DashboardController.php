@@ -252,8 +252,10 @@ class DashboardController extends Controller
 
         $type = $request->input('type') ?? $profesional->type;
 
-        $startDate = today()->toDateString();
-        $endDate   = today()->addDays(7)->toDateString();
+        $tz        = $profesional->negocio?->getTimezoneEfectiva() ?? config('app.timezone', 'Europe/Madrid');
+        $hoyNeg    = Carbon::today($tz);
+        $startDate = $hoyNeg->toDateString();
+        $endDate   = $hoyNeg->copy()->addDays(7)->toDateString();
 
         $citasQuery = Cita::where('profesional_id', $profesional->id)
             ->whereBetween('fecha', [$startDate, $endDate])
@@ -300,7 +302,7 @@ class DashboardController extends Controller
             ])->values();
 
         // Resumen rápido del día
-        $hoy         = today();
+        $hoy         = $hoyNeg;
         $hoyStr      = $hoy->toDateString();
         $citasDeHoyQuery = Cita::where('profesional_id', $profesional->id)
             ->whereDate('fecha', $hoy);

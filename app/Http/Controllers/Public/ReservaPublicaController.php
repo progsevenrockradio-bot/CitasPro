@@ -8,6 +8,7 @@ use App\Models\Cliente;
 use App\Models\Negocio;
 use App\Models\Profesional;
 use App\Events\PagoConfirmado;
+use App\Services\AgendaDisponibilidadService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,10 @@ use Illuminate\Support\Facades\DB;
 
 class ReservaPublicaController extends Controller
 {
+    public function __construct(
+        private readonly AgendaDisponibilidadService $disponibilidadService
+    ) {}
+
     /**
      * GET /api/public/{slug}
      * Información pública del negocio para montar la página de reserva.
@@ -51,6 +56,7 @@ class ReservaPublicaController extends Controller
                 'direccion'           => $negocio->direccion,
                 'ciudad'              => $negocio->ciudad,
                 'horario_apertura'    => $negocio->horario_apertura,
+                'timezone'            => $negocio->getTimezoneEfectiva(),
                 'duracion_turno_min'  => $negocio->duracion_turno_min,
                 'booking_mensaje'     => $negocio->booking_mensaje,
                 'categoria'           => $negocio->categoria?->only('id', 'nombre', 'icono', 'color_hex'),
@@ -124,11 +130,21 @@ class ReservaPublicaController extends Controller
     public function disponibilidad(Negocio $negocio, Request $request): JsonResponse
     {
         $request->validate([
-            'fecha'          => 'required|date_format:Y-m-d|after_or_equal:today',
+            'fecha'          => 'required|date_format:Y-m-d',
             'profesional_id' => 'required|exists:profesionales,id',
+            'servicio_id'    => 'sometimes|nullable|integer',
         ]);
 
-        $fecha         = $request->input('fecha');
+        $tz = $negocio->getTimezoneEfectiva();
+        $fecha = $request->input('fecha');
+        if ($fecha < Carbon::now($tz)->toDateString()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No puedes consultar disponibilidad de una fecha pasada.',
+                'errors'  => ['fecha' => ['No puedes consultar disponibilidad de una fecha pasada.']],
+            ], 422);
+        }
+
         $profesionalId = $request->input('profesional_id');
 
         // Verificar que el profesional pertenece al negocio
@@ -137,53 +153,35 @@ class ReservaPublicaController extends Controller
             ->where('activo', true)
             ->firstOrFail();
 
-        // Obtener horario del negocio para ese día de la semana
-        $diaSemana = strtolower(Carbon::parse($fecha)->locale('es')->isoFormat('ddd')); // lun, mar, mié...
-        $horario   = $negocio->horario_apertura[$diaSemana] ?? null;
+        $duracionSlot = max(5, (int) ($negocio->duracion_turno_min ?? 30));
+        $duracionRequerida = $duracionSlot;
+        $capacidad = 1;
 
-        if (!$horario || empty($horario['inicio']) || empty($horario['fin'])) {
-            // Horario por defecto si no está configurado
-            $horaInicio = '09:00';
-            $horaFin    = '19:00';
-        } else {
-            $horaInicio = $horario['inicio'];
-            $horaFin    = $horario['fin'];
+        if ($request->filled('servicio_id')) {
+            $servicio = $negocio->servicios()
+                ->where('id', $request->input('servicio_id'))
+                ->where('activo', true)
+                ->firstOrFail();
+            $duracionRequerida = max(5, (int) $servicio->duracion_min);
+            $capacidad = max(1, (int) ($servicio->max_clientes_simultaneous ?? 1));
         }
 
-        $duracionSlot = $negocio->duracion_turno_min ?? 30;
-
-        // Generar todos los slots del día según el horario del negocio
-        $slots = [];
-        $cursor = Carbon::parse("{$fecha} {$horaInicio}");
-        $fin    = Carbon::parse("{$fecha} {$horaFin}");
-        while ($cursor->copy()->addMinutes($duracionSlot)->lte($fin)) {
-            $slots[] = $cursor->format('H:i');
-            $cursor->addMinutes($duracionSlot);
-        }
-
-        // Obtener horas ocupadas (citas activas del profesional ese día)
-        $ocupados = Cita::where('profesional_id', $profesionalId)
-            ->where('fecha', $fecha)
-            ->whereIn('estado', ['pendiente', 'confirmada', 'en_curso'])
-            ->pluck('hora_inicio')
-            ->map(fn($h) => substr($h, 0, 5))
-            ->toArray();
-
-        // Filtrar slots disponibles
-        $disponibles = array_values(array_diff($slots, $ocupados));
-
-        // Si es hoy, quitar los slots que ya pasaron
-        if ($fecha === now()->toDateString()) {
-            $ahora       = now()->format('H:i');
-            $disponibles = array_values(array_filter($disponibles, fn($h) => $h > $ahora));
-        }
+        $disponibles = $this->disponibilidadService->slotsDisponibles(
+            $negocio,
+            $profesional,
+            $fecha,
+            $duracionRequerida,
+            $capacidad
+        );
 
         return response()->json([
-            'success'       => true,
-            'fecha'         => $fecha,
-            'profesional'   => $profesional->nombre_completo,
-            'duracion_slot' => $duracionSlot,
-            'disponibles'   => $disponibles,
+            'success'           => true,
+            'fecha'             => $fecha,
+            'timezone'          => $tz,
+            'profesional'       => $profesional->nombre_completo,
+            'duracion_slot'     => $duracionSlot,
+            'duracion_servicio' => $duracionRequerida,
+            'disponibles'       => $disponibles,
         ]);
     }
 
@@ -204,7 +202,7 @@ class ReservaPublicaController extends Controller
         $validated = $request->validate([
             'servicio_id'    => 'required|integer',
             'profesional_id' => 'required|exists:profesionales,id',
-            'fecha'          => 'required|date_format:Y-m-d|after_or_equal:today',
+            'fecha'          => 'required|date_format:Y-m-d',
             'hora'           => 'required|date_format:H:i',
             'cliente_nombre' => 'required|string|max:100',
             'cliente_apellido'=> 'sometimes|nullable|string|max:100',
@@ -273,42 +271,75 @@ class ReservaPublicaController extends Controller
             ], 422);
         }
 
-        // Verificar que el slot está disponible (prevención de doble booking)
-        $horaInicio = $validated['hora'] . ':00';
-        $slotOcupado = Cita::where('profesional_id', $profesional->id)
-            ->where('fecha', $validated['fecha'])
-            ->where('hora_inicio', $horaInicio)
-            ->whereIn('estado', ['pendiente', 'confirmada', 'en_curso'])
-            ->exists();
-
-        if ($slotOcupado) {
+        $tzNegocio = $negocio->getTimezoneEfectiva();
+        $duracionServicio = max(5, (int) $servicio->duracion_min);
+        $errorHorario = $this->disponibilidadService->validarSlotParaReserva(
+            $negocio,
+            $profesional,
+            $validated['fecha'],
+            $validated['hora'],
+            $duracionServicio
+        );
+        if ($errorHorario) {
             return response()->json([
                 'success' => false,
-                'message' => 'Lo sentimos, ese horario ya fue reservado. Por favor elige otro.',
-            ], 409);
+                'message' => $errorHorario['message'],
+            ], $errorHorario['status']);
         }
 
+        $horaInicio = $validated['hora'] . ':00';
+        $horaFin = Carbon::parse($validated['fecha'] . ' ' . $horaInicio, $tzNegocio)
+            ->addMinutes($duracionServicio)
+            ->format('H:i:s');
+        $capacidad = max(1, (int) ($servicio->max_clientes_simultaneous ?? 1));
+
         try {
-            $cita = DB::transaction(function () use ($validated, $negocio, $servicio, $profesional, $horaInicio, $plantilla, $requiereHistorial) {
-                // Buscar o crear el cliente por su teléfono
-                $cliente = Cliente::firstOrCreate(
-                    ['telefono' => $validated['cliente_telefono']],
-                    [
+            $resultado = DB::transaction(function () use ($validated, $negocio, $servicio, $profesional, $horaInicio, $horaFin, $capacidad, $plantilla, $requiereHistorial) {
+                $profLocked = Profesional::where('id', $profesional->id)
+                    ->where('negocio_id', $negocio->id)
+                    ->where('activo', true)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$profLocked) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'El profesional seleccionado no está disponible.',
+                    ], 422);
+                }
+
+                if ($this->disponibilidadService->tieneSolapamiento($profLocked->id, $validated['fecha'], $horaInicio, $horaFin, $capacidad)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Lo sentimos, ese horario ya fue reservado o se solapa con otra cita. Por favor elige otro.',
+                    ], 409);
+                }
+
+                // Buscar o crear cliente evitando conflicto unique de email
+                $emailNorm = strtolower(trim($validated['cliente_email']));
+                $cliente = Cliente::where('telefono', $validated['cliente_telefono'])->first();
+                if ($cliente) {
+                    if (empty($cliente->email) && !Cliente::where('email', $emailNorm)->exists()) {
+                        $cliente->update(['email' => $emailNorm]);
+                    }
+                } else {
+                    $cliente = Cliente::where('email', $emailNorm)->first();
+                }
+
+                if (!$cliente) {
+                    $cliente = Cliente::create([
+                        'telefono' => $validated['cliente_telefono'],
                         'nombre'   => $validated['cliente_nombre'],
                         'apellido' => $validated['cliente_apellido'] ?? null,
-                        'email'    => $validated['cliente_email'] ?? null,
+                        'email'    => $emailNorm,
                         'activo'   => true,
-                    ]
-                );
+                    ]);
+                }
 
                 // Vincular el cliente a este negocio en la tabla pivote (si no existe)
                 $negocio->clientes()->syncWithoutDetaching([$cliente->id => [
                     'activo' => true,
                 ]]);
-
-                $horaFin = Carbon::parse($horaInicio)
-                    ->addMinutes($servicio->duracion_min)
-                    ->format('H:i:s');
 
                 // Crear la cita
                 $cita = Cita::create([
@@ -375,8 +406,13 @@ class ReservaPublicaController extends Controller
                 return $cita;
             });
 
-            // Disparar evento CitaCreada → Telegram/Email automático al profesional
-            event(new \App\Events\CitaCreada($cita->load(['cliente', 'servicio', 'profesional'])));
+            if ($resultado instanceof JsonResponse) {
+                return $resultado;
+            }
+            $cita = $resultado;
+
+            // Disparar evento CitaCreada → Telegram/Email automático al profesional y cliente
+            event(new \App\Events\CitaCreada($cita->load(['cliente', 'servicio', 'profesional', 'negocio'])));
 
             return response()->json([
                 'success' => true,
@@ -385,6 +421,7 @@ class ReservaPublicaController extends Controller
                     'codigo_referencia' => $cita->codigo_referencia,
                     'fecha'             => $cita->fecha->format('d/m/Y'),
                     'hora'              => substr($cita->hora_inicio, 0, 5),
+                    'timezone'          => $tzNegocio,
                     'servicio'          => $servicio->nombre,
                     'profesional'       => $profesional->nombre_completo,
                     'negocio'           => $negocio->nombre,

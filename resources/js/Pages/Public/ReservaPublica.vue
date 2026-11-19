@@ -133,6 +133,8 @@
           <div class="flex justify-between"><span class="text-gray-400">{{ $t ? $t('reserva.profesional') : 'Profesional:' }}</span><span class="font-medium">{{ confirmacion.profesional }}</span></div>
           <div class="flex justify-between"><span class="text-gray-400">{{ $t ? $t('reserva.fecha') : 'Fecha:' }}</span><span class="font-medium">{{ confirmacion.fecha }}</span></div>
           <div class="flex justify-between"><span class="text-gray-400">{{ $t ? $t('reserva.hora') : 'Hora:' }}</span><span class="font-medium">{{ confirmacion.hora }}</span></div>
+          <div class="flex justify-between"><span class="text-gray-400">Zona horaria:</span><span class="font-medium">{{ confirmacion.timezone || negocio.timezone || 'Europe/Madrid' }}</span></div>
+          <div class="flex justify-between"><span class="text-gray-400">Precio:</span><span class="font-medium">{{ confirmacion.precio }} {{ confirmacion.moneda || 'EUR' }}</span></div>
           <div class="flex justify-between"><span class="text-gray-400">{{ $t ? $t('reserva.codigo') : 'Código:' }}</span><span class="font-mono text-indigo-300 font-bold">{{ confirmacion.codigo_referencia }}</span></div>
         </div>
 
@@ -186,7 +188,7 @@
             <button
               v-for="p in profesionales"
               :key="p.id"
-              @click="form.profesional_id = p.id; slots = []; form.hora = ''"
+              @click="form.profesional_id = p.id; slots = []; form.hora = ''; if (form.fecha) cargarSlots();"
               :class="[
                 'text-left p-4 rounded-xl border transition-all flex gap-3 items-center',
                 form.profesional_id === p.id
@@ -657,6 +659,7 @@ const cargarSlots = async () => {
       params: {
         fecha: form.value.fecha,
         profesional_id: form.value.profesional_id,
+        servicio_id: form.value.servicio_id,
       },
     });
     if (res.data.success) {

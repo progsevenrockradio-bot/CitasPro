@@ -50,12 +50,9 @@ class Cita extends Model
 
         // Genera el código de referencia único al crear la cita
         static::creating(function (Cita $cita) {
-            $cita->codigo_referencia = 'CIT-' . date('Y') . '-' . str_pad(
-                (static::withTrashed()->count() + 1),
-                5,
-                '0',
-                STR_PAD_LEFT
-            );
+            if (empty($cita->codigo_referencia)) {
+                $cita->codigo_referencia = 'CIT-' . date('Y') . '-' . strtoupper(\Illuminate\Support\Str::random(8));
+            }
         });
     }
 

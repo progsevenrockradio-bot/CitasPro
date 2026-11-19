@@ -52,24 +52,28 @@ class EnviarRecordatoriosCitas extends Command
         string $etiqueta,
         ?int $minutosMax = null
     ): int {
-        $desde = now()->addHours($horasMin);
-        $hasta = $minutosMax
-            ? now()->addMinutes($minutosMax)
-            : now()->addHours($horasMax);
-
-        // Buscar citas confirmadas, sin recordatorio enviado, en el rango de tiempo
+        // Buscar citas confirmadas/pendientes sin recordatorio evaluando en la zona horaria del negocio
         $citas = Cita::with(['cliente', 'servicio', 'negocio', 'profesional'])
             ->whereIn('estado', ['confirmada', 'pendiente'])
             ->where('recordatorio_enviado', false)
-            ->whereDate('fecha', '>=', now()->toDateString())
+            ->whereDate('fecha', '>=', now()->subDay()->toDateString())
             ->get()
-            ->filter(function (Cita $cita) use ($desde, $hasta) {
-                // Construir el datetime de inicio de la cita
+            ->filter(function (Cita $cita) use ($horasMin, $horasMax, $minutosMax) {
+                if (!$cita->negocio || !$cita->cliente || !$cita->servicio || !$cita->profesional) {
+                    return false;
+                }
+                $tz = $cita->negocio->getTimezoneEfectiva();
+                $ahoraNegocio = now($tz);
+                $desde = $ahoraNegocio->copy()->addHours($horasMin);
+                $hasta = $minutosMax
+                    ? $ahoraNegocio->copy()->addMinutes($minutosMax)
+                    : $ahoraNegocio->copy()->addHours($horasMax);
+
                 $fechaStr = $cita->fecha instanceof \Carbon\Carbon
                     ? $cita->fecha->format('Y-m-d')
                     : $cita->fecha;
 
-                $horaInicioCita = \Carbon\Carbon::parse("{$fechaStr} {$cita->hora_inicio}");
+                $horaInicioCita = \Carbon\Carbon::parse("{$fechaStr} {$cita->hora_inicio}", $tz);
 
                 return $horaInicioCita->between($desde, $hasta);
             });
@@ -83,6 +87,11 @@ class EnviarRecordatoriosCitas extends Command
 
         foreach ($citas as $cita) {
             try {
+                if (empty($cita->cliente->telefono)) {
+                    Log::warning("EnviarRecordatoriosCitas: Cita #{$cita->id} sin teléfono; no se envía ni se marca.");
+                    continue;
+                }
+
                 $this->line("  → Recordatorio {$etiqueta}: Cita #{$cita->id} — {$cita->cliente->nombre} ({$cita->cliente->telefono})");
 
                 // Intentar WhatsApp primero, SMS como respaldo
@@ -90,10 +99,16 @@ class EnviarRecordatoriosCitas extends Command
 
                 if (!$enviado) {
                     Log::warning("Recordatorio {$etiqueta}: WhatsApp falló para cita #{$cita->id}, usando SMS.");
-                    $this->sms->enviarRecordatorio($cita);
+                    $enviado = $this->sms->enviarRecordatorio($cita);
                 }
 
-                // Marcar como enviado para evitar duplicados
+                if (!$enviado) {
+                    Log::error("EnviarRecordatoriosCitas: Falló WhatsApp y SMS para cita #{$cita->id}; no se marca como enviado.");
+                    $this->error("  ✗ Falló el envío en cita #{$cita->id}; no se marca como enviado.");
+                    continue;
+                }
+
+                // Marcar como enviado solo cuando algún canal aceptó el envío
                 $cita->update([
                     'recordatorio_enviado'    => true,
                     'recordatorio_enviado_en' => now(),

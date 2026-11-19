@@ -44,6 +44,7 @@ class NegocioController extends Controller
                 'ciudad_id'          => $negocio->ciudad_id,
                 'pais'               => $negocio->pais,
                 'horario_apertura'   => $negocio->horario_apertura,
+                'timezone'           => $negocio->getTimezoneEfectiva(),
                 'duracion_turno_min' => $negocio->duracion_turno_min,
                 'plan'               => $negocio->plan,
                 // ── Reserva Pública ──────────────────────────────
@@ -123,6 +124,7 @@ class NegocioController extends Controller
             'ciudad_id'                 => 'sometimes|nullable|integer|exists:ciudades,id',
             'pais'                      => 'sometimes|nullable|string|max:100',
             'horario_apertura'          => 'sometimes|nullable|array',
+            'timezone'                  => 'sometimes|string|timezone:all',
             'duracion_turno_min'        => 'sometimes|integer|min:5|max:480',
             'anticipacion_min_reserva'  => 'sometimes|integer|min:0',
             'cancelacion_limite_horas'  => 'sometimes|integer|min:0',
