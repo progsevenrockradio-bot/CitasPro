@@ -2,27 +2,25 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\CitaRecordatorioMail;
 use App\Models\Cita;
-use App\Services\WhatsAppService;
-use App\Services\SmsService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class EnviarRecordatoriosCitas extends Command
 {
     protected $signature   = 'citas:recordatorios';
-    protected $description = 'Envía recordatorios automáticos a clientes con citas próximas (24h y 1h antes).';
+    protected $description = 'Envía recordatorios automáticos por correo electrónico a clientes con citas próximas (24h y 1h antes).';
 
-    public function __construct(
-        private readonly WhatsAppService $whatsapp,
-        private readonly SmsService      $sms,
-    ) {
+    public function __construct()
+    {
         parent::__construct();
     }
 
     public function handle(): int
     {
-        $this->info('[' . now()->format('Y-m-d H:i') . '] Iniciando envío de recordatorios...');
+        $this->info('[' . now()->format('Y-m-d H:i') . '] Iniciando envío de recordatorios por correo...');
 
         $enviados24h = $this->procesarRecordatorios(
             horasMin: 23,
@@ -38,13 +36,13 @@ class EnviarRecordatoriosCitas extends Command
         );
 
         $total = $enviados24h + $enviados1h;
-        $this->info("✅ Recordatorios enviados: {$total} (24h: {$enviados24h}, urgentes: {$enviados1h})");
+        $this->info("✅ Recordatorios por correo enviados: {$total} (24h: {$enviados24h}, urgentes: {$enviados1h})");
 
         return 0;
     }
 
     /**
-     * Busca citas en el rango de horas dado y envía recordatorios.
+     * Busca citas en el rango de horas dado y envía recordatorios exclusivamente por correo.
      */
     private function procesarRecordatorios(
         int $horasMin,
@@ -87,28 +85,16 @@ class EnviarRecordatoriosCitas extends Command
 
         foreach ($citas as $cita) {
             try {
-                if (empty($cita->cliente->telefono)) {
-                    Log::warning("EnviarRecordatoriosCitas: Cita #{$cita->id} sin teléfono; no se envía ni se marca.");
+                if (empty($cita->cliente->email) || !filter_var($cita->cliente->email, FILTER_VALIDATE_EMAIL)) {
+                    Log::warning("EnviarRecordatoriosCitas: Cita #{$cita->id} sin correo electrónico válido; no se envía ni se marca.");
                     continue;
                 }
 
-                $this->line("  → Recordatorio {$etiqueta}: Cita #{$cita->id} — {$cita->cliente->nombre} ({$cita->cliente->telefono})");
+                $this->line("  → Recordatorio {$etiqueta} por correo: Cita #{$cita->id} — {$cita->cliente->nombre} ({$cita->cliente->email})");
 
-                // Intentar WhatsApp primero, SMS como respaldo
-                $enviado = $this->whatsapp->enviarRecordatorio($cita);
+                Mail::to($cita->cliente->email)->send(new CitaRecordatorioMail($cita, $etiqueta));
 
-                if (!$enviado) {
-                    Log::warning("Recordatorio {$etiqueta}: WhatsApp falló para cita #{$cita->id}, usando SMS.");
-                    $enviado = $this->sms->enviarRecordatorio($cita);
-                }
-
-                if (!$enviado) {
-                    Log::error("EnviarRecordatoriosCitas: Falló WhatsApp y SMS para cita #{$cita->id}; no se marca como enviado.");
-                    $this->error("  ✗ Falló el envío en cita #{$cita->id}; no se marca como enviado.");
-                    continue;
-                }
-
-                // Marcar como enviado solo cuando algún canal aceptó el envío
+                // Marcar como enviado solo cuando el envío por correo fue aceptado sin error
                 $cita->update([
                     'recordatorio_enviado'    => true,
                     'recordatorio_enviado_en' => now(),
@@ -116,8 +102,8 @@ class EnviarRecordatoriosCitas extends Command
 
                 $enviados++;
 
-            } catch (\Exception $e) {
-                Log::error("EnviarRecordatoriosCitas: Error en cita #{$cita->id} — " . $e->getMessage());
+            } catch (\Throwable $e) {
+                Log::error("EnviarRecordatoriosCitas: Error enviando recordatorio por correo en cita #{$cita->id} — " . $e->getMessage());
                 $this->error("  ✗ Error en cita #{$cita->id}: " . $e->getMessage());
             }
         }

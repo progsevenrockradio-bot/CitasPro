@@ -2,30 +2,18 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\CitaRecordatorioMail;
 use App\Models\Cita;
-use App\Services\WhatsAppService;
-use App\Services\SmsService;
 use App\Services\TelegramService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * RecordarCitasCommand
  *
- * Artisan command que busca citas próximas y envía recordatorios a los clientes.
- * Se ejecuta automáticamente cada hora via el Scheduler de Laravel.
- *
- * Lógica de selección:
- *   - Citas con estado 'confirmada' o 'pendiente'
- *   - Que sean dentro de exactamente 24h (configurable)  
- *   - O que sean dentro de 60 minutos (recordatorio urgente)
- *   - Que aún no hayan recibido recordatorio
- *
- * Estrategia de envío:
- *   1. WhatsApp Cloud API (preferido, costo cero con plantillas)
- *   2. Twilio SMS (respaldo de pago)
- *   3. Email-to-SMS (respaldo gratuito, operador)
+ * Artisan command que busca citas próximas y envía recordatorios por correo electrónico a los clientes.
  *
  * Uso manual:
  *   php artisan citas:recordar
@@ -47,7 +35,7 @@ class RecordarCitasCommand extends Command
     /**
      * @var string
      */
-    protected $description = 'Envía recordatorios de citas próximas via WhatsApp (con fallback a SMS).';
+    protected $description = 'Envía recordatorios de citas próximas por correo electrónico.';
 
     // Contadores para el reporte final
     private int $totalProcesadas  = 0;
@@ -56,8 +44,6 @@ class RecordarCitasCommand extends Command
     private int $totalOmitidas    = 0;
 
     public function __construct(
-        private readonly WhatsAppService $whatsapp,
-        private readonly SmsService      $sms,
         private readonly TelegramService $telegram,
     ) {
         parent::__construct();
@@ -74,11 +60,11 @@ class RecordarCitasCommand extends Command
         $citaId     = $this->option('cita');
         $inicio     = now();
 
-        $this->info("🔔 CitasPro — Motor de Recordatorios");
+        $this->info("🔔 CitasPro — Motor de Recordatorios por Correo");
         $this->info("   Iniciado: " . $inicio->format('Y-m-d H:i:s'));
 
         if ($dryRun) {
-            $this->warn("   ⚠️  Modo DRY-RUN: No se enviarán mensajes reales.");
+            $this->warn("   ⚠️  Modo DRY-RUN: No se enviarán correos reales.");
         }
 
         $this->newLine();
@@ -104,7 +90,7 @@ class RecordarCitasCommand extends Command
         $this->newLine();
         $this->generarReporte($inicio);
 
-        // ── Notificar al dueño del negocio si hubo muchos fallos ─────────────
+        // ── Notificar al dueño del negocio si hubo fallos ────────────────────
         if ($this->totalFallidas > 0 && !$dryRun) {
             $this->alertarFallos();
         }
@@ -191,46 +177,35 @@ class RecordarCitasCommand extends Command
             return;
         }
 
-        // ── Verificar que el cliente tiene teléfono ──────────────────────────
-        if (empty($cliente->telefono)) {
-            $this->warn("     ⚠️  Sin teléfono. Omitido.");
-            Log::warning("RecordarCitasCommand: Cita #{$cita->id} sin teléfono de cliente.");
+        // ── Verificar que el cliente tiene correo electrónico válido ─────────
+        if (empty($cliente->email) || !filter_var($cliente->email, FILTER_VALIDATE_EMAIL)) {
+            $this->warn("     ⚠️  Sin correo electrónico válido. Omitido.");
+            Log::warning("RecordarCitasCommand: Cita #{$cita->id} sin correo electrónico válido de cliente.");
             $this->totalOmitidas++;
             return;
         }
 
-        // ── Intento 1: WhatsApp Cloud API ────────────────────────────────────
-        $enviado = $this->whatsapp->enviarRecordatorio($cita);
+        // ── Envío exclusivo por correo electrónico (sin respaldo WhatsApp/SMS) ──
+        try {
+            Mail::to($cliente->email)->send(new CitaRecordatorioMail($cita));
 
-        if ($enviado) {
-            $this->line("     <fg=green>✓ WhatsApp enviado correctamente.</>");
+            $cita->update([
+                'recordatorio_enviado'    => true,
+                'recordatorio_enviado_en' => now(),
+            ]);
+
+            $this->line("     <fg=green>✓ Recordatorio por correo enviado correctamente.</>");
             $this->totalEnviadas++;
-        } else {
-            // ── Intento 2: SMS (Twilio o Email-to-SMS) ────────────────────────
-            $this->warn("     WhatsApp falló. Intentando SMS de respaldo...");
-            $enviado = $this->sms->enviarRecordatorio($cita);
+        } catch (\Throwable $e) {
+            $this->error("     ✗ Falló envío por correo. No se marca como enviado.");
+            $this->totalFallidas++;
 
-            if ($enviado) {
-                $this->line("     <fg=yellow>~ SMS enviado (respaldo).</>");
-                $this->totalEnviadas++;
-            } else {
-                $this->error("     ✗ Falló WhatsApp Y SMS. Sin recordatorio enviado.");
-                $this->totalFallidas++;
-
-                Log::error("RecordarCitasCommand: Falló recordatorio para cita #{$cita->id}", [
-                    'cliente_id' => $cliente->id,
-                    'telefono'   => $cliente->telefono,
-                ]);
-
-                return; // No marcar como enviado si falló todo
-            }
+            Log::error("RecordarCitasCommand: Falló recordatorio por correo para cita #{$cita->id}", [
+                'cliente_id' => $cliente->id,
+                'email'      => $cliente->email,
+                'error'      => $e->getMessage(),
+            ]);
         }
-
-        // ── Marcar cita como recordada ───────────────────────────────────────
-        $cita->update([
-            'recordatorio_enviado'    => true,
-            'recordatorio_enviado_en' => now(),
-        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -274,7 +249,7 @@ class RecordarCitasCommand extends Command
         }
 
         $mensaje = "⚠️ <b>CitasPro Alert</b>\n\n"
-                 . "El comando <code>citas:recordar</code> tuvo {$this->totalFallidas} fallo(s) al enviar recordatorios.\n"
+                 . "El comando <code>citas:recordar</code> tuvo {$this->totalFallidas} fallo(s) al enviar recordatorios por correo.\n"
                  . "Revisa los logs: <code>storage/logs/laravel.log</code>";
 
         $this->telegram->enviarTextoLibre($adminChatId, $mensaje);

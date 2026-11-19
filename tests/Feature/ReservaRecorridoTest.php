@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\CitaConfirmacionMail;
+use App\Mail\CitaRecordatorioMail;
 use App\Models\Categoria;
 use App\Models\Cita;
 use App\Models\Cliente;
@@ -377,11 +378,9 @@ class ReservaRecorridoTest extends TestCase
             // Reloj adelantado exactamente a 24h antes en Europe/Madrid (2026-11-20 10:00 Europe/Madrid = 09:00 UTC)
             Carbon::setTestNow(Carbon::create(2026, 11, 20, 10, 0, 0, 'Europe/Madrid'));
 
+            // Garantizar que no se activan WhatsApp ni SMS como respaldo
             $wa = Mockery::mock(WhatsAppService::class);
-            $wa->shouldReceive('enviarRecordatorio')
-                ->once()
-                ->with(Mockery::on(fn (Cita $c) => $c->id === $citaActiva->id))
-                ->andReturn(true);
+            $wa->shouldNotReceive('enviarRecordatorio');
 
             $sms = Mockery::mock(SmsService::class);
             $sms->shouldNotReceive('enviarRecordatorio');
@@ -389,15 +388,27 @@ class ReservaRecorridoTest extends TestCase
             $this->app->instance(WhatsAppService::class, $wa);
             $this->app->instance(SmsService::class, $sms);
 
-            // Primera ejecución: envía 1 vez solo a la cita activa
-            Artisan::call('citas:recordatorios');
+            // Primera ejecución: envía recordatorio por correo solo a la cita activa
+            $this->artisan('citas:recordatorios')->assertExitCode(0);
+
+            Mail::assertSent(CitaRecordatorioMail::class, 1);
+            Mail::assertSent(CitaRecordatorioMail::class, function (CitaRecordatorioMail $mail) use ($citaActiva, $clienteAct, $negocio) {
+                $html = $mail->render();
+                return $mail->hasTo($clienteAct->email)
+                    && $mail->cita->id === $citaActiva->id
+                    && str_contains($html, $negocio->nombre)
+                    && str_contains($html, '21/11/2026')
+                    && str_contains($html, '10:00')
+                    && str_contains($html, 'Europe/Madrid');
+            });
 
             $this->assertTrue((bool) $citaActiva->fresh()->recordatorio_enviado);
             $this->assertNotNull($citaActiva->fresh()->recordatorio_enviado_en);
             $this->assertFalse((bool) $citaCancelada->fresh()->recordatorio_enviado);
 
-            // Segunda ejecución: al esperar ->once(), garantiza que no se envía dos veces
-            Artisan::call('citas:recordatorios');
+            // Segunda ejecución: no envía duplicados
+            $this->artisan('citas:recordatorios')->assertExitCode(0);
+            Mail::assertSent(CitaRecordatorioMail::class, 1);
         } finally {
             Carbon::setTestNow();
         }
@@ -409,7 +420,7 @@ class ReservaRecorridoTest extends TestCase
 
         $clienteFail = Cliente::create([
             'nombre'   => 'Fallo',
-            'apellido' => 'Canal',
+            'apellido' => 'Correo',
             'telefono' => '+34600700003',
             'email'    => 'fallo@ejemplo.local',
         ]);
@@ -433,26 +444,52 @@ class ReservaRecorridoTest extends TestCase
         try {
             Carbon::setTestNow(Carbon::create(2026, 11, 20, 10, 0, 0, 'Europe/Madrid'));
 
+            // Garantizar que ni WhatsApp ni SMS actúan como respaldo ante fallo de correo
             $waFail = Mockery::mock(WhatsAppService::class);
-            $waFail->shouldReceive('enviarRecordatorio')
-                ->once()
-                ->with(Mockery::on(fn (Cita $c) => $c->id === $citaFallo->id))
-                ->andReturn(false);
+            $waFail->shouldNotReceive('enviarRecordatorio');
 
             $smsFail = Mockery::mock(SmsService::class);
-            $smsFail->shouldReceive('enviarRecordatorio')
-                ->once()
-                ->with(Mockery::on(fn (Cita $c) => $c->id === $citaFallo->id))
-                ->andReturn(false);
+            $smsFail->shouldNotReceive('enviarRecordatorio');
 
             $this->app->instance(WhatsAppService::class, $waFail);
             $this->app->instance(SmsService::class, $smsFail);
 
-            Artisan::call('citas:recordatorios');
+            // Primer intento: fallo al enviar por correo -> NO se marca como enviado
+            $mailFake = Mail::getFacadeRoot();
+
+            $pendingMail = Mockery::mock();
+            $pendingMail->shouldReceive('send')
+                ->once()
+                ->with(Mockery::type(CitaRecordatorioMail::class))
+                ->andThrow(new \RuntimeException('SMTP connection refused'));
+
+            $failingMailer = Mockery::mock();
+            $failingMailer->shouldReceive('to')
+                ->once()
+                ->with($clienteFail->email)
+                ->andReturn($pendingMail);
+
+            Mail::swap($failingMailer);
+
+            $this->artisan('citas:recordatorios')->assertExitCode(0);
 
             $citaFallo->refresh();
             $this->assertFalse((bool) $citaFallo->recordatorio_enviado);
             $this->assertNull($citaFallo->recordatorio_enviado_en);
+
+            // Segundo intento tras recuperar el correo: restaurar MailFake, reintenta y marca como enviado
+            Mail::swap($mailFake);
+            $this->artisan('citas:recordatorios')->assertExitCode(0);
+
+            Mail::assertSent(CitaRecordatorioMail::class, 1);
+            Mail::assertSent(CitaRecordatorioMail::class, function (CitaRecordatorioMail $mail) use ($citaFallo, $clienteFail) {
+                return $mail->hasTo($clienteFail->email)
+                    && $mail->cita->id === $citaFallo->id;
+            });
+
+            $citaFallo->refresh();
+            $this->assertTrue((bool) $citaFallo->recordatorio_enviado);
+            $this->assertNotNull($citaFallo->recordatorio_enviado_en);
         } finally {
             Carbon::setTestNow();
         }
