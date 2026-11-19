@@ -61,9 +61,7 @@ class ReservaPublicaController extends Controller
                 'booking_mensaje'     => $negocio->booking_mensaje,
                 'categoria'           => $negocio->categoria?->only('id', 'nombre', 'icono', 'color_hex'),
                 'telefonos_adicionales' => $negocio->telefonos_adicionales ?: [],
-                'verification_phone_index' => $negocio->verification_phone_index,
                 'todos_telefonos'     => $negocio->all_phones,
-                'telefono_verificacion' => $negocio->verification_phone,
                 'numero_fiscal'       => $negocio->numero_fiscal,
                 'cobro_online_obligatorio' => $negocio->cobro_online_obligatorio,
                 'metodos_pago'        => [

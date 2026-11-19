@@ -457,4 +457,62 @@ class ReservaRecorridoTest extends TestCase
             Carbon::setTestNow();
         }
     }
+
+    public function test_payload_publico_oculta_config_interna_verificacion_y_agenda_respeta_idioma(): void
+    {
+        try {
+            Carbon::setTestNow(Carbon::create(2026, 11, 19, 9, 0, 0, 'Europe/Madrid'));
+            [$negocio, $dueno, $servicio] = $this->crearEntornoReserva();
+
+            // 1. Payload público no expone flags internos del canal SMS de verificación
+            $resShow = $this->getJson("/api/public/{$negocio->slug}")->assertOk();
+            $negJson = $resShow->json('negocio');
+            $this->assertIsArray($negJson);
+            $this->assertArrayNotHasKey('verification_phone_index', $negJson);
+            $this->assertArrayNotHasKey('telefono_verificacion', $negJson);
+
+            // 2. Agenda respeta el idioma solicitado sin mezclar inglés y español
+            $cliente = Cliente::create([
+                'nombre'   => 'Carlos',
+                'apellido' => 'Martín',
+                'telefono' => '+34600111222',
+                'email'    => 'carlos.idioma@ejemplo.local',
+            ]);
+            Cita::create([
+                'negocio_id'     => $negocio->id,
+                'cliente_id'     => $cliente->id,
+                'profesional_id' => $dueno->id,
+                'servicio_id'    => $servicio->id,
+                'fecha'          => '2026-11-20',
+                'hora_inicio'    => '10:00:00',
+                'hora_fin'       => '11:00:00',
+                'duracion_min'   => 60,
+                'estado'         => 'confirmada',
+                'precio_total'   => 45.00,
+                'moneda'         => 'EUR',
+                'type'           => 'general',
+            ]);
+
+            $token = $dueno->createToken('test-locale')->plainTextToken;
+
+            $labelEs = $this->withToken($token)
+                ->getJson('/api/dashboard/agenda')
+                ->assertOk()
+                ->json('agenda.0.dia_label');
+            $this->assertIsString($labelEs);
+            $this->assertStringContainsStringIgnoringCase('noviembre', $labelEs);
+            $this->assertStringContainsStringIgnoringCase('viernes', $labelEs);
+            $this->assertStringNotContainsStringIgnoringCase('Friday', $labelEs);
+            $this->assertStringNotContainsStringIgnoringCase('November', $labelEs);
+
+            $labelEn = $this->withToken($token)
+                ->getJson('/api/dashboard/agenda?locale=en')
+                ->assertOk()
+                ->json('agenda.0.dia_label');
+            $this->assertSame('Friday, November 20', $labelEn);
+            $this->assertStringNotContainsString(' de ', $labelEn);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
 }

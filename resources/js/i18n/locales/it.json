@@ -80,7 +80,14 @@
     "eliminar": "Elimina",
     "eliminando": "Eliminazione...",
     "si_eliminar": "Sì, Elimina",
-    "cargando": "Caricamento informazioni..."
+    "cargando": "Caricamento informazioni...",
+    "imprimir": "Stampa",
+    "exportar_pdf": "Esporta in PDF",
+    "correo": "Email",
+    "enviar_correo": "Invia tramite email",
+    "editar": "Modifica",
+    "aceptar": "Accetta",
+    "enviar": "Invia"
   },
   "config": {
     "titulo": "Impostazioni Attività",

@@ -66,7 +66,7 @@
 
       <div v-else class="space-y-8">
         <div v-for="dia in agenda" :key="dia.fecha">
-          <h4 :class="['font-bold text-lg border-b border-border/50 pb-2 mb-4', theme.text]">{{ dia.dia_label }}</h4>
+          <h4 :class="['font-bold text-lg border-b border-border/50 pb-2 mb-4', theme.text]">{{ formatDiaLabel(dia.fecha, dia.dia_label) }}</h4>
           <div v-if="dia.citas.length === 0" class="text-text-muted text-sm italic">
             {{ $t('agenda.dia_sin_citas') }}
           </div>
@@ -201,7 +201,21 @@ import ConfirmModal from '../Components/ConfirmModal.vue';
 import ActionBar from '../Components/ActionBar.vue';
 import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+
+const formatDiaLabel = (fechaIso, fallback) => {
+  if (!fechaIso) return fallback || '';
+  const [y, m, d] = String(fechaIso).split('-').map(Number);
+  if (!y || !m || !d) return fallback || fechaIso;
+  const localeMap = { es: 'es-ES', en: 'en-US', it: 'it-IT', pt: 'pt-PT' };
+  const intlLocale = localeMap[locale.value] || 'es-ES';
+  const formatted = new Intl.DateTimeFormat(intlLocale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date(y, m - 1, d));
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+};
 const router = useRouter();
 
 const props = defineProps({
@@ -321,7 +335,7 @@ const fetchAgenda = async () => {
   loadingAgenda.value = true;
   try {
     const response = await axios.get('/api/dashboard/agenda', {
-      params: { type: props.type }
+      params: { type: props.type, locale: locale.value }
     });
     agenda.value = response.data.agenda || [];
     if (metrics.value) {

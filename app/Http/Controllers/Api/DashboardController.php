@@ -254,6 +254,7 @@ class DashboardController extends Controller
 
         $tz        = $profesional->negocio?->getTimezoneEfectiva() ?? config('app.timezone', 'Europe/Madrid');
         $hoyNeg    = Carbon::today($tz);
+        $lang      = $this->resolveLocale($request);
         $startDate = $hoyNeg->toDateString();
         $endDate   = $hoyNeg->copy()->addDays(7)->toDateString();
 
@@ -275,7 +276,7 @@ class DashboardController extends Controller
             ->groupBy(fn ($cita) => $cita->fecha->toDateString())
             ->map(fn ($citasDelDia, $fecha) => [
                 'fecha'       => $fecha,
-                'dia_label'   => Carbon::parse($fecha)->translatedFormat('l d \d\e F'),
+                'dia_label'   => $this->formatDiaLabel((string) $fecha, $lang),
                 'total'       => $citasDelDia->count(),
                 'citas'       => $citasDelDia->map(fn ($c) => [
                     'id'              => $c->id,
@@ -369,7 +370,7 @@ class DashboardController extends Controller
 
         return response()->json([
             'success' => true,
-            'mes'     => now()->translatedFormat('F Y'),
+            'mes'     => ucfirst(now()->locale($this->resolveLocale($request))->translatedFormat('F Y')),
             'kpis' => [
                 'total_citas'    => (int)   $citasMes->total,
                 'completadas'    => (int)   $citasMes->completadas,
@@ -402,6 +403,24 @@ class DashboardController extends Controller
      * si está vinculado, o el propio profesional puede pedir las suyas.
      * Por ahora, usamos el query param profesional_id o el autenticado.
      */
+    private function resolveLocale(Request $request): string
+    {
+        $raw = (string) ($request->query('locale') ?? $request->header('X-Locale', 'es'));
+        $code = strtolower(substr(trim($raw), 0, 2));
+        return in_array($code, ['es', 'en', 'it', 'pt'], true) ? $code : 'es';
+    }
+
+    private function formatDiaLabel(string $fecha, string $lang): string
+    {
+        $c = Carbon::parse($fecha)->locale($lang);
+        $formatted = match ($lang) {
+            'en'    => $c->translatedFormat('l, F j'),
+            'it'    => $c->translatedFormat('l j F'),
+            default => $c->translatedFormat('l d \\d\\e F'),
+        };
+        return mb_strtoupper(mb_substr($formatted, 0, 1, 'UTF-8'), 'UTF-8') . mb_substr($formatted, 1, null, 'UTF-8');
+    }
+
     private function resolverProfesional(Request $request): ?Profesional
     {
         $user = $request->user();

@@ -80,7 +80,14 @@
     "eliminar": "Excluir",
     "eliminando": "Excluindo...",
     "si_eliminar": "Sim, Excluir",
-    "cargando": "Carregando informações..."
+    "cargando": "Carregando informações...",
+    "imprimir": "Imprimir",
+    "exportar_pdf": "Exportar para PDF",
+    "correo": "E-mail",
+    "enviar_correo": "Enviar por e-mail",
+    "editar": "Editar",
+    "aceptar": "Aceitar",
+    "enviar": "Enviar"
   },
   "config": {
     "titulo": "Configuração do Negócio",

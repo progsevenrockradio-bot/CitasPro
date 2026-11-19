@@ -80,7 +80,14 @@
     "eliminar": "Delete",
     "eliminando": "Deleting...",
     "si_eliminar": "Yes, Delete",
-    "cargando": "Loading information..."
+    "cargando": "Loading information...",
+    "imprimir": "Print",
+    "exportar_pdf": "Export to PDF",
+    "correo": "Email",
+    "enviar_correo": "Send by email",
+    "editar": "Edit",
+    "aceptar": "OK",
+    "enviar": "Send"
   },
   "config": {
     "titulo": "Business Settings",

@@ -51,12 +51,10 @@
                     <li class="flex items-center gap-1">
                       <span class="text-gray-400">Principal:</span>
                       <a :href="'tel:' + negocio.telefono" class="text-indigo-300 hover:underline font-semibold">{{ negocio.telefono }}</a>
-                      <span v-if="!negocio.telefonos_adicionales?.length || negocio.verification_phone_index === null || negocio.verification_phone_index === undefined" class="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-[10px]">Verif. SMS</span>
                     </li>
                     <li v-for="(phone, idx) in negocio.telefonos_adicionales" :key="idx" class="flex items-center gap-1">
                       <span class="text-gray-400 capitalize">{{ phone.type === 'mobile' ? 'Móvil' : (phone.type === 'fax' ? 'Fax' : 'Local') }}:</span>
                       <a :href="'tel:' + phone.number" class="text-indigo-300 hover:underline font-semibold">{{ phone.number }}</a>
-                      <span v-if="negocio.verification_phone_index === idx" class="bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded text-[10px]">Verif. SMS</span>
                     </li>
                   </ul>
                 </div>
