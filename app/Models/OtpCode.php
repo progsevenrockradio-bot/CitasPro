@@ -3,21 +3,25 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 /**
- * Modelo OtpCode — almacena los códigos de verificación temporales.
- * Usados para el flujo de login sin contraseña (passwordless OTP).
+ * Modelo OtpCode — almacena los códigos de verificación temporales (hasheados).
  */
 class OtpCode extends Model
 {
     protected $table = 'otp_codes';
+
+    protected $hidden = ['codigo', 'challenge_hash'];
+
+    public ?string $plain_codigo = null;
 
     protected $fillable = [
         'telefono',
         'email',
         'codigo',
         'tipo',
+        'challenge_hash',
+        'profesional_id',
         'usado',
         'intentos',
         'ip_solicitante',
@@ -30,15 +34,16 @@ class OtpCode extends Model
         'expira_en' => 'datetime',
         'usado_en'  => 'datetime',
         'intentos'  => 'integer',
+        'profesional_id' => 'integer',
     ];
 
-    // Máximo de intentos antes de invalidar el código
     const MAX_INTENTOS = 3;
-
-    // Duración del OTP en minutos
     const DURACION_MINUTOS = 10;
 
-    // ─── Scopes ────────────────────────────────────────────────
+    public static function hashValor(string $valor): string
+    {
+        return hash_hmac('sha256', $valor, (string) config('app.key'));
+    }
 
     public function scopeVigente(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
     {
@@ -57,27 +62,16 @@ class OtpCode extends Model
         return $query->where('email', $email);
     }
 
-    // ─── Helpers ───────────────────────────────────────────────
-
-    /**
-     * ¿El código ha expirado?
-     */
     public function estaExpirado(): bool
     {
         return $this->expira_en->isPast();
     }
 
-    /**
-     * ¿Se superó el límite de intentos?
-     */
     public function superioLimiteIntentos(): bool
     {
         return $this->intentos >= self::MAX_INTENTOS;
     }
 
-    /**
-     * ¿El código es válido y puede usarse?
-     */
     public function esValido(): bool
     {
         return !$this->usado
@@ -85,17 +79,27 @@ class OtpCode extends Model
             && !$this->superioLimiteIntentos();
     }
 
-    /**
-     * Incrementa intentos fallidos.
-     */
+    public function verificarCodigo(string $plainCode): bool
+    {
+        return hash_equals((string) $this->codigo, static::hashValor($plainCode));
+    }
+
+    public function verificarChallenge(?string $plainChallenge, int $profesionalId): bool
+    {
+        if (empty($plainChallenge) || empty($this->challenge_hash) || (int) $this->profesional_id !== $profesionalId) {
+            return false;
+        }
+        return hash_equals((string) $this->challenge_hash, static::hashValor($plainChallenge));
+    }
+
     public function registrarIntentoFallido(): void
     {
         $this->increment('intentos');
+        if ($this->fresh()->intentos >= self::MAX_INTENTOS) {
+            $this->update(['usado' => true]);
+        }
     }
 
-    /**
-     * Marca el código como usado.
-     */
     public function marcarComoUsado(): void
     {
         $this->update([
@@ -104,57 +108,68 @@ class OtpCode extends Model
         ]);
     }
 
-    /**
-     * Genera un nuevo código de 6 dígitos.
-     */
     public static function generarCodigo(): string
     {
-        return str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        return str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * Crea un nuevo OTP para el teléfono dado.
-     * Invalida los anteriores del mismo teléfono.
-     */
-    public static function crearParaTelefono(string $telefono, string $tipo = 'login', ?string $ip = null): static
-    {
-        // Invalida los códigos anteriores
-        static::where('telefono', $telefono)
-            ->where('usado', false)
-            ->update(['usado' => true]);
+    public static function crearParaTelefono(
+        ?string $telefono,
+        string $tipo = 'login',
+        ?string $ip = null,
+        ?string $challengeHash = null,
+        ?int $profesionalId = null
+    ): static {
+        if ($telefono !== null) {
+            static::where('telefono', $telefono)
+                ->where('usado', false)
+                ->update(['usado' => true]);
+        }
 
-        return static::create([
+        $plain = static::generarCodigo();
+        $record = static::create([
             'telefono'       => $telefono,
             'email'          => null,
-            'codigo'         => static::generarCodigo(),
+            'codigo'         => static::hashValor($plain),
             'tipo'           => $tipo,
+            'challenge_hash' => $challengeHash,
+            'profesional_id' => $profesionalId,
             'usado'          => false,
             'intentos'       => 0,
             'ip_solicitante' => $ip,
             'expira_en'      => now()->addMinutes(static::DURACION_MINUTOS),
         ]);
+        $record->plain_codigo = $plain;
+        return $record;
     }
 
-    /**
-     * Crea un nuevo OTP para el email dado.
-     * Invalida los anteriores del mismo email.
-     */
-    public static function crearParaEmail(string $email, string $tipo = 'login', ?string $ip = null): static
-    {
-        // Invalida los códigos anteriores
+    public static function crearParaEmail(
+        string $email,
+        string $tipo = 'login',
+        ?string $ip = null,
+        ?string $challengeHash = null,
+        ?int $profesionalId = null
+    ): static {
+        $email = strtolower(trim($email));
+
         static::where('email', $email)
             ->where('usado', false)
             ->update(['usado' => true]);
 
-        return static::create([
+        $plain = static::generarCodigo();
+        $record = static::create([
             'telefono'       => null,
             'email'          => $email,
-            'codigo'         => static::generarCodigo(),
+            'codigo'         => static::hashValor($plain),
             'tipo'           => $tipo,
+            'challenge_hash' => $challengeHash,
+            'profesional_id' => $profesionalId,
             'usado'          => false,
             'intentos'       => 0,
             'ip_solicitante' => $ip,
             'expira_en'      => now()->addMinutes(static::DURACION_MINUTOS),
         ]);
+        $record->plain_codigo = $plain;
+        return $record;
     }
 }

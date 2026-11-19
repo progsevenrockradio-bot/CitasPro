@@ -133,6 +133,7 @@ const requiere2fa = ref(false);
 const canal2fa = ref('email');
 const destinatarioMascara = ref('');
 const codigoOtp = ref('');
+const challengeToken = ref('');
 
 const handleLogin = async () => {
   loading.value = true;
@@ -152,6 +153,7 @@ const handleLogin = async () => {
       requiere2fa.value = true;
       canal2fa.value = res.data.canal;
       destinatarioMascara.value = res.data.destinatario;
+      challengeToken.value = res.data.challenge_token || '';
     } else {
       // Login directo sin 2FA
       localStorage.setItem('token', res.data.token);
@@ -172,6 +174,7 @@ const verificarOtp2fa = async () => {
     const payload = {
       email: form.value.email,
       codigo: codigoOtp.value,
+      challenge_token: challengeToken.value,
       es_registro: false
     };
     

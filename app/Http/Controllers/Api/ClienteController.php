@@ -64,7 +64,10 @@ class ClienteController extends Controller
             return response()->json(['message' => 'Acceso no autorizado.'], 403);
         }
 
-        $cliente = Cliente::findOrFail($id);
+        $cliente = Cliente::where(function ($q) use ($profesional) {
+            $q->whereHas('negocios', fn($nq) => $nq->where('negocios.id', $profesional->negocio_id))
+              ->orWhereHas('citas', fn($cq) => $cq->where('negocio_id', $profesional->negocio_id));
+        })->findOrFail($id);
 
         // Historial de citas en este negocio
         $historialCitas = Cita::with('servicio')

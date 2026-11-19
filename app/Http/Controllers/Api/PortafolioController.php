@@ -228,16 +228,22 @@ class PortafolioController extends Controller
      */
     public function actualizar(Request $request, int $id): JsonResponse
     {
+        $user = $request->user();
         $portafolio = Portafolio::find($id);
 
         if (!$portafolio) {
             return response()->json(['success' => false, 'message' => 'Entrada no encontrada.'], 404);
         }
 
+        $ownerNegocioId = $portafolio->profesional?->negocio_id;
+        if (!$user || (int) $ownerNegocioId !== (int) $user->negocio_id || (!in_array($user->rol, ['dueño', 'admin']) && (int) $portafolio->profesional_id !== (int) $user->id)) {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
+        }
+
         $request->validate([
             'titulo'       => ['nullable', 'string', 'max:200'],
             'descripcion'  => ['nullable', 'string', 'max:1000'],
-            'servicio_id'  => ['nullable', 'integer', 'exists:servicios,id'],
+            'servicio_id'  => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('servicios', 'id')->where('negocio_id', $user->negocio_id)],
             'destacado'    => ['nullable', 'boolean'],
             'publico'      => ['nullable', 'boolean'],
             'orden'        => ['nullable', 'integer', 'min:0'],
@@ -261,12 +267,18 @@ class PortafolioController extends Controller
     /**
      * Elimina una entrada del portafolio y sus archivos del disco.
      */
-    public function eliminar(int $id): JsonResponse
+    public function eliminar(Request $request, int $id): JsonResponse
     {
+        $user = $request->user();
         $portafolio = Portafolio::find($id);
 
         if (!$portafolio) {
             return response()->json(['success' => false, 'message' => 'Entrada no encontrada.'], 404);
+        }
+
+        $ownerNegocioId = $portafolio->profesional?->negocio_id;
+        if (!$user || (int) $ownerNegocioId !== (int) $user->negocio_id || (!in_array($user->rol, ['dueño', 'admin']) && (int) $portafolio->profesional_id !== (int) $user->id)) {
+            return response()->json(['success' => false, 'message' => 'No autorizado.'], 403);
         }
 
         DB::beginTransaction();

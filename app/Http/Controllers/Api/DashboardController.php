@@ -403,52 +403,11 @@ class DashboardController extends Controller
     private function resolverProfesional(Request $request): ?Profesional
     {
         $user = $request->user();
-        if ($user && $user instanceof Profesional) {
+        if ($user instanceof Profesional) {
             return $user;
         }
 
-        $profesionalId = $request->query('profesional_id');
-
-        if ($profesionalId) {
-            return Profesional::where('activo', true)->find($profesionalId);
-        }
-
-        // MODO DEMO: Si no hay profesional activo, intentamos auto-crearlo o recuperarlo.
-        $profesional = Profesional::first();
-        if (!$profesional) {
-            try {
-                $categoria = \App\Models\Categoria::firstOrCreate(
-                    ['id' => 1],
-                    ['nombre' => 'General', 'slug' => 'general', 'activo' => true]
-                );
-                $negocio = \App\Models\Negocio::firstOrCreate(
-                    ['id' => 1],
-                    ['nombre' => 'CitasPro Demo', 'slug' => 'demo', 'categoria_id' => $categoria->id, 'activo' => true]
-                );
-                $profesional = Profesional::firstOrCreate(
-                    ['email' => 'demo@citaspro.com'],
-                    [
-                        'negocio_id'   => $negocio->id,
-                        'nombre'       => 'Maestro',
-                        'apellido'     => 'Demo',
-                        'telefono'     => '+34600111222',
-                        'especialidad' => 'Administrador',
-                        'activo'       => true
-                    ]
-                );
-            } catch (\Exception $e) {
-                // Si la BD da error (ej. SoftDeletes, Duplicate Entry por constraint oculto), 
-                // forzamos a traer cualquier profesional que exista.
-                $profesional = Profesional::withTrashed()->first();
-            }
-        }
-
-        // Asegurar que el profesional de demo siempre tenga el número maestro para pruebas
-        if ($profesional && empty($profesional->telefono)) {
-            $profesional->telefono = '+34600111222';
-            $profesional->save();
-        }
-        return $profesional;
+        return null;
     }
 
     /**
@@ -527,89 +486,7 @@ class DashboardController extends Controller
      */
     private function inyectarDatosDemoSiVacio($profesional)
     {
-        // --- INYECCIÓN DE DATOS DE DEMO MASIVA ---
-        // Solo inyectar en la cuenta demo, no a profesionales reales recién registrados
-        if ($profesional->email !== 'demo@citaspro.com' && $profesional->id !== 1) {
-            return;
-        }
-
-        if (Cita::count() < 10) {
-            try {
-                $cliente1 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000001'], ['nombre' => 'Ana', 'apellido' => 'Gómez']);
-                $cliente2 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000002'], ['nombre' => 'Carlos', 'apellido' => 'Ruiz']);
-                $cliente3 = \App\Models\Cliente::firstOrCreate(['telefono' => '+34600000003'], ['nombre' => 'Laura', 'apellido' => 'Méndez']);
-                
-                $servicio = \App\Models\Servicio::firstOrCreate(
-                    ['negocio_id' => $profesional->negocio_id, 'nombre' => 'Tratamiento VIP'],
-                    ['duracion_minutos' => 60, 'precio' => 45.00, 'activo' => true]
-                );
-
-                // Crear 7 citas pasadas con ingresos (Días anteriores)
-                for ($i = 1; $i <= 7; $i++) {
-                    $cita = Cita::create([
-                        'codigo_referencia' => 'DEMO-PASADA-' . $i,
-                        'negocio_id' => $profesional->negocio_id,
-                        'cliente_id' => ($i % 2 == 0) ? $cliente1->id : $cliente2->id,
-                        'profesional_id' => $profesional->id,
-                        'servicio_id' => $servicio->id,
-                        'fecha' => now()->subDays($i)->format('Y-m-d'),
-                        'hora_inicio' => '10:00:00',
-                        'hora_fin' => '11:00:00',
-                        'duracion_min' => 60,
-                        'estado' => 'completada',
-                        'precio_total' => 45.00,
-                    ]);
-                    Pago::create([
-                        'cita_id' => $cita->id,
-                        'cliente_id' => $cita->cliente_id,
-                        'negocio_id' => $profesional->negocio_id,
-                        'monto' => 45.00,
-                        'monto_total' => 45.00,
-                        'metodo' => 'tarjeta',
-                        'estado' => 'completado',
-                    ]);
-                }
-
-                // Crear 6 citas para HOY
-                $horasHoy = ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00'];
-                foreach ($horasHoy as $index => $horaStr) {
-                    Cita::create([
-                        'codigo_referencia' => 'DEMO-HOY-' . $index,
-                        'negocio_id' => $profesional->negocio_id,
-                        'cliente_id' => ($index % 3 == 0) ? $cliente3->id : $cliente1->id,
-                        'profesional_id' => $profesional->id,
-                        'servicio_id' => $servicio->id,
-                        'fecha' => now()->format('Y-m-d'),
-                        'hora_inicio' => $horaStr . ':00',
-                        'hora_fin' => substr($horaStr, 0, 2) . ':50:00',
-                        'duracion_min' => 50,
-                        'estado' => ($index < 2) ? 'completada' : 'confirmada',
-                        'precio_total' => 45.00,
-                    ]);
-                }
-
-                // Crear 3 citas para MAÑANA
-                $horasManana = ['10:00', '12:00', '16:00'];
-                foreach ($horasManana as $index => $horaStr) {
-                    Cita::create([
-                        'codigo_referencia' => 'DEMO-MANANA-' . $index,
-                        'negocio_id' => $profesional->negocio_id,
-                        'cliente_id' => $cliente2->id,
-                        'profesional_id' => $profesional->id,
-                        'servicio_id' => $servicio->id,
-                        'fecha' => now()->addDays(1)->format('Y-m-d'),
-                        'hora_inicio' => $horaStr . ':00',
-                        'hora_fin' => substr($horaStr, 0, 2) . ':50:00',
-                        'duracion_min' => 50,
-                        'estado' => 'confirmada',
-                        'precio_total' => 45.00,
-                    ]);
-                }
-
-            } catch (\Exception $e) {
-                \Log::error("Error inyectando datos demo: " . $e->getMessage());
-            }
-        }
+        return;
     }
 
     /**

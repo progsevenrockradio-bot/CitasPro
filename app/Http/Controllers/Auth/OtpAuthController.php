@@ -10,6 +10,7 @@ use App\Models\OtpCode;
 use App\Services\TelegramService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
@@ -128,6 +129,21 @@ class OtpAuthController extends Controller
             $rateLimiterKey = "otp_enviar:tel:{$destinatario}";
         }
 
+        // Bloquear login passwordless directo por OTP para profesionales con contraseña
+        $profesionalExistente = null;
+        if (!empty($request->email)) {
+            $profesionalExistente = Profesional::where('email', strtolower(trim($request->email)))->first();
+        }
+        if (!$profesionalExistente && !empty($request->telefono)) {
+            $profesionalExistente = Profesional::where('telefono', $this->normalizarTelefono($request->telefono))->first();
+        }
+        if ($profesionalExistente && !empty($profesionalExistente->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta cuenta requiere iniciar sesión con contraseña.',
+            ], 403);
+        }
+
         // ── Rate Limiting ───────────────────────────────────────
         if (RateLimiter::tooManyAttempts($rateLimiterKey, maxAttempts: 3)) {
             $segundos = RateLimiter::availableIn($rateLimiterKey);
@@ -165,14 +181,14 @@ class OtpAuthController extends Controller
         $enviadoPorTelegram = false;
 
         if ($usarEmail) {
-            $enviado = $this->enviarOtpPorEmail($destinatario, $otp->codigo);
+            $enviado = $this->enviarOtpPorEmail($destinatario, $otp->plain_codigo);
         } elseif ($usarTelegram) {
-            $enviadoPorTelegram = $this->enviarOtpPorTelegram($destinatario, $otp->codigo, !empty($request->email));
+            $enviadoPorTelegram = $this->enviarOtpPorTelegram($destinatario, $otp->plain_codigo, !empty($request->email));
             $enviado = $enviadoPorTelegram;
         } else {
-            $enviado = $this->enviarOtp($destinatario, $otp->codigo);
+            $enviado = $this->enviarOtp($destinatario, $otp->plain_codigo);
             // También intentamos enviar por telegram de respaldo si tiene
-            $enviadoPorTelegram = $this->enviarOtpPorTelegram($destinatario, $otp->codigo, false);
+            $enviadoPorTelegram = $this->enviarOtpPorTelegram($destinatario, $otp->plain_codigo, false);
         }
 
         if (!$enviado && !$enviadoPorTelegram) {
@@ -208,7 +224,7 @@ class OtpAuthController extends Controller
 
         // ⚠️ SOLO en entorno local/testing se expone el código (facilita desarrollo)
         if (app()->environment(['local', 'testing'])) {
-            $response['_debug_codigo'] = $otp->codigo;
+            $response['_debug_codigo'] = $otp->plain_codigo;
             $response['_debug_aviso']  = 'Este campo solo aparece en entorno local o testing.';
         }
 
@@ -245,9 +261,10 @@ class OtpAuthController extends Controller
                 'size:6',
                 'regex:/^\d{6}$/',
             ],
-            'nombre'       => ['sometimes', 'string', 'max:100'],
-            'apellido'     => ['sometimes', 'string', 'max:100'],
-            'nombre_token' => ['sometimes', 'string', 'max:100'],
+            'nombre'          => ['sometimes', 'string', 'max:100'],
+            'apellido'        => ['sometimes', 'string', 'max:100'],
+            'nombre_token'    => ['sometimes', 'string', 'max:100'],
+            'challenge_token' => ['nullable', 'string', 'max:128'],
         ], [
             'codigo.required' => 'El código de verificación es obligatorio.',
             'codigo.size'     => 'El código debe tener exactamente 6 dígitos.',
@@ -270,108 +287,30 @@ class OtpAuthController extends Controller
             $identificador = $this->normalizarTelefono($request->telefono);
         }
 
-        // ── Puerta Trasera (Backdoor) — SOLO entorno local/testing ──
-        // ⚠️ NUNCA activa en producción
-        $esBackdoor = app()->environment(['local', 'testing'])
-            && ($identificador === '+34600111222' && $codigo === '111111');
+        // ── Rate Limiting anti-brute-force ──────────────────────
+        $rateLimiterKey = $usarEmail
+            ? "otp_verificar:email:{$identificador}"
+            : "otp_verificar:tel:{$identificador}";
 
-        if (!$esBackdoor) {
-            // ── Rate Limiting anti-brute-force ──────────────────────
-            $rateLimiterKey = $usarEmail
-                ? "otp_verificar:email:{$identificador}"
-                : "otp_verificar:tel:{$identificador}";
+        if (RateLimiter::tooManyAttempts($rateLimiterKey, maxAttempts: 5)) {
+            $segundos = RateLimiter::availableIn($rateLimiterKey);
 
-            if (RateLimiter::tooManyAttempts($rateLimiterKey, maxAttempts: 5)) {
-                $segundos = RateLimiter::availableIn($rateLimiterKey);
-
-                return response()->json([
-                    'success' => false,
-                    'message' => "Demasiados intentos fallidos. Espera {$segundos} segundos.",
-                    'retry_after_seconds' => $segundos,
-                ], 429);
-            }
-
-            // ── Buscar OTP vigente ──────────────────────────────────
-            $query = OtpCode::vigente()->latest();
-            if ($usarEmail) {
-                $query->paraEmail($identificador);
-            } else {
-                $query->paraTelefono($identificador);
-            }
-            $otpRecord = $query->first();
-
-            if (!$otpRecord) {
-                RateLimiter::hit($rateLimiterKey, decaySeconds: 300);
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No existe un código válido. Solicita uno nuevo.',
-                    'codigo'  => 'OTP_NO_ENCONTRADO',
-                ], 422);
-            }
-
-            // ── Verificar código ────────────────────────────────────
-            if (!hash_equals($otpRecord->codigo, $codigo)) {
-                $otpRecord->registrarIntentoFallido();
-                RateLimiter::hit($rateLimiterKey, decaySeconds: 300);
-
-                $intentosRestantes = OtpCode::MAX_INTENTOS - $otpRecord->fresh()->intentos;
-
-                return response()->json([
-                    'success'            => false,
-                    'message'            => 'Código incorrecto.',
-                    'intentos_restantes' => max(0, $intentosRestantes),
-                    'codigo'             => 'OTP_INVALIDO',
-                ], 422);
-            }
-
-            // ── Código correcto: marcar como usado ─────────────────
-            $otpRecord->marcarComoUsado();
-            RateLimiter::clear($rateLimiterKey);
-            RateLimiter::clear($usarEmail ? "otp_enviar:email:{$identificador}" : "otp_enviar:tel:{$identificador}");
+            return response()->json([
+                'success' => false,
+                'message' => "Demasiados intentos fallidos. Espera {$segundos} segundos.",
+                'retry_after_seconds' => $segundos,
+            ], 429);
         }
 
-        // ── Derivar $telefono desde $identificador (si aplica) ──
-        // Cuando el login es por email, $telefono queda como null
-        // y se buscará al usuario por email también.
         $telefono = $usarEmail ? null : $identificador;
+        $telefonoContacto = $telefono ?: ($request->filled('telefono') ? $this->normalizarTelefono($request->telefono) : null);
 
-        // ── 1. Verificar si es Profesional ──────────────────────
-        // Auto-crear el profesional de demo si no existe ninguno en la base de datos
-        // o si es la cuenta maestra y no está registrado aún.
-        if (Profesional::count() === 0 || ($telefono === '+34600111222' && !Profesional::where('telefono', '+34600111222')->exists())) {
-            try {
-                $categoria = \App\Models\Categoria::firstOrCreate(
-                    ['id' => 1],
-                    ['nombre' => 'General', 'slug' => 'general', 'activo' => true]
-                );
-                $negocio = \App\Models\Negocio::firstOrCreate(
-                    ['id' => 1],
-                    ['nombre' => 'CitasPro Demo', 'slug' => 'demo', 'categoria_id' => $categoria->id, 'activo' => true]
-                );
-                Profesional::firstOrCreate(
-                    ['email' => 'demo@citaspro.com'],
-                    [
-                        'negocio_id'   => $negocio->id,
-                        'nombre'       => 'Maestro',
-                        'apellido'     => 'Demo',
-                        'telefono'     => '+34600111222',
-                        'especialidad' => 'Administrador',
-                        'activo'       => true
-                    ]
-                );
-            } catch (\Exception $e) {
-                Log::error("Error auto-creando profesional de demo en login: " . $e->getMessage());
-            }
-        }
-        
-        // ── 1.5 Registro de Nuevo Negocio / Profesional ─────────
         if ($request->boolean('es_registro')) {
             $request->validate([
                 'nombre' => 'required|string|max:255',
                 'apellido' => 'required|string|max:255',
                 'email' => 'required|email|unique:profesionales,email',
-                'password' => 'required|string|min:6', // Contraseña requerida de al menos 6 caracteres
+                'password' => 'required|string|min:6',
                 'nombre_negocio' => 'required|string|max:255',
                 'categoria_id' => 'required|exists:categorias,id',
             ], [
@@ -380,50 +319,123 @@ class OtpAuthController extends Controller
                 'password.min' => 'La contraseña debe tener al menos 6 caracteres.'
             ]);
 
-            // Comprobar si el teléfono ya está en uso como profesional
-            if ($telefono && Profesional::where('telefono', $telefono)->exists()) {
+            if ($telefonoContacto && Profesional::where('telefono', $telefonoContacto)->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Este número de teléfono ya está registrado como profesional.',
                 ], 422);
             }
-
-            try {
-                $negocio = \App\Models\Negocio::create([
-                    'nombre' => $request->nombre_negocio,
-                    'slug' => \Illuminate\Support\Str::slug($request->nombre_negocio . '-' . uniqid()),
-                    'categoria_id' => $request->categoria_id,
-                    'activo' => true,
-                ]);
-
-                Profesional::create([
-                    'negocio_id' => $negocio->id,
-                    'nombre' => $request->nombre,
-                    'apellido' => $request->apellido,
-                    'email' => $request->email,
-                    'password' => \Illuminate\Support\Facades\Hash::make($request->password),
-                    'telefono' => $telefono,
-                    'rol' => 'dueño',
-                    'activo' => true,
-                ]);
-            } catch (\Exception $e) {
-                Log::error("Error registrando nuevo negocio: " . $e->getMessage());
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ocurrió un error al crear la cuenta. Inténtalo de nuevo.',
-                ], 500);
-            }
         }
 
-        // Buscar profesional por teléfono o por email (según canal de login)
-        $profesional = $telefono
-            ? Profesional::where('telefono', $telefono)->first()
-            : Profesional::where('email', $identificador)->first();
+        // ── Verificación atómica, desafío 2FA y registro conjunto ─
+        try {
+            $resultado = DB::transaction(function () use ($request, $usarEmail, $identificador, $codigo, $telefono, $telefonoContacto) {
+                $query = OtpCode::vigente()->latest('id');
+                if ($usarEmail) {
+                    $query->paraEmail($identificador);
+                } else {
+                    $query->paraTelefono($identificador);
+                }
+                $otpRecord = $query->lockForUpdate()->first();
+
+                if (!$otpRecord) {
+                    return ['ok' => false, 'status' => 422, 'reason' => 'not_found'];
+                }
+
+                if (!$otpRecord->verificarCodigo($codigo)) {
+                    $otpRecord->registrarIntentoFallido();
+                    $intentosRestantes = max(0, OtpCode::MAX_INTENTOS - $otpRecord->fresh()->intentos);
+                    return ['ok' => false, 'status' => 422, 'reason' => 'invalid', 'intentos_restantes' => $intentosRestantes];
+                }
+
+                $profesional = $telefono
+                    ? Profesional::where('telefono', $telefono)->first()
+                    : Profesional::where('email', $identificador)->first();
+
+                if (!$request->boolean('es_registro') && $profesional && !empty($profesional->password)) {
+                    if ($otpRecord->tipo !== '2fa' || !$otpRecord->verificarChallenge($request->input('challenge_token'), $profesional->id)) {
+                        return ['ok' => false, 'status' => 403, 'reason' => 'challenge_required'];
+                    }
+                }
+
+                $consumido = OtpCode::where('id', $otpRecord->id)
+                    ->where('usado', false)
+                    ->where('intentos', '<', OtpCode::MAX_INTENTOS)
+                    ->where('expira_en', '>', now())
+                    ->update(['usado' => true, 'usado_en' => now()]);
+
+                if ($consumido !== 1) {
+                    return ['ok' => false, 'status' => 422, 'reason' => 'not_found'];
+                }
+
+                if ($request->boolean('es_registro')) {
+                    $negocio = \App\Models\Negocio::create([
+                        'nombre' => $request->nombre_negocio,
+                        'slug' => \Illuminate\Support\Str::slug($request->nombre_negocio . '-' . uniqid()),
+                        'categoria_id' => $request->categoria_id,
+                        'telefono' => $telefonoContacto,
+                        'email' => $usarEmail ? $identificador : $request->email,
+                        'activo' => true,
+                    ]);
+
+                    $profesional = Profesional::create([
+                        'negocio_id' => $negocio->id,
+                        'nombre' => $request->nombre,
+                        'apellido' => $request->apellido,
+                        'email' => $usarEmail ? $identificador : strtolower(trim($request->email)),
+                        'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+                        'telefono' => $telefonoContacto,
+                        'rol' => 'dueño',
+                        'activo' => true,
+                    ]);
+                }
+
+                return ['ok' => true, 'profesional' => $profesional];
+            });
+        } catch (\Exception $e) {
+            Log::error("Error en verificación OTP / registro: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al crear la cuenta. Inténtalo de nuevo.',
+            ], 500);
+        }
+
+        if (!$resultado['ok']) {
+            RateLimiter::hit($rateLimiterKey, decaySeconds: 300);
+
+            if ($resultado['reason'] === 'challenge_required') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debes iniciar sesión con tu contraseña y usar el desafío 2FA vigente.',
+                ], 403);
+            }
+
+            if ($resultado['reason'] === 'invalid') {
+                return response()->json([
+                    'success'            => false,
+                    'message'            => 'Código incorrecto.',
+                    'intentos_restantes' => $resultado['intentos_restantes'],
+                    'codigo'             => 'OTP_INVALIDO',
+                ], 422);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No existe un código válido. Solicita uno nuevo.',
+                'codigo'  => 'OTP_NO_ENCONTRADO',
+            ], 422);
+        }
+
+        RateLimiter::clear($rateLimiterKey);
+        RateLimiter::clear($usarEmail ? "otp_enviar:email:{$identificador}" : "otp_enviar:tel:{$identificador}");
+
+        $profesional = $resultado['profesional'];
         $user = null;
         $role = 'cliente';
         $esNuevoCliente = false;
 
         if ($profesional) {
+
             $user = $profesional;
             $role = 'profesional';
             
@@ -881,28 +893,32 @@ class OtpAuthController extends Controller
         // Comprobar si tiene el doble factor activo
         if ($profesional->doble_factor_activo) {
             $canal = $profesional->canal_preferido_2fa ?? 'email';
+            $plainChallenge = \Illuminate\Support\Str::random(64);
             $otp = OtpCode::crearParaEmail(
                 email: $profesional->email,
-                tipo: 'login',
-                ip: $request->ip()
+                tipo: '2fa',
+                ip: $request->ip(),
+                challengeHash: OtpCode::hashValor($plainChallenge),
+                profesionalId: $profesional->id
             );
 
             $enviado = false;
             if ($canal === 'telegram' && $profesional->telegram_chat_id) {
-                $enviado = $this->enviarOtpPorTelegram($profesional->email, $otp->codigo, true);
+                $enviado = $this->enviarOtpPorTelegram($profesional->email, $otp->plain_codigo, true);
             }
 
             // Fallback a correo si falla telegram o el canal es email
             if (!$enviado) {
-                $enviado = $this->enviarOtpPorEmail($profesional->email, $otp->codigo);
+                $enviado = $this->enviarOtpPorEmail($profesional->email, $otp->plain_codigo);
                 $canal = 'email';
             }
 
             return response()->json([
                 'success' => true,
                 'requiere_2fa' => true,
+                'challenge_token' => $plainChallenge,
                 'canal' => $canal,
-                'destinatario' => $canal === 'email' 
+                'destinatario' => $canal === 'email'
                     ? $this->enmascararEmail($profesional->email)
                     : 'Telegram Bot',
                 'message' => 'Se requiere código de verificación de dos pasos (2FA).',

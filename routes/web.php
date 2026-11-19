@@ -62,6 +62,9 @@ Route::view('/dpa', 'legal.dpa')->name('legal.dpa');
 
 // Permitir que el router de la SPA maneje todas las demás rutas web al refrescar (F5)
 Route::fallback(function () {
+    if (request()->is('api/*')) {
+        return response()->json(['message' => 'Not Found'], 404);
+    }
     return view('app');
 });
 

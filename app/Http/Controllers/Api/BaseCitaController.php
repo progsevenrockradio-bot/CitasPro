@@ -79,11 +79,14 @@ class BaseCitaController extends Controller
             'profesional_id' => 'sometimes|exists:profesionales,id',
         ]);
 
-        $servicio = Servicio::findOrFail($validated['servicio_id']);
+        $servicio = Servicio::where('negocio_id', $profesional->negocio_id)->findOrFail($validated['servicio_id']);
 
-        // Obtener o crear el cliente
+        // Obtener o crear el cliente (si viene cliente_id, validar pertenencia al negocio)
         if (!empty($validated['cliente_id'])) {
-            $cliente = Cliente::findOrFail($validated['cliente_id']);
+            $cliente = Cliente::where(function ($q) use ($profesional) {
+                $q->whereHas('negocios', fn($nq) => $nq->where('negocios.id', $profesional->negocio_id))
+                  ->orWhereHas('citas', fn($cq) => $cq->where('negocio_id', $profesional->negocio_id));
+            })->findOrFail($validated['cliente_id']);
         } else {
             $cliente = Cliente::firstOrCreate(
                 ['telefono' => $validated['cliente']['telefono']],
@@ -98,7 +101,17 @@ class BaseCitaController extends Controller
         $horaFin = Carbon::parse($horaInicio)->addMinutes($servicio->duracion_minutos ?? $servicio->duracion_min)->format('H:i:s');
 
         // Asignar el profesional de la cita: el enviado o el autenticado.
-        $targetProfesionalId = $validated['profesional_id'] ?? $profesional->id;
+        if (!empty($validated['profesional_id'])) {
+            $targetProf = Profesional::where('negocio_id', $profesional->negocio_id)
+                ->where('activo', true)
+                ->findOrFail($validated['profesional_id']);
+            if (!in_array($profesional->rol, ['dueño', 'admin']) && $targetProf->id !== $profesional->id) {
+                return response()->json(['message' => 'No tienes permisos para agendar citas a otro profesional.'], 403);
+            }
+            $targetProfesionalId = $targetProf->id;
+        } else {
+            $targetProfesionalId = $profesional->id;
+        }
 
         $cita = Cita::create([
             'negocio_id'       => $profesional->negocio_id,

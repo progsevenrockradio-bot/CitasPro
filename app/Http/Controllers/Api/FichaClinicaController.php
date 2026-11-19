@@ -81,11 +81,25 @@ class FichaClinicaController extends Controller
             return response()->json(['message' => 'Acceso denegado. No tienes autorización para ver el historial clínico de este paciente.'], 403);
         }
 
-        // 2. Traer el historial
-        $fichas = FichaClinica::where('cliente_id', $clienteId)
-            ->with(['profesional:id,nombre,apellido,titulo'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // 2. Traer el historial aislado por negocio o acceso explícitamente compartido
+        $query = FichaClinica::where('cliente_id', $clienteId)
+            ->with(['profesional:id,nombre,apellido,titulo']);
+
+        if ($user instanceof Profesional) {
+            $compartidosPor = PacienteAcceso::where('cliente_id', $clienteId)
+                ->where('profesional_id', $user->id)
+                ->pluck('concedido_por')
+                ->filter();
+
+            $query->where(function ($q) use ($user, $compartidosPor) {
+                $q->whereHas('profesional', fn($pq) => $pq->where('negocio_id', $user->negocio_id));
+                if ($compartidosPor->isNotEmpty()) {
+                    $q->orWhereIn('profesional_id', $compartidosPor);
+                }
+            });
+        }
+
+        $fichas = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'success' => true,
@@ -100,11 +114,24 @@ class FichaClinicaController extends Controller
     public function show(Request $request, $id): JsonResponse
     {
         $user = $request->user();
-        $ficha = FichaClinica::with(['profesional:id,nombre,apellido,titulo'])->findOrFail($id);
+        $ficha = FichaClinica::with(['profesional:id,nombre,apellido,titulo,negocio_id'])->findOrFail($id);
 
-        // Validar accesibilidad
-        if (!$this->hasAccessToPatient($user, $ficha->cliente_id)) {
-            return response()->json(['message' => 'Acceso denegado. No tienes autorización para ver esta ficha clínica.'], 403);
+        if ($user instanceof Cliente) {
+            if ($user->id !== (int) $ficha->cliente_id) {
+                return response()->json(['message' => 'Acceso denegado. No tienes autorización para ver esta ficha clínica.'], 403);
+            }
+        } elseif ($user instanceof Profesional) {
+            $mismoNegocio = (int) ($ficha->profesional?->negocio_id ?? 0) === (int) $user->negocio_id;
+            $accesoCompartido = !$mismoNegocio && PacienteAcceso::where('cliente_id', $ficha->cliente_id)
+                ->where('profesional_id', $user->id)
+                ->where('concedido_por', $ficha->profesional_id)
+                ->exists();
+
+            if ((!$mismoNegocio || !$this->hasAccessToPatient($user, $ficha->cliente_id)) && !$accesoCompartido) {
+                return response()->json(['message' => 'Acceso denegado. No tienes autorización para ver esta ficha clínica.'], 403);
+            }
+        } else {
+            return response()->json(['message' => 'Acceso denegado.'], 403);
         }
 
         return response()->json([
@@ -165,9 +192,12 @@ class FichaClinicaController extends Controller
         }
 
         if ($user instanceof Profesional) {
-            // El dueño del consultorio/clínica siempre tiene acceso a todos los expedientes de su negocio
+            // El dueño/admin solo tiene acceso a expedientes de pacientes de su propio negocio
             if (in_array($user->rol, ['dueño', 'admin'])) {
-                return true;
+                return Cliente::where('id', $clienteId)->where(function ($q) use ($user) {
+                    $q->whereHas('negocios', fn($nq) => $nq->where('negocios.id', $user->negocio_id))
+                      ->orWhereHas('citas', fn($cq) => $cq->where('negocio_id', $user->negocio_id));
+                })->exists();
             }
 
             // Un médico/dentista tiene acceso si ha atendido citas de este paciente
